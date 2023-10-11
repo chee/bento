@@ -1,0 +1,89 @@
+:root {
+	--background: #ffe9ed;
+	--line: #cc3366;
+	--intense: #cc1336;
+	--selection-background:  "#ffee88";
+	--active: #ff2a50;
+	--black: #1e1316;
+	 --blue: #407acd;
+	 --cyan: #22a6cd;
+	 --green: #00aba5;
+	 --magenta: #6d1699;
+	 --red: #ed2b3c;
+	 --yellow: #e59101;
+	 --white: #b8768c;
+	 --bright-black: #543641;
+	 --bright-blue: #3388ff;
+	 --bright-cyan: #2ec2ff;
+	 --bright-green: #01b9a4;
+	 --bright-magenta: #af40cb;
+	 --bright-red: #ff275d;
+	 --bright-yellow: #c9af13;
+	 --bright-white: #e090ae;
+	background: var(--background);
+	color: var(--line);
+	font-family: monospace;
+	font-size: 2em;
+}
+
+body {
+	display: flex;
+	height: 100vh;
+	overflow: hidden;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+po-ui {
+	border: 1px solid;
+}
+
+po-channels {
+	text-align: center;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	border-bottom: 5px solid;
+}
+
+po-channel {
+	cursor: pointer;
+}
+
+po-channel.active {
+	background: var(--line);
+	color: var(--background);
+}
+
+po-steps {
+	text-align: center;
+	display: grid;
+	grid-template-rows: repeat(4, 1fr);
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.5em;
+	padding: 0.5em;
+}
+
+po-step {
+	height: 1em;
+	width: 1em;
+	border: 1px solid;
+	contain: layout;
+}
+
+po-step po-wave {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+po-step.active:after {
+	content: "•";
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom: -0.6em;
+	color: var(--intense);
+}

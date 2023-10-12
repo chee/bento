@@ -9,34 +9,85 @@
 <meta name="application-name" content="www.operator">
 <meta name="apple-mobile-web-app-title" content="Operation 0">
 <po-ui>
+	<po-master-controls>
+		<po-control name="play">
+			▶︎
+		</po-control>
+		<po-control name="pause">
+			⏸︎
+		</po-control>
+		<po-control name="stop">
+			⏹︎
+		</po-control>
+		<po-control size="2" name="bpm" state="12" control-type="slide">
+			120
+		</po-control>
+		<!-- swing -->
+	</po-master-controls>
+	<po-channel-controls>
+		<po-control name="waveform">↥</po-control>
+		<po-control name="length" control-type="slide" state="16">16</po-control>
+		<po-control
+			name="speed"
+			control-type="slide"
+			state="2"
+			state-map="¼× ½× 1× 2× 4×">
+			1×
+		</po-control>
+	</po-channel-controls>
 	<po-channels>
-		<po-channel class="active">1</po-channel>
+		<po-channel selected>1</po-channel>
 		<po-channel>2</po-channel>
 		<po-channel>3</po-channel>
 		<po-channel>4</po-channel>
 	</po-channels>
 	<po-steps>
-		<po-step class="active"><po-wave></po-wave></po-step>
+		<po-step playing on><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 
+		<po-step on><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
+		<po-step><po-wave></po-wave></po-step>
+		<po-step on><po-wave></po-wave></po-step>
+
+		<po-step on><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 
-		<po-step><po-wave></po-wave></po-step>
-		<po-step><po-wave></po-wave></po-step>
-		<po-step><po-wave></po-wave></po-step>
-		<po-step><po-wave></po-wave></po-step>
-
-		<po-step><po-wave></po-wave></po-step>
+		<po-step on><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 		<po-step><po-wave></po-wave></po-step>
 	</po-steps>
-	<po-controls>
-	</po-controls>
+	<po-step-controls>
+		<po-control
+			name="pitch"
+			state="1.0"
+			state-type="number">
+			1.0
+		</po-control>
+		<po-control
+			name="attack"
+			state="0.0"
+			state-type="number">
+			0.0
+		</po-control>
+		<po-control
+			name="release"
+			state="0.0"
+			state-type="number">
+			0.0
+		</po-control>
+		<po-control
+			name="length"
+			state="0.0"
+			state-type="number">
+			1.0
+		</po-control>
+	</po-step-controls>
 </po-ui>
+
 <script type="module" src="script.js"></script>

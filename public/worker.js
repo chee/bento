@@ -7,13 +7,10 @@ let interval
 let Memory
 
 function start() {
-	return setInterval(
-		() => {
-			let step = memory.step.at(0)
-			memory.step.set([wrap(step, 15)])
-		},
-		bpm2mspqn(memory.bpm.at(0))
-	)
+	return setInterval(() => {
+		let step = memory.current_step.at(0)
+		memory.current_step.set([wrap(step, 15)])
+	}, bpm2mspqn(memory.bpm.at(0)))
 }
 
 onmessage = async event => {

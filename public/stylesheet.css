@@ -1,3 +1,8 @@
+@font-face {
+	family: "this-font";
+	src: "font.ttf";
+}
+
 :root {
 	--background: #ffe9ed;
 	--line: #cc3366;
@@ -20,9 +25,10 @@
 	 --bright-red: #ff275d;
 	 --bright-yellow: #c9af13;
 	 --bright-white: #e090ae;
+	 --columns: repeat(4, 1fr);
 	background: var(--background);
 	color: var(--line);
-	font-family: monospace;
+	font-family: this-font, iosevka, monospace;
 	font-size: 2em;
 }
 
@@ -37,6 +43,36 @@ body {
 
 po-ui {
 	border: 1px solid;
+	user-select: none;
+}
+
+po-master-controls {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	text-align: center;
+	align-items: center;
+}
+
+po-control {
+	font-size: 0.8em;
+	line-height: 1.5em;
+}
+
+po-control, po-channel, po-step {
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+po-control[control-type="slide"] {
+	cursor: row-resize;
+}
+
+po-channel-controls {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	text-align: center;
+	background: var(--line);
+	color: var(--background);
 }
 
 po-channels {
@@ -50,7 +86,7 @@ po-channel {
 	cursor: pointer;
 }
 
-po-channel.active {
+po-channel[selected] {
 	background: var(--line);
 	color: var(--background);
 }
@@ -79,11 +115,36 @@ po-step po-wave {
 	bottom: 0;
 }
 
-po-step.active:after {
+po-step[selected] {
+	box-shadow: -2px -2px 0 0 var(--background),
+					02px 02px 0 0 var(--background),
+					-2px 02px 0 0 var(--background),
+					02px -2px 0 0 var(--background),
+					-3px -3px 0 0 var(--line),
+					03px 03px 0 0 var(--line),
+					-3px 03px 0 0 var(--line),
+					03px -3px 0 0 var(--line);
+	border-color: var(--line);
+}
+
+po-step[on] {
+	color: var(--background);
+	background: var(--line);
+}
+
+po-step[playing]:after {
 	content: "•";
 	position: absolute;
 	left: 50%;
 	transform: translateX(-50%);
 	bottom: -0.6em;
-	color: var(--intense);
+	color: currentColor:
+}
+
+po-step-controls {
+	font-size: 0.5em;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 0.5em;
+	display: none;
 }

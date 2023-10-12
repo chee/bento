@@ -2,6 +2,14 @@ import * as Memory from "./memory.js"
 let channels = document.querySelectorAll("po-channel")
 let steps = document.querySelectorAll("po-step")
 let buffer = new SharedArrayBuffer(Memory.size)
+/**
+ * @typedef {Object} MemoryMap
+ * @property {Int8Array} MemoryMap.channel
+ * @property {Int8Array} MemoryMap.step
+ * @property {Uint16Array} MemoryMap.bpm
+ * @property {Float32Array} MemoryMap.size
+ * @type {MemoryMap}
+ */
 let memory = Memory.map(buffer)
 
 memory.bpm.set([120])

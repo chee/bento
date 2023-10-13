@@ -69,14 +69,9 @@ class Operator extends AudioWorkletProcessor {
 
 		for (let channel of channels.filter(c => c.playing)) {
 			if (channel.point >= channel.length) {
-				channel.point = 0
 				channel.playing = false
 			} else {
 				let sub = channel.sound.subarray(channel.point, channel.point + 128)
-				if (channel.index == 3) {
-					console.log(sub.map(i => i))
-				}
-
 				outs.push(sub)
 			}
 			channel.point += 128

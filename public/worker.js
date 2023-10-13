@@ -1,6 +1,6 @@
 let wrap = (n, top, bottom = 0) => (++n > top ? bottom : n)
 let bpm2mspqn = bpm => 60000 / bpm / 4
-let bpm2tick = bpm => bpm2mspqn(bpm) / 16
+let bpm2tick = bpm => bpm2mspqn(bpm) / 8
 
 let buffer
 let memory
@@ -27,6 +27,7 @@ function next() {
 	if (step != Memory.currentStep(memory)) {
 		Memory.currentStep(memory, step)
 	}
+
 	setTimeout(next, bpm2tick(Memory.bpm(memory)))
 }
 
@@ -54,7 +55,7 @@ onmessage = async event => {
 	if (message.type == "memory") {
 		buffer = message.buffer
 		memory = Memory.map(buffer)
-		Memory.bpm(memory, 96)
+		Memory.bpm(memory, 120)
 		next()
 	} else {
 		messages.push(message)

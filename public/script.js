@@ -1,6 +1,7 @@
 import * as elements from "./elements.js"
 elements.register()
-import unmute from "./unmute.js"
+import * as sound from "./sound.js"
+
 import * as Memory from "./memory.js"
 let ui = document.querySelector("po-ui")
 let channelGroup = ui.querySelector("po-channels")
@@ -8,21 +9,9 @@ let channels = channelGroup.querySelectorAll("po-channel")
 let stepGroup = ui.querySelector("po-steps")
 let steps = stepGroup.querySelectorAll("po-step")
 let buffer = new SharedArrayBuffer(Memory.size)
-
-// temporary until audioworklet
-let audios = document.querySelectorAll("audio")
-
-/**
- * @typedef {Object} MemoryMap
- * @property {Int8Array} MemoryMap.channel
- * @property {Int8Array} MemoryMap.step
- * @property {Uint16Array} MemoryMap.bpm
- * @property {Float32Array} MemoryMap.size
- * @type {MemoryMap}
- */
 let memory = Memory.map(buffer)
-let bpmElement = ui.querySelector('po-control[name="bpm"]')
 
+ui.addEventListener("click", () => sound.start(memory), {once: true})
 channels.forEach((channel, index) => {
 	if (channel.selected) {
 		memory.selected_channel.set([index])
@@ -45,14 +34,13 @@ function update() {
 	})
 
 	steps.forEach((stepElement, index) => {
-		let selected_step = memory.selected_step.at(0)
-		if (index == selected_step) {
+		if (index == Memory.selectedStep(memory)) {
 			stepElement.selected = true
 		} else {
 			stepElement.selected = false
 		}
-		let current_step = memory.current_step.at(0)
-		if (index == current_step) {
+
+		if (index == Memory.currentStep(memory)) {
 			stepElement.playing = true
 		} else {
 			stepElement.playing = false
@@ -88,32 +76,6 @@ steps.forEach((step, index) => {
 		memory[`channel${Memory.selectedChannel(memory)}step${index}on`].set([0])
 	})
 })
-
-let unmuted = false
-let context = new AudioContext()
-ui.addEventListener("click", () => {
-	if (unmuted) return
-	unmuted = true
-	unmute(context, true, true)
-})
-let lastStep = -1
-setInterval(function () {
-	let step = Memory.currentStep(memory)
-	let toplay = []
-	for (let channel of [0, 1, 2, 3]) {
-		if (step != lastStep && lastStep > -1) {
-			if (memory[`channel${channel}step${step}on`].at(0)) {
-				toplay.push(audios[channel])
-			}
-		}
-	}
-	let audio
-	while ((audio = toplay.shift())) {
-		audio.currentTime = 0
-		audio.play()
-	}
-	lastStep = step
-}, 0)
 
 let worker = new Worker("worker.js")
 worker.postMessage({type: "memory", buffer})

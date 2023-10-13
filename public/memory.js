@@ -52,3 +52,75 @@ export function map(buffer) {
 	}
 	return memory
 }
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} val
+ * @returns {number}
+ */
+export function selectedChannel(memory, val) {
+	if (typeof val == "number") {
+		memory.selected_channel.set([val])
+	}
+	return memory.selected_channel.at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} val
+ * @returns {number}
+ */
+export function currentStep(memory, val) {
+	if (typeof val == "number") {
+		memory.current_step.set([val])
+	}
+	return memory.current_step.at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} val
+ * @returns {number}
+ */
+export function selectedStep(memory, val) {
+	if (typeof val == "number") {
+		memory.selected_step.set([val])
+	}
+	return memory.selected_step.at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {boolean} val
+ * @returns {boolean}
+ */
+export function playing(memory, val) {
+	if (typeof val == "boolean") {
+		memory.playing.set([Number(val)])
+	}
+	return Boolean(memory.playing.at(0))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} val
+ * @returns {number}
+ */
+export function bpm(memory, val) {
+	if (typeof val == "number") {
+		memory.bpm.set([val])
+	}
+	return memory.bpm.at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} val
+ * @returns {number}
+ */
+export function swing(memory, val) {
+	if (typeof val == "number") {
+		memory.swing.set([val])
+	}
+	return memory.swing.at(0)
+}

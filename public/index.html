@@ -8,30 +8,34 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="www.operator">
 <meta name="apple-mobile-web-app-title" content="Operation 0">
+<audio src="samples/tkk.wav" id="tkk"></audio>
+<audio src="samples/tks.wav" id="tks"></audio>
+<audio src="samples/tkh.wav" id="tkh"></audio>
+<audio src="samples/tko.wav" id="tko"></audio>
 <po-ui>
 	<po-master-controls>
-		<po-control name="play">
+		<po-control name="play" control-type="simple-button">
 			▶︎
 		</po-control>
-		<po-control name="pause">
+		<po-control name="pause" control-type="simple-button">
 			⏸︎
 		</po-control>
-		<po-control name="stop">
+		<po-control name="stop" control-type="simple-button">
 			⏹︎
 		</po-control>
-		<po-control size="2" name="bpm" state="12" control-type="slide">
+		<po-control name="bpm" value="120" control-type="slide">
 			120
 		</po-control>
 		<!-- swing -->
 	</po-master-controls>
 	<po-channel-controls>
 		<po-control name="waveform">↥</po-control>
-		<po-control name="length" control-type="slide" state="16">16</po-control>
+		<po-control name="length" control-type="slide" value="16">16</po-control>
 		<po-control
 			name="speed"
 			control-type="slide"
-			state="2"
-			state-map="¼× ½× 1× 2× 4×">
+			value="2"
+			value-map="¼× ½× 1× 2× 4×">
 			1×
 		</po-control>
 	</po-channel-controls>
@@ -65,26 +69,26 @@
 	<po-step-controls>
 		<po-control
 			name="pitch"
-			state="1.0"
-			state-type="number">
+			value="1.0"
+			value-type="number">
 			1.0
 		</po-control>
 		<po-control
 			name="attack"
-			state="0.0"
-			state-type="number">
+			value="0.0"
+			value-type="number">
 			0.0
 		</po-control>
 		<po-control
 			name="release"
-			state="0.0"
-			state-type="number">
+			value="0.0"
+			value-type="number">
 			0.0
 		</po-control>
 		<po-control
 			name="length"
-			state="0.0"
-			state-type="number">
+			value="0.0"
+			value-type="number">
 			1.0
 		</po-control>
 	</po-step-controls>

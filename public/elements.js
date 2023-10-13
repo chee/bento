@@ -4,6 +4,13 @@ class PocketElement extends HTMLElement {
 		if (observed) {
 			for (let attribute of observed) {
 				let val = this.getAttribute(attribute)
+				if (attribute == "control-type") {
+					if (val == "simple-button") {
+						this.addEventListener("click", () => {
+							this.dispatchEvent(new CustomEvent(this.event))
+						})
+					}
+				}
 				if (val === "" || val == attribute || val === true) {
 					this.values[attribute] = true
 				} else if (val) {

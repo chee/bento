@@ -23,9 +23,13 @@ export async function start(buffer) {
 	unmute(context, true, true)
 	let memory = Memory.map(buffer)
 	Memory.sound(memory, 0, kick)
+	Memory.soundLength(memory, 0, kick.byteLength)
 	Memory.sound(memory, 1, snar)
+	Memory.soundLength(memory, 1, snar.byteLength)
 	Memory.sound(memory, 2, hhat)
+	Memory.soundLength(memory, 2, hhat.byteLength)
 	Memory.sound(memory, 3, open)
+	Memory.soundLength(memory, 3, open.byteLength)
 	let operator = new AudioWorkletNode(context, "operator", {
 		processorOptions: {buffer},
 	})

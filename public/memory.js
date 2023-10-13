@@ -29,6 +29,10 @@ export let arrays = [
 	{name: `channel1sound`, type: Float32Array, size: 120000},
 	{name: `channel2sound`, type: Float32Array, size: 120000},
 	{name: `channel3sound`, type: Float32Array, size: 120000},
+	{name: `channel0soundlength`, type: Uint32Array, size: 1},
+	{name: `channel1soundlength`, type: Uint32Array, size: 1},
+	{name: `channel2soundlength`, type: Uint32Array, size: 1},
+	{name: `channel3soundlength`, type: Uint32Array, size: 1},
 	...chanopts.flat(),
 ]
 
@@ -136,8 +140,22 @@ export function swing(memory, val) {
  * @returns {Float32Array}
  */
 export function sound(memory, channel, sound) {
+	// TODO instanceof
 	if (typeof sound != "undefined") {
 		memory[`channel${channel}sound`].set(sound)
 	}
 	return memory[`channel${channel}sound`]
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} length
+ * @returns {number}
+ */
+export function soundLength(memory, channel, length) {
+	if (typeof length == "number") {
+		memory[`channel${channel}soundlength`].set([length])
+	}
+	return memory[`channel${channel}soundlength`].at(0)
 }

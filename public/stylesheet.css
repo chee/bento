@@ -42,7 +42,6 @@ body {
 }
 
 po-ui {
-	border: 1px solid;
 	user-select: none;
 }
 
@@ -79,7 +78,6 @@ po-channels {
 	text-align: center;
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	border-bottom: 5px solid;
 }
 
 po-channel {
@@ -92,6 +90,7 @@ po-channel[selected] {
 }
 
 po-steps {
+	border: 1px solid;
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -146,5 +145,22 @@ po-step-controls {
 	display: flex;
 	justify-content: space-between;
 	padding: 0 0.5em;
+}
+
+
+
+/** hidden until implemented **/
+po-step-controls,
+[name="bpm"],
+po-channel-controls {
 	display: none;
+}
+
+po-master-controls {
+	grid-template-columns: repeat(3, 1fr);
+	margin-bottom: 0.5em;
+}
+
+po-channels {
+	padding-bottom: 0.5em;
 }

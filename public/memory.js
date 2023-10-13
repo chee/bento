@@ -3,7 +3,6 @@ const chanopts = Array.from(Array(4), (_, channel) => [
 	{name: `channel${channel}length`, type: Uint8Array, size: 1},
 	// 0, 1, 2, 3, 4 (default 2)
 	{name: `channel${channel}speed`, type: Uint8Array, size: 1},
-	//{name: `chan${index}sample`, type: Float32Array, size: Infinity lmao},
 	...Array.from(Array(16), (_, step) => [
 		{name: `channel${channel}step${step}on`, type: Int8Array, size: 1},
 		{name: `channel${channel}step${step}pitch`, type: Int8Array, size: 1},
@@ -25,6 +24,11 @@ export let arrays = [
 	{name: "swing", type: Uint8Array, size: 1},
 	{name: "space", type: Uint8Array, size: 2},
 	{name: "frame", type: Float32Array, size: 128},
+	// 2.5 seconds at 48000hz
+	{name: `channel0sound`, type: Float32Array, size: 120000},
+	{name: `channel1sound`, type: Float32Array, size: 120000},
+	{name: `channel2sound`, type: Float32Array, size: 120000},
+	{name: `channel3sound`, type: Float32Array, size: 120000},
 	...chanopts.flat(),
 ]
 
@@ -123,4 +127,17 @@ export function swing(memory, val) {
 		memory.swing.set([val])
 	}
 	return memory.swing.at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {Float32Array} sound
+ * @returns {Float32Array}
+ */
+export function sound(memory, channel, sound) {
+	if (typeof sound != "undefined") {
+		memory[`channel${channel}sound`].set(sound)
+	}
+	return memory[`channel${channel}sound`]
 }

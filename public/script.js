@@ -11,7 +11,7 @@ let steps = stepGroup.querySelectorAll("po-step")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-ui.addEventListener("click", () => sound.start(memory), {once: true})
+ui.addEventListener("click", () => sound.start(buffer), {once: true})
 channels.forEach((channel, index) => {
 	if (channel.selected) {
 		memory.selected_channel.set([index])

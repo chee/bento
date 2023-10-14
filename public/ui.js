@@ -123,23 +123,23 @@ speedSelector.addEventListener("change", event => {
 	)
 })
 
-function printPattern() {
-	let output = ""
-	output += Memory.bpm(memory) + "\n\n"
+function getPattern() {
+	let pattern = ""
+	pattern += Memory.bpm(memory) + "\n\n"
 	for (let cidx of [0, 1, 2, 3]) {
-		output += Memory.channelSpeed(memory, cidx) + "\n"
+		pattern += Memory.channelSpeed(memory, cidx) + "\n"
 		for (let sidx of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
 			// if i use unicode chars for this, i can create a bitmask to store a huge
 			// amount of data in a single character.
 			// maybe it should be emoji
-			output += Memory.stepOn(memory, cidx, sidx) ? "■ " : "□ "
+			pattern += Memory.stepOn(memory, cidx, sidx) ? "■ " : "□ "
 			if (!((sidx + 1) % 4)) {
-				output += "\n"
+				pattern += "\n"
 			}
 		}
-		output += "\n"
+		pattern += "\n"
 	}
-	console.log(output)
+	return pattern
 }
 
 function loadPattern(pattern) {
@@ -157,5 +157,5 @@ function loadPattern(pattern) {
 	})
 }
 
-globalThis.printPattern = printPattern
+globalThis.getPattern = getPattern
 globalThis.loadPattern = loadPattern

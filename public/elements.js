@@ -1,3 +1,5 @@
+// TODO this whole file is unnecesary
+
 class PocketElement extends HTMLElement {
 	connectedCallback() {
 		let observed = this.constructor.observedAttributes

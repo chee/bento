@@ -1,14 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-ca">
-	<meta charset="utf-8">
+	<meta charset="utf-8" />
 	<title>www.operator</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="stylesheet.css">
-	<meta name="theme-color" content="#ffe9ed">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="application-name" content="www.operator">
-	<meta name="apple-mobile-web-app-title" content="Operation 0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="stylesheet.css" />
+	<meta name="theme-color" content="#ffe9ed" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="application-name" content="www.operator" />
+	<meta name="apple-mobile-web-app-title" content="Operation 0" />
+	<!-- TODO these custom elements are unnecesary -->
 	<po-ui>
 		<po-waveform></po-waveform>
 		<po-master-controls>
@@ -22,7 +23,8 @@
 					max="240"
 					min="20"
 					value="120"
-					autocomplete="off">
+					autocomplete="off"
+				/>
 			</po-control>
 			<!-- swing -->
 		</po-master-controls>
@@ -37,14 +39,13 @@
 				</select>
 			</po-control>
 			<po-control name="length">
-				<input type="number" max="15" min="0" value="16">
+				<input type="number" max="15" min="0" value="16" />
 			</po-control>
 			<po-control name="upload" chee>
-				<input type="file" accept="audio/*" capture id="upload">
+				<input type="file" accept="audio/*" capture id="upload" />
 			</po-control>
 			<po-control name="record" chee>
-
-				<button label="Record sound" >●</button>
+				<button label="Record sound">●</button>
 			</po-control>
 		</po-channel-controls>
 		<po-channels>
@@ -75,12 +76,19 @@
 			<po-step><po-wave></po-wave></po-step>
 		</po-steps>
 		<po-step-controls>
-			<po-control name="pitch" value="1.0" value-type="number"> 1.0 </po-control>
-			<po-control name="attack" value="0.0" value-type="number"> 0.0 </po-control>
+			<po-control name="pitch" value="1.0" value-type="number">
+				1.0
+			</po-control>
+			<po-control name="attack" value="0.0" value-type="number">
+				0.0
+			</po-control>
 			<po-control name="release" value="0.0" value-type="number">
 				0.0
 			</po-control>
-			<po-control name="length" value="0.0" value-type="number"> 1.0 </po-control>
+			<po-control name="length" value="0.0" value-type="number">
+				1.0
+			</po-control>
 		</po-step-controls>
 	</po-ui>
 	<script type="module" src="ui.js"></script>
+</html>

@@ -14,10 +14,10 @@ async function fetchSound(name) {
 
 await context.audioWorklet.addModule("./operator.worklet.js")
 
-let kick = await fetchSound("tkk")
-let snar = await fetchSound("tks")
-let hhat = await fetchSound("tkh")
-let open = await fetchSound("tko")
+let kick = await fetchSound("skk")
+let snar = await fetchSound("sks")
+let hhat = await fetchSound("skh")
+let open = await fetchSound("sko")
 export async function start(buffer) {
 	context.resume()
 	unmute(context, true, true)

@@ -75,6 +75,10 @@ po-control option {
 	width: 2em;
 }
 
+po-control button {
+	cursor: pointer;
+}
+
 po-control input[type="number"] {
 	appearance: textfield;
 	font-size: 0.6rem;

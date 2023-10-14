@@ -10,8 +10,8 @@
 	<meta name="application-name" content="www.operator" />
 	<meta name="apple-mobile-web-app-title" content="Operation 0" />
 	<!-- TODO these custom elements are unnecesary -->
+
 	<po-ui>
-		<po-waveform></po-waveform>
 		<po-master-controls>
 			<po-control name="play"><button>▶&#xfe0e;</button></po-control>
 			<po-control name="pause"><button>⏸&#xfe0e;</button></po-control>
@@ -28,6 +28,10 @@
 			</po-control>
 			<!-- swing -->
 		</po-master-controls>
+		<figure name="waveform">
+			<!-- TODO do height/width using computer -->
+			<canvas height="34" width="229"></canvas>
+		</figure>
 		<po-channel-controls>
 			<po-control name="speed">
 				<select autocomplete="off">

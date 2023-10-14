@@ -68,7 +68,7 @@ export function map(buffer) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} val
+ * @param {number} [val]
  * @returns {number}
  */
 export function selectedChannel(memory, val) {
@@ -174,7 +174,7 @@ export function swing(memory, val) {
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
- * @param {Float32Array} sound
+ * @param {Float32Array} [sound]
  * @returns {Float32Array}
  */
 export function sound(memory, channel, sound) {

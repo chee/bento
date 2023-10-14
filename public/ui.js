@@ -1,7 +1,7 @@
 import * as elements from "./elements.js"
 elements.register()
-import * as sound from "./sound.js"
-
+import * as sounds from "./sounds.js"
+import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 let ui = document.querySelector("po-ui")
 let channelGroup = ui.querySelector("po-channels")
@@ -12,15 +12,24 @@ let speedSelector = ui.querySelector('[name="speed"] select')
 let bpmInput = ui.querySelector('[name="bpm"] input')
 let playButton = ui.querySelector('[name="play"]')
 let recordButton = ui.querySelector('[name="record"]')
+/** @type {HTMLCanvasElement} */
+let canvas = ui.querySelector('[name="waveform"] canvas')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
 Memory.bpm(memory, 120)
-for (let channel in [0, 1, 2, 3]) {
+for (let channel of [0, 1, 2, 3]) {
 	Memory.channelSpeed(memory, channel, 1)
 }
 
-ui.addEventListener("click", () => sound.start(buffer), {once: true})
+ui.addEventListener(
+	"click",
+	() => {
+		sounds.start(buffer)
+		graphics.update(buffer, canvas)
+	},
+	{once: true}
+)
 
 channels.forEach((channel, index) => {
 	if (channel.selected) {
@@ -34,8 +43,13 @@ steps.forEach((step, index) => {
 	}
 })
 
+let lastChannel = Memory.selectedChannel(memory)
 function update() {
 	let selectedChannel = Memory.selectedChannel(memory)
+	if (lastChannel != selectedChannel) {
+		setTimeout(() => graphics.update(buffer, canvas))
+		lastChannel = selectedChannel
+	}
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel)
 
 	playButton.toggleAttribute("playing", Memory.playing(memory))
@@ -127,11 +141,11 @@ speedSelector.addEventListener("change", event => {
 })
 
 recordButton.addEventListener("click", async event => {
-	let audio = await sound.recordSound()
-	sound.setSound(memory, Memory.selectedChannel(memory), audio)
+	let audio = await sounds.recordSound()
+	sounds.setSound(memory, Memory.selectedChannel(memory), audio)
 })
 
-sound.angel.hark("recording", recording => {
+sounds.angel.hark("recording", recording => {
 	ui.toggleAttribute("recording", recording)
 })
 

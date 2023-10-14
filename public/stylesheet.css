@@ -45,7 +45,8 @@ body {
 
 po-ui {
 	user-select: none;
-	background: var(--background)
+	background: var(--background);
+	border: 1px solid;
 }
 
 po-master-controls {
@@ -54,6 +55,8 @@ po-master-controls {
 	text-align: center;
 	align-items: center;
 	background: var(--background);
+
+	border-bottom: 1px solid;
 }
 
 po-control {
@@ -125,14 +128,13 @@ po-channel[selected] {
 }
 
 po-steps {
-	border: 1px solid;
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
 	grid-template-columns: repeat(4, 1fr);
 	gap: 0.5em;
 	padding: 0.5em;
-	background: var(--background)
+	background: var(--background);
 }
 
 po-step {
@@ -202,14 +204,6 @@ po-step-controls {
 	color: var(--bright-red);
 }
 
-po-master-controls {
-	/* grid-template-columns: repeat(3, 1fr); */
-	margin-bottom: 0.5em;
-}
-
-po-channels {
-	margin-bottom: 0.5em;
-}
 
 body {margin: 0;}
 
@@ -220,4 +214,12 @@ body.recording {
 
 body:not(.chee) [chee] {
 	display: none;
+}
+
+figure[name="waveform"] {
+
+
+	width: 100%;
+	margin: 0;
+	height: 1em;
 }

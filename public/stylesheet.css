@@ -217,8 +217,7 @@ body:not(.chee) [chee] {
 }
 
 figure[name="waveform"] {
-
-
+	background: var(--line);
 	width: 100%;
 	margin: 0;
 	height: 1em;

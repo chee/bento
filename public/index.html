@@ -28,10 +28,13 @@
 			</po-control>
 			<!-- swing -->
 		</po-master-controls>
-		<figure name="waveform">
-			<!-- TODO do height/width using computer -->
-			<canvas height="34" width="229"></canvas>
-		</figure>
+		<po-channels>
+			<po-channel selected>1</po-channel>
+			<po-channel>2</po-channel>
+			<po-channel>3</po-channel>
+			<po-channel>4</po-channel>
+		</po-channels>
+
 		<po-channel-controls>
 			<po-control name="speed">
 				<select autocomplete="off">
@@ -52,12 +55,7 @@
 				<button label="Record sound">●</button>
 			</po-control>
 		</po-channel-controls>
-		<po-channels>
-			<po-channel selected>1</po-channel>
-			<po-channel>2</po-channel>
-			<po-channel>3</po-channel>
-			<po-channel>4</po-channel>
-		</po-channels>
+
 		<po-steps>
 			<po-step playing on><po-wave></po-wave></po-step>
 			<po-step><po-wave></po-wave></po-step>
@@ -79,6 +77,10 @@
 			<po-step on><po-wave></po-wave></po-step>
 			<po-step><po-wave></po-wave></po-step>
 		</po-steps>
+		<figure name="waveform">
+			<!-- TODO do height/width using computer -->
+			<canvas height="34" width="229"></canvas>
+		</figure>
 		<po-step-controls>
 			<po-control name="pitch" value="1.0" value-type="number">
 				1.0

@@ -16,6 +16,7 @@ let recordButton = ui.querySelector('[name="record"]')
 let canvas = ui.querySelector('[name="waveform"] canvas')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
+graphics.init(canvas)
 
 Memory.bpm(memory, 120)
 for (let channel of [0, 1, 2, 3]) {

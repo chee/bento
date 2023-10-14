@@ -25,21 +25,10 @@ function drawWaveform(canvas, context, array) {
 	let yMult = height * (1 / verticalDistance)
 	let len = zeros
 	let xw = width / len
+	// i am so bad at math lol
 	context.beginPath()
 	let x = 0
 	context.moveTo(x, zeroPoint)
-	context.strokeStyle = "white"
-	console.log({
-		xw,
-		yMult,
-		zeroPoint,
-		height,
-		zeros,
-		len,
-		min,
-		max,
-		verticalDistance,
-	})
 	for (let f32 of array) {
 		context.lineTo((x += xw), height - (f32 * yMult + zeroPoint))
 	}
@@ -58,4 +47,20 @@ export async function update(buffer, canvas) {
 	context.fillRect(0, 0, canvas.width, canvas.height)
 	context.fill()
 	drawWaveform(canvas, context, array)
+}
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ */
+export async function init(canvas) {
+	let context = canvas.getContext("2d")
+	context.fillStyle = "#cc3366"
+	context.fillRect(0, 0, canvas.width, canvas.height)
+	context.moveTo(0, canvas.height / 2)
+	for (let x of Array.from(Array(canvas.width), (_, i) => i)) {
+		context.lineTo(x, (canvas.height / 2) * (Math.random() + 0.5))
+	}
+	context.strokeStyle = "white"
+	context.fill()
+	context.stroke()
 }

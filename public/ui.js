@@ -9,6 +9,8 @@ let channels = channelGroup.querySelectorAll("po-channel")
 let stepGroup = ui.querySelector("po-steps")
 let steps = stepGroup.querySelectorAll("po-step")
 let speedSelector = ui.querySelector('[name="speed"] select')
+let bpmInput = ui.querySelector('[name="bpm"] input')
+let playButton = ui.querySelector('[name="play"]')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
@@ -34,6 +36,9 @@ steps.forEach((step, index) => {
 function update() {
 	let selectedChannel = Memory.selectedChannel(memory)
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel)
+
+	playButton.toggleAttribute("playing", Memory.playing(memory))
+	bpmInput.value = Memory.bpm(memory)
 
 	channels.forEach((channelElement, index) => {
 		if (index == selectedChannel) {
@@ -86,7 +91,7 @@ steps.forEach((step, index) => {
 	})
 })
 
-ui.querySelector('[name="play"]').addEventListener("click", () => {
+playButton.addEventListener("click", () => {
 	Memory.playing(memory, true)
 })
 ui.querySelector('[name="pause"]').addEventListener("click", () => {
@@ -98,7 +103,8 @@ ui.querySelector('[name="stop"]').addEventListener("click", () => {
 		Memory.currentStep(memory, channel, 0)
 	}
 })
-ui.querySelector('[name="bpm"] input').addEventListener("change", event => {
+
+bpmInput.addEventListener("change", event => {
 	let num = Number(event.target.value)
 	if (num < event.target.min) {
 		num = event.target.value = event.target.min
@@ -116,3 +122,40 @@ speedSelector.addEventListener("change", event => {
 		Number(speedSelector.value)
 	)
 })
+
+function printPattern() {
+	let output = ""
+	output += Memory.bpm(memory) + "\n\n"
+	for (let cidx of [0, 1, 2, 3]) {
+		output += Memory.channelSpeed(memory, cidx) + "\n"
+		for (let sidx of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
+			// if i use unicode chars for this, i can create a bitmask to store a huge
+			// amount of data in a single character.
+			// maybe it should be emoji
+			output += Memory.stepOn(memory, cidx, sidx) ? "■ " : "□ "
+			if (!((sidx + 1) % 4)) {
+				output += "\n"
+			}
+		}
+		output += "\n"
+	}
+	console.log(output)
+}
+
+function loadPattern(pattern) {
+	let [master, ...channels] = pattern.trim().split(/\n\n+/)
+	let [bpm] = master.split(/\s+/)
+	Memory.bpm(memory, Number(bpm))
+	channels.forEach((channel, cidx) => {
+		let [options, ...steps] = channel.trim().split(/\s+/)
+		steps = steps.filter(s => s.trim())
+		let [speed] = options.split(/\s+/)
+		Memory.channelSpeed(memory, cidx, Number(speed))
+		steps.forEach((step, sidx) => {
+			Memory.stepOn(memory, cidx, sidx, step == "■")
+		})
+	})
+}
+
+globalThis.printPattern = printPattern
+globalThis.loadPattern = loadPattern

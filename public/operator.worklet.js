@@ -47,6 +47,7 @@ class Operator extends AudioWorkletProcessor {
 		let toplay = []
 		for (let channelIndex of [0, 1, 2, 3]) {
 			let channel = this.channels[channelIndex]
+			// TODO consider only reloading things at the start of every loop
 			channel.sound = Memory.sound(memory, channelIndex)
 			channel.length = Memory.soundLength(memory, channelIndex)
 			channel.speed = Memory.channelSpeed(memory, channelIndex)

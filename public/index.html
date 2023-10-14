@@ -15,13 +15,17 @@
 			<po-control name="pause"><button>⏸&#xfe0e;</button></po-control>
 			<po-control name="stop"><button>⏹&#xfe0e;</button></po-control>
 			<po-control name="bpm">
-				<input type="number" max="240" min="20" value="120" autocomplete="off">
+				<input
+					type="number"
+					inputmode="decimal"
+					max="240"
+					min="20"
+					value="120"
+					autocomplete="off">
 			</po-control>
 			<!-- swing -->
 		</po-master-controls>
 		<po-channel-controls>
-			<po-control name="waveform">↥</po-control>
-			<po-control name="length" control-type="slide" value="16">16</po-control>
 			<po-control name="speed">
 				<select autocomplete="off">
 					<option value="0.25">¼×</option>
@@ -30,6 +34,12 @@
 					<option value="2">2×</option>
 					<option value="4">4×</option>
 				</select>
+			</po-control>
+			<po-control name="length">
+				<input type="number" max="15" min="0" value="16">
+			</po-control>
+			<po-control name="record" chee>
+				<button label="Record sound" >●</button>
 			</po-control>
 		</po-channel-controls>
 		<po-channels>

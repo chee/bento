@@ -11,6 +11,7 @@ let steps = stepGroup.querySelectorAll("po-step")
 let speedSelector = ui.querySelector('[name="speed"] select')
 let bpmInput = ui.querySelector('[name="bpm"] input')
 let playButton = ui.querySelector('[name="play"]')
+let recordButton = ui.querySelector('[name="record"]')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
@@ -38,7 +39,9 @@ function update() {
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel)
 
 	playButton.toggleAttribute("playing", Memory.playing(memory))
-	bpmInput.value = Memory.bpm(memory)
+	if (bpmInput != document.activeElement) {
+		bpmInput.value = Memory.bpm(memory)
+	}
 
 	channels.forEach((channelElement, index) => {
 		if (index == selectedChannel) {
@@ -123,6 +126,11 @@ speedSelector.addEventListener("change", event => {
 	)
 })
 
+recordButton.addEventListener("click", async event => {
+	let audio = await sound.recordSound()
+	sound.setSound(memory, Memory.selectedChannel(memory), audio)
+})
+
 function getPattern() {
 	let pattern = ""
 	pattern += Memory.bpm(memory) + "\n\n"
@@ -159,3 +167,7 @@ function loadPattern(pattern) {
 
 globalThis.getPattern = getPattern
 globalThis.loadPattern = loadPattern
+
+if (location.search == "?rabbit") {
+	document.body.classList.add("chee")
+}

@@ -1,4 +1,7 @@
-const chanopts = Array.from(Array(4), (_, channel) => [
+// 2.5 seconds at 48000hz
+export const SOUND_SIZE = 120000
+
+let chanopts = Array.from(Array(4), (_, channel) => [
 	// 0-16
 	{name: `channel${channel}length`, type: Uint8Array, size: 1},
 	{name: `channel${channel}currentstep`, type: Uint8Array, size: 1},
@@ -27,11 +30,10 @@ export let arrays = [
 	{name: `channel1speed`, type: Float32Array, size: 1},
 	{name: `channel2speed`, type: Float32Array, size: 1},
 	{name: `channel3speed`, type: Float32Array, size: 1},
-	// 2.5 seconds at 48000hz
-	{name: `channel0sound`, type: Float32Array, size: 120000},
-	{name: `channel1sound`, type: Float32Array, size: 120000},
-	{name: `channel2sound`, type: Float32Array, size: 120000},
-	{name: `channel3sound`, type: Float32Array, size: 120000},
+	{name: `channel0sound`, type: Float32Array, size: SOUND_SIZE},
+	{name: `channel1sound`, type: Float32Array, size: SOUND_SIZE},
+	{name: `channel2sound`, type: Float32Array, size: SOUND_SIZE},
+	{name: `channel3sound`, type: Float32Array, size: SOUND_SIZE},
 	{name: `channel0soundlength`, type: Uint32Array, size: 1},
 	{name: `channel1soundlength`, type: Uint32Array, size: 1},
 	{name: `channel2soundlength`, type: Uint32Array, size: 1},

@@ -82,7 +82,7 @@ po-control button {
 po-control input[type="number"] {
 	appearance: textfield;
 	font-size: 0.6rem;
-	width: 2.5em;
+	width: 2em;
 }
 
 po-control,
@@ -97,8 +97,9 @@ po-control[control-type="slide"] {
 }
 
 po-channel-controls {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	display: flex;
+	padding: 0 0.5em;
+	justify-content: space-evenly;
 	text-align: center;
 	background: var(--line);
 	color: var(--background);
@@ -183,19 +184,17 @@ po-step-controls {
 }
 
 /** hidden until implemented **/
-[name="waveform"],
 [name="length"],
 po-step-controls {
 	display: none;
 }
 
-po-channel-controls {
-	display: grid;
-	grid-template-columns: 1fr;
-}
-
 [name="bpm"] {
 	font-size: 0.6em;
+}
+
+[name="record"] button:hover {
+	color: var(--bright-red);
 }
 
 po-master-controls {
@@ -205,4 +204,15 @@ po-master-controls {
 
 po-channels {
 	padding-bottom: 0.5em;
+}
+
+body {margin: 0;}
+
+body.recording {
+	border-left: 10px solid var(--red);
+	border-right: 10px solid var(--red);
+}
+
+body:not(.chee) [chee] {
+	display: none;
 }

@@ -19,8 +19,8 @@ export let arrays = [
 	{name: "stepPitches", type: Int8Array, size: CHANNELS * STEPS},
 	{name: "stepAttacks", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepReleases", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepStarts", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepEnds", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepStarts", type: Uint32Array, size: CHANNELS * STEPS},
+	{name: "stepEnds", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
 ]
 
@@ -199,4 +199,22 @@ export function soundLength(memory, channel, length) {
 		memory.soundLengths.set([length], channel)
 	}
 	return memory.soundLengths.at(channel)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {[number, number]} [trim]
+ * @returns {[number, number]}
+ */
+// TODO these should probably be together as stepTrims in memory
+export function stepTrim(memory, channel, step, trim) {
+	let offset = channel * STEPS + step
+	if (Array.isArray(trim)) {
+		let [start, end] = trim
+		memory.stepStarts.set([start], offset)
+		memory.stepEnds.set([end], offset)
+	}
+	return [memory.stepStarts.at(offset), memory.stepEnds.at(offset)]
 }

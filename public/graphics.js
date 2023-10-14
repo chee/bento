@@ -4,6 +4,7 @@ import * as Memory from "./memory.js"
  * @param {HTMLCanvasElement} canvas
  * @param {CanvasRenderingContext2D} context
  * @param {Float32Array} array
+ * @param {number} len
  */
 function drawWaveform(canvas, context, array) {
 	canvas.getContext("2d")
@@ -23,8 +24,7 @@ function drawWaveform(canvas, context, array) {
 	let height = canvas.height
 	let zeroPoint = height / 2
 	let yMult = height * (1 / verticalDistance)
-	let len = zeros
-	let xw = width / len
+	let xw = width / zeros
 	// i am so bad at math lol
 	context.beginPath()
 	let x = 0
@@ -33,20 +33,44 @@ function drawWaveform(canvas, context, array) {
 		context.lineTo((x += xw), height - (f32 * yMult + zeroPoint))
 	}
 	context.stroke()
+
+	/** @param {MouseEvent} event */
+	function trim(event) {
+		if (!memory) return
+		let start = event.offsetX
+
+		event.target.addEventListener(
+			"mouseup",
+			function (event) {
+				let end = event.offsetX
+				let trim = [(start / xw) | 0, (end / xw) | 0]
+				event.target.dispatchEvent(new CustomEvent("trim", {detail: trim}))
+			},
+			{once: true}
+		)
+	}
+	canvas.addEventListener("mousedown", trim)
 }
 
+/**
+ * @param {import("./memory.js").MemoryMap}
+ */
+let memory
 /**
  * @param {SharedArrayBuffer} buffer
  * @param {HTMLCanvasElement} canvas
  */
 export async function update(buffer, canvas) {
 	let context = canvas.getContext("2d")
-	let memory = Memory.map(buffer)
-	let array = Memory.sound(memory, Memory.selectedChannel(memory))
+	memory = Memory.map(buffer)
+	// graphics probably shouldn't have direct memory access lol oh well
+	let selectedChannel = Memory.selectedChannel(memory)
+	let array = Memory.sound(memory, selectedChannel)
+	// let soundLength = Memory.soundLength(memory, selectedChannel)
 	context.fillStyle = "#cc3366"
 	context.fillRect(0, 0, canvas.width, canvas.height)
 	context.fill()
-	drawWaveform(canvas, context, array)
+	drawWaveform(canvas, context, array, 0)
 }
 
 /**

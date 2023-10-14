@@ -127,6 +127,13 @@ ui.querySelector('[name="stop"]').addEventListener("click", () => {
 	}
 })
 
+canvas.addEventListener("trim", event => {
+	let chanIndex = Memory.selectedChannel(memory)
+	let stepIndex = Memory.selectedStep(memory)
+	console.log("received trimp", event.detail)
+	Memory.stepTrim(memory, chanIndex, stepIndex, event.detail)
+})
+
 bpmInput.addEventListener("change", event => {
 	let num = Number(event.target.value)
 	if (num < event.target.min) {
@@ -149,6 +156,7 @@ speedSelector.addEventListener("change", event => {
 recordButton.addEventListener("click", async event => {
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedChannel(memory), audio)
+	graphics.update(buffer, canvas)
 })
 
 sounds.angel.hark("recording", recording => {

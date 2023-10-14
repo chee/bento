@@ -28,11 +28,11 @@ class Operator extends AudioWorkletProcessor {
 			return {
 				index: i,
 				point: 0,
-				playing: false,
+				playing: null,
 				lastStep: -1,
 				sound: new Float32Array(),
-				length: 0,
 				speed: 1,
+				end: 0,
 			}
 		})
 		this.channels = channels
@@ -55,7 +55,6 @@ class Operator extends AudioWorkletProcessor {
 			let channel = this.channels[channelIndex]
 			// TODO consider only reloading things at the start of every loop
 			channel.sound = Memory.sound(memory, channelIndex)
-			channel.length = Memory.soundLength(memory, channelIndex)
 			channel.speed = Memory.channelSpeed(memory, channelIndex)
 
 			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
@@ -65,27 +64,34 @@ class Operator extends AudioWorkletProcessor {
 			if (currentStep != channel.lastStep) {
 				Memory.currentStep(memory, channelIndex, currentStep)
 				if (Memory.stepOn(memory, channelIndex, currentStep)) {
-					toplay.push(channelIndex)
+					// TODO trim should return 120000 for length to begin with
+					let [start, end] = Memory.stepTrim(memory, channelIndex, currentStep)
+					// TODO raw dog num use constant
+					toplay[channelIndex] = this.channels[channelIndex].sound.subarray(
+						start || 0,
+						end || 120000
+					)
 				}
 			}
 			channel.lastStep = currentStep
 		}
 
-		for (let channel of toplay) {
-			channels[channel].point = 0
-			channels[channel].playing = true
-		}
-
 		let outs = []
-
-		for (let channel of channels.filter(c => c.playing)) {
-			if (channel.point >= channel.length) {
-				channel.playing = false
-			} else {
-				let sub = channel.sound.subarray(channel.point, channel.point + 128)
-				outs.push(sub)
+		for (let channel of channels) {
+			let sound = toplay[channel.index]
+			if (sound) {
+				channel.point = 0
+				channel.playing = sound
 			}
-			channel.point += 128
+			if (channel.playing) {
+				if (channel.point + 128 > channel.playing.length) {
+					channel.playing = null
+				} else {
+					let sub = channel.playing.subarray(channel.point, channel.point + 128)
+					outs.push(sub)
+					channel.point += 128
+				}
+			}
 		}
 
 		if (outs.length) {

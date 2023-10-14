@@ -38,9 +38,12 @@ channels.forEach((channel, index) => {
 	}
 })
 
-steps.forEach((step, index) => {
+steps.forEach((step, stepIndex) => {
+	let chanIndex = Memory.selectedChannel(memory)
 	if (step.on) {
-		memory[`channel${Memory.selectedChannel(memory)}step${index}on`].set([1])
+		Memory.stepOn(memory, chanIndex, stepIndex, true)
+	} else {
+		Memory.stepOn(memory, chanIndex, stepIndex, false)
 	}
 })
 
@@ -93,31 +96,33 @@ update()
 
 channels.forEach((channel, index) => {
 	channel.addEventListener("selected", event => {
-		memory.selected_channel.set([index])
+		Memory.selectedChannel(memory, index)
 	})
 })
 
 steps.forEach((step, index) => {
 	step.addEventListener("selected", event => {
-		memory.selected_step.set([index])
+		Memory.selectedStep(memory, index)
 	})
 	step.addEventListener("on", event => {
-		memory[`channel${Memory.selectedChannel(memory)}step${index}on`].set([1])
+		Memory.stepOn(memory, Memory.selectedChannel(memory), index, true)
 	})
 	step.addEventListener("off", event => {
-		memory[`channel${Memory.selectedChannel(memory)}step${index}on`].set([0])
+		Memory.stepOn(memory, Memory.selectedChannel(memory), index, false)
 	})
 })
 
 playButton.addEventListener("click", () => {
 	Memory.playing(memory, true)
 })
+
 ui.querySelector('[name="pause"]').addEventListener("click", () => {
 	Memory.playing(memory, false)
 })
+
 ui.querySelector('[name="stop"]').addEventListener("click", () => {
 	Memory.playing(memory, false)
-	for (let channel in [0, 1, 2, 3]) {
+	for (let channel of [0, 1, 2, 3]) {
 		Memory.currentStep(memory, channel, 0)
 	}
 })

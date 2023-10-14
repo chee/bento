@@ -1,5 +1,8 @@
 import * as Memory from "./memory.js"
 
+let sampleRate = /** @type {number} The samplerate, it never changes once the
+context has been defined according to mdn */ (globalThis.sampleRate)
+
 function add(arrays) {
 	if (!arrays.length) {
 		return []
@@ -27,13 +30,16 @@ class Operator extends AudioWorkletProcessor {
 				point: 0,
 				playing: false,
 				lastStep: -1,
+				sound: new Float32Array(),
+				length: 0,
+				speed: 1,
 			}
 		})
 		this.channels = channels
 		this.tick = 0
 	}
 	// :)
-	process(inputs, outputs, parameters) {
+	process(_inputs, outputs, _parameters) {
 		let memory = this.memory
 		if (!Memory.playing(memory)) {
 			return true

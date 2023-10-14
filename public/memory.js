@@ -1,44 +1,27 @@
 // 2.5 seconds at 48000hz
 export const SOUND_SIZE = 120000
+const CHANNELS = 4
+const STEPS = 16
+const QUANTUM = 128
 
-let chanopts = Array.from(Array(4), (_, channel) => [
-	// 0-16
-	{name: `channel${channel}length`, type: Uint8Array, size: 1},
-	{name: `channel${channel}currentstep`, type: Uint8Array, size: 1},
-	...Array.from(Array(16), (_, step) => [
-		{name: `channel${channel}step${step}on`, type: Int8Array, size: 1},
-		{name: `channel${channel}step${step}pitch`, type: Int8Array, size: 1},
-		{name: `channel${channel}step${step}attack`, type: Uint8Array, size: 1},
-		{name: `channel${channel}step${step}release`, type: Uint8Array, size: 1},
-		{name: `channel${channel}step${step}start`, type: Uint8Array, size: 1},
-		{name: `channel${channel}step${step}end`, type: Uint8Array, size: 1},
-	]).flat(),
-])
-
-// TODO convert this to jsdoc type using magic
-// TODO bitmasking to use less space?
+// TODO swing?
 export let arrays = [
-	{name: "selected_channel", type: Uint8Array, size: 1},
-	{name: "selected_step", type: Uint8Array, size: 1},
+	{name: "selectedChannel", type: Uint8Array, size: 1},
+	{name: "selectedStep", type: Uint8Array, size: 1},
 	{name: "playing", type: Uint8Array, size: 1},
 	{name: "bpm", type: Uint8Array, size: 1},
-	{name: "swing", type: Uint8Array, size: 1},
-	{name: "space", type: Uint8Array, size: 3},
-	{name: "frame", type: Float32Array, size: 128},
-	// TODO (maybe) could use a Uint8Array here for the 5 valid vals
-	{name: `channel0speed`, type: Float32Array, size: 1},
-	{name: `channel1speed`, type: Float32Array, size: 1},
-	{name: `channel2speed`, type: Float32Array, size: 1},
-	{name: `channel3speed`, type: Float32Array, size: 1},
-	{name: `channel0sound`, type: Float32Array, size: SOUND_SIZE},
-	{name: `channel1sound`, type: Float32Array, size: SOUND_SIZE},
-	{name: `channel2sound`, type: Float32Array, size: SOUND_SIZE},
-	{name: `channel3sound`, type: Float32Array, size: SOUND_SIZE},
-	{name: `channel0soundlength`, type: Uint32Array, size: 1},
-	{name: `channel1soundlength`, type: Uint32Array, size: 1},
-	{name: `channel2soundlength`, type: Uint32Array, size: 1},
-	{name: `channel3soundlength`, type: Uint32Array, size: 1},
-	...chanopts.flat(),
+	{name: "channelLengths", type: Uint8Array, size: CHANNELS},
+	{name: "frame", type: Float32Array, size: QUANTUM},
+	{name: "soundLengths", type: Uint32Array, size: CHANNELS},
+	{name: "channelSpeeds", type: Float32Array, size: CHANNELS},
+	{name: "currentSteps", type: Uint8Array, size: CHANNELS},
+	{name: "stepOns", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepPitches", type: Int8Array, size: CHANNELS * STEPS},
+	{name: "stepAttacks", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepReleases", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepStarts", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepEnds", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
 ]
 
 export let size = arrays.reduce(
@@ -47,19 +30,37 @@ export let size = arrays.reduce(
 )
 
 /**
+	for (let arrays of (await import("./public/memory.js")).arrays) {
+  console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
+}
  * @typedef {Object} MemoryMap
- * @property {Int8Array} MemoryMap.channel
- * @property {Int8Array} MemoryMap.step
- * @property {Uint16Array} MemoryMap.bpm
- * @property {Float32Array} MemoryMap.size
+ * @property {Uint8Array} MemoryMap.selectedChannel
+ * @property {Uint8Array} MemoryMap.selectedStep
+ * @property {Uint8Array} MemoryMap.playing
+ * @property {Uint8Array} MemoryMap.bpm
+ * @property {Uint8Array} MemoryMap.channelLengths
+ * @property {Float32Array} MemoryMap.frame
+ * @property {Uint32Array} MemoryMap.soundLengths
+ * @property {Float32Array} MemoryMap.channelSpeeds
+ * @property {Uint8Array} MemoryMap.currentSteps
+ * @property {Uint8Array} MemoryMap.stepOns
+ * @property {Int8Array} MemoryMap.stepPitches
+ * @property {Uint8Array} MemoryMap.stepAttacks
+ * @property {Uint8Array} MemoryMap.stepReleases
+ * @property {Uint8Array} MemoryMap.stepStarts
+ * @property {Uint8Array} MemoryMap.stepEnds
+ * @property {Float32Array} MemoryMap.channelSounds
+ */
+/**
+ * @param {SharedArrayBuffer} buffer
  * @returns {MemoryMap}
  */
 export function map(buffer) {
-	let memory = {}
+	/** @type {MemoryMap}*/
+	let memory = {} // shut up typescript it's fine
 	let offset = 0
 	for (let array of arrays) {
 		// TODO handle the offset needing to be a multiple of BYTES_PER_ELEMENT
-
 		memory[array.name] = new array.type(buffer, offset, array.size)
 		offset += array.size * array.type.BYTES_PER_ELEMENT
 	}
@@ -73,9 +74,9 @@ export function map(buffer) {
  */
 export function selectedChannel(memory, val) {
 	if (typeof val == "number") {
-		memory.selected_channel.set([val])
+		memory.selectedChannel.set([val])
 	}
-	return memory.selected_channel.at(0)
+	return memory.selectedChannel.at(0)
 }
 
 /**
@@ -85,42 +86,41 @@ export function selectedChannel(memory, val) {
  * @returns {number}
  */
 export function currentStep(memory, channel, val) {
-	let field = `channel${channel}currentstep`
 	if (typeof val == "number") {
-		memory[field].set([val])
+		memory.currentSteps.set([val], channel)
 	}
-	return memory[field].at(0)
+	return memory.currentSteps.at(channel)
 }
 
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
- * @param {number?} val
+ * @param {number?} [val]
  * @returns {number}
  */
 export function channelSpeed(memory, channel, val) {
-	let field = `channel${channel}speed`
-
 	if (typeof val == "number") {
-		memory[field].set([val])
+		memory.channelSpeeds.set([val], channel)
 	}
-	return memory[field].at(0)
+	return memory.channelSpeeds.at(channel)
 }
 
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
  * @param {number} step
- * @param {boolean?} val
+ * @param {boolean} [val]
  * @returns {boolean}
  */
 export function stepOn(memory, channel, step, val) {
-	let field = `channel${channel}step${step}on`
+	let {stepOns} = memory
+	let at = channel * STEPS + step
+
 	if (typeof val == "boolean") {
-		memory[field].set([Number(val)])
+		stepOns.set([Number(val)], at)
 	}
 
-	return Boolean(memory[field].at(0))
+	return Boolean(stepOns.at(at))
 }
 
 /**
@@ -130,14 +130,14 @@ export function stepOn(memory, channel, step, val) {
  */
 export function selectedStep(memory, val) {
 	if (typeof val == "number") {
-		memory.selected_step.set([val])
+		memory.selectedStep.set([val])
 	}
-	return memory.selected_step.at(0)
+	return memory.selectedStep.at(0)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {boolean} val
+ * @param {boolean} [val]
  * @returns {boolean}
  */
 export function playing(memory, val) {
@@ -149,7 +149,7 @@ export function playing(memory, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} val
+ * @param {number} [val]
  * @returns {number}
  */
 export function bpm(memory, val) {
@@ -164,12 +164,13 @@ export function bpm(memory, val) {
  * @param {number} val
  * @returns {number}
  */
-export function swing(memory, val) {
-	if (typeof val == "number") {
-		memory.swing.set([val])
-	}
-	return memory.swing.at(0)
-}
+// your evening of swing has been canceled
+// export function swing(memory, val) {
+// 	if (typeof val == "number") {
+// 		memory.swing.set([val])
+// 	}
+// 	return memory.swing.at(0)
+// }
 
 /**
  * @param {MemoryMap} memory
@@ -178,22 +179,24 @@ export function swing(memory, val) {
  * @returns {Float32Array}
  */
 export function sound(memory, channel, sound) {
+	let start = channel * SOUND_SIZE
 	// TODO instanceof
 	if (typeof sound != "undefined") {
-		memory[`channel${channel}sound`].set(sound)
+		memory.channelSounds.set(sound, start)
 	}
-	return memory[`channel${channel}sound`]
+
+	return memory.channelSounds.subarray(start, start + SOUND_SIZE)
 }
 
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
- * @param {number} length
+ * @param {number} [length]
  * @returns {number}
  */
 export function soundLength(memory, channel, length) {
 	if (typeof length == "number") {
-		memory[`channel${channel}soundlength`].set([length])
+		memory.soundLengths.set([length], channel)
 	}
-	return memory[`channel${channel}soundlength`].at(0)
+	return memory.soundLengths.at(channel)
 }

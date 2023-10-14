@@ -1,5 +1,7 @@
 import unmute from "./unmute.js"
 import * as Memory from "./memory.js"
+import Angel from "./angel.js"
+export const angel = new Angel()
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -18,20 +20,18 @@ export async function recordSound() {
 	try {
 		let stream = await navigator.mediaDevices.getUserMedia({audio: true})
 		let tape = new MediaRecorder(stream)
-		let blobs = []
-		tape.ondataavailable = event => blobs.push(event.data)
-		tape.start()
-		// TODO move to ui
-		document.body.classList.toggle("recording")
-		// -1000 because browsers are tricky
-		await wait(MAX_RECORDING_LENGTH - 1000)
+		let blob = new Promise(yay => {
+			tape.ondataavailable = event => yay(event.data)
+		})
+		angel.herald("recording", true)
+		tape.start(MAX_RECORDING_LENGTH)
+		blob = await blob
 		tape.stop()
-		document.body.classList.toggle("recording")
-		await wait(1000)
-		if (blobs.length !== 1) {
-			console.warn(`weird blob length: ${blobs.length}`)
-		}
-		return decode(blobs[0])
+		angel.herald("recording", false)
+		// this doesn't seem like something i should have to do
+		// nevertheless,
+		await wait(100)
+		return decode(blob)
 	} catch (error) {
 		console.error(`Unable to record.`, error)
 	}

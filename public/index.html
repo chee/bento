@@ -10,6 +10,7 @@
 	<meta name="application-name" content="www.operator">
 	<meta name="apple-mobile-web-app-title" content="Operation 0">
 	<po-ui>
+		<po-waveform></po-waveform>
 		<po-master-controls>
 			<po-control name="play"><button>▶&#xfe0e;</button></po-control>
 			<po-control name="pause"><button>⏸&#xfe0e;</button></po-control>
@@ -38,7 +39,11 @@
 			<po-control name="length">
 				<input type="number" max="15" min="0" value="16">
 			</po-control>
+			<po-control name="upload">
+				<input type="file" accept="audio/*" capture id="upload">
+			</po-control>
 			<po-control name="record" chee>
+
 				<button label="Record sound" >●</button>
 			</po-control>
 		</po-channel-controls>

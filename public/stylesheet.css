@@ -45,6 +45,7 @@ body {
 
 po-ui {
 	user-select: none;
+	background: var(--background)
 }
 
 po-master-controls {
@@ -52,6 +53,7 @@ po-master-controls {
 	grid-template-columns: repeat(4, 1fr);
 	text-align: center;
 	align-items: center;
+	background: var(--background);
 }
 
 po-control {
@@ -107,12 +109,14 @@ po-channel-controls {
 
 po-channels {
 	text-align: center;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	display: flex;
+	justify-content: space-evenly;
+	background: var(--background);
 }
 
 po-channel {
 	cursor: pointer;
+	flex: 1;
 }
 
 po-channel[selected] {
@@ -128,6 +132,7 @@ po-steps {
 	grid-template-columns: repeat(4, 1fr);
 	gap: 0.5em;
 	padding: 0.5em;
+	background: var(--background)
 }
 
 po-step {
@@ -193,7 +198,7 @@ po-step-controls {
 	font-size: 0.6em;
 }
 
-[name="record"] button:hover {
+[recording] [name="record"] {
 	color: var(--bright-red);
 }
 
@@ -203,7 +208,7 @@ po-master-controls {
 }
 
 po-channels {
-	padding-bottom: 0.5em;
+	margin-bottom: 0.5em;
 }
 
 body {margin: 0;}

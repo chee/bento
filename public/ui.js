@@ -131,6 +131,10 @@ recordButton.addEventListener("click", async event => {
 	sound.setSound(memory, Memory.selectedChannel(memory), audio)
 })
 
+sound.angel.hark("recording", recording => {
+	ui.toggleAttribute("recording", recording)
+})
+
 function getPattern() {
 	let pattern = ""
 	pattern += Memory.bpm(memory) + "\n\n"

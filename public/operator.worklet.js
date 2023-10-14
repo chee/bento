@@ -15,21 +15,12 @@ function add(arrays) {
 	return end
 }
 
-function addf32q(arrays) {
-	let end = arrays[0].map(i => i)
-	for (let j = 1; j < arrays.length; j++) {
-		for (let i = 0; i < end.length; i++) {
-			end.set(i, end.at(i) + arrays[j].at(i))
-		}
-	}
-	return end.map(n => n / 4)
-}
-
 class Operator extends AudioWorkletProcessor {
 	constructor(options) {
 		super()
 		let memory = Memory.map(options.processorOptions.buffer)
 		this.memory = memory
+
 		let channels = Array.from(Array(4), (_, i) => {
 			return {
 				index: i,
@@ -37,28 +28,38 @@ class Operator extends AudioWorkletProcessor {
 				point: 0,
 				playing: false,
 				length: Memory.soundLength(memory, i),
+				speed: Memory.channelSpeed(memory, i),
+				lastStep: -1,
 			}
 		})
 		this.channels = channels
-		this.lastStep = -1
 	}
 	// :)
 	process(inputs, outputs, parameters) {
 		let memory = this.memory
+		if (!Memory.playing(memory)) {
+			return true
+		}
+		let bpm = Memory.bpm(memory)
 		let channels = this.channels
 		let output = outputs[0]
-		let step = Memory.currentStep(memory)
-		let toplay = []
+		let samplesPerBeat = (60 / bpm) * sampleRate
 
-		if (step != this.lastStep && this.lastStep > -1) {
-			for (let channel of [0, 1, 2, 3]) {
-				if (memory[`channel${channel}step${step}on`].at(0)) {
-					toplay.push(channel)
+		let toplay = []
+		for (let channelIndex of [0, 1, 2, 3]) {
+			let channel = this.channels[channelIndex]
+			let speed = channel.speed
+			let samplesPerStep = samplesPerBeat / (4 * speed)
+			let currentStep = ((currentFrame / samplesPerStep) | 0) % 16
+
+			if (currentStep != channel.lastStep) {
+				Memory.currentStep(memory, channelIndex, currentStep)
+				if (Memory.stepOn(memory, channelIndex, currentStep)) {
+					toplay.push(channelIndex)
 				}
 			}
+			channel.lastStep = currentStep
 		}
-
-		this.lastStep = step
 
 		for (let channel of toplay) {
 			channels[channel].point = 0

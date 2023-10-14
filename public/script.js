@@ -12,9 +12,10 @@ let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
 ui.addEventListener("click", () => sound.start(buffer), {once: true})
+
 channels.forEach((channel, index) => {
 	if (channel.selected) {
-		memory.selected_channel.set([index])
+		Memory.selectedChannel(memory, index)
 	}
 })
 
@@ -34,20 +35,20 @@ function update() {
 	})
 
 	steps.forEach((stepElement, index) => {
+		let selectedChannel = Memory.selectedChannel(memory)
 		if (index == Memory.selectedStep(memory)) {
 			stepElement.selected = true
 		} else {
 			stepElement.selected = false
 		}
 
-		if (index == Memory.currentStep(memory)) {
+		let currentStep = Memory.currentStep(memory, selectedChannel)
+		if (index == currentStep) {
 			stepElement.playing = true
 		} else {
 			stepElement.playing = false
 		}
-		if (
-			!!memory[`channel${Memory.selectedChannel(memory)}step${index}on`].at(0)
-		) {
+		if (Memory.stepOn(memory, selectedChannel, index)) {
 			stepElement.on = true
 		} else {
 			stepElement.on = false

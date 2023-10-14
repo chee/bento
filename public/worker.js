@@ -1,35 +1,10 @@
 let wrap = (n, top, bottom = 0) => (++n > top ? bottom : n)
-let bpm2mspqn = bpm => 60000 / bpm / 4
-let bpm2tick = bpm => bpm2mspqn(bpm) / 8
+let bpm2samplesPerBeat = (bpm, sampleRate) => (60 / bpm) * sampleRate
+let bpm2spqn = (bpm, sampleRate) => bpm2samplesPerBeat(bpm, sampleRate) / 4
 
 let buffer
 let memory
-let interval
 let Memory
-
-let messages = []
-let tick = 0
-let maxTick = 16 * 4 * 4 - 1
-
-let tick2step = tick => (tick / 16) | 0
-
-function next() {
-	while (messages.length) {
-		handleMessage(messages.shift())
-	}
-
-	if (Memory.playing(memory)) {
-		tick = wrap(tick + 1, maxTick)
-	}
-
-	let step = tick2step(tick)
-
-	if (step != Memory.currentStep(memory)) {
-		Memory.currentStep(memory, step)
-	}
-
-	setTimeout(next, bpm2tick(Memory.bpm(memory)))
-}
 
 function handleMessage(message) {
 	if (message.type == "bpm") {
@@ -42,8 +17,10 @@ function handleMessage(message) {
 		Memory.playing(memory, false)
 	}
 	if (message.type == "stop") {
-		tick = 0
 		Memory.playing(memory, false)
+		for (let channel in [0, 1, 2, 3]) {
+			Memory.currentStep(memory, channel, 0)
+		}
 	}
 }
 
@@ -56,8 +33,10 @@ onmessage = async event => {
 		buffer = message.buffer
 		memory = Memory.map(buffer)
 		Memory.bpm(memory, 120)
-		next()
+		for (let channel in [0, 1, 2, 3]) {
+			Memory.channelSpeed(memory, channel, 1)
+		}
 	} else {
-		messages.push(message)
+		handleMessage(message)
 	}
 }

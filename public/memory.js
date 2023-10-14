@@ -1,8 +1,9 @@
 const chanopts = Array.from(Array(4), (_, channel) => [
 	// 0-16
 	{name: `channel${channel}length`, type: Uint8Array, size: 1},
-	// 0, 1, 2, 3, 4 (default 2)
-	{name: `channel${channel}speed`, type: Uint8Array, size: 1},
+	// 0.5, 0.25, 1, 2... even 0 would work i guess?
+	{name: `channel${channel}speed`, type: Int8Array, size: 1},
+	{name: `channel${channel}currentstep`, type: Uint8Array, size: 1},
 	...Array.from(Array(16), (_, step) => [
 		{name: `channel${channel}step${step}on`, type: Int8Array, size: 1},
 		{name: `channel${channel}step${step}pitch`, type: Int8Array, size: 1},
@@ -18,11 +19,10 @@ const chanopts = Array.from(Array(4), (_, channel) => [
 export let arrays = [
 	{name: "selected_channel", type: Uint8Array, size: 1},
 	{name: "selected_step", type: Uint8Array, size: 1},
-	{name: "current_step", type: Uint8Array, size: 1},
 	{name: "playing", type: Uint8Array, size: 1},
 	{name: "bpm", type: Uint8Array, size: 1},
 	{name: "swing", type: Uint8Array, size: 1},
-	{name: "space", type: Uint8Array, size: 2},
+	{name: "space", type: Uint8Array, size: 3},
 	{name: "frame", type: Float32Array, size: 128},
 	// 2.5 seconds at 48000hz
 	{name: `channel0sound`, type: Float32Array, size: 120000},
@@ -75,14 +75,46 @@ export function selectedChannel(memory, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} val
+ * @param {number} channel
+ * @param {number?} val
  * @returns {number}
  */
-export function currentStep(memory, val) {
+export function currentStep(memory, channel, val) {
+	let field = `channel${channel}currentstep`
 	if (typeof val == "number") {
-		memory.current_step.set([val])
+		memory[field].set([val])
 	}
-	return memory.current_step.at(0)
+	return memory[field].at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number?} val
+ * @returns {number}
+ */
+export function channelSpeed(memory, channel, val) {
+	let field = `channel${channel}speed`
+	if (typeof val == "number") {
+		memory[field].set([val])
+	}
+	return memory[field].at(0)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {boolean?} val
+ * @returns {boolean}
+ */
+export function stepOn(memory, channel, step, val) {
+	let field = `channel${channel}step${step}on`
+	if (typeof val == "boolean") {
+		memory[field].set([Number(val)])
+	}
+
+	return Boolean(memory[field].at(0))
 }
 
 /**

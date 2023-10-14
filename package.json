@@ -10,7 +10,7 @@
 		"typescript": "^5.0.0"
 	},
 	"scripts": {
-		"start": "deno run --allow-read --allow-net file_server.ts public -p 1234"
+		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321"
 	},
 	"dependencies": {
 		"@bitarray/typedarray": "^1.1.1"

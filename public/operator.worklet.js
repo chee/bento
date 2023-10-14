@@ -30,6 +30,7 @@ class Operator extends AudioWorkletProcessor {
 			}
 		})
 		this.channels = channels
+		this.tick = 0
 	}
 	// :)
 	process(inputs, outputs, parameters) {
@@ -37,6 +38,7 @@ class Operator extends AudioWorkletProcessor {
 		if (!Memory.playing(memory)) {
 			return true
 		}
+		this.tick += 128
 		let bpm = Memory.bpm(memory)
 		let channels = this.channels
 		let output = outputs[0]
@@ -51,7 +53,7 @@ class Operator extends AudioWorkletProcessor {
 
 			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
 
-			let currentStep = ((currentFrame / samplesPerStep) | 0) % 16
+			let currentStep = ((this.tick / samplesPerStep) | 0) % 16
 
 			if (currentStep != channel.lastStep) {
 				Memory.currentStep(memory, channelIndex, currentStep)

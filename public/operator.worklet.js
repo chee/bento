@@ -24,11 +24,8 @@ class Operator extends AudioWorkletProcessor {
 		let channels = Array.from(Array(4), (_, i) => {
 			return {
 				index: i,
-				sound: Memory.sound(memory, i),
 				point: 0,
 				playing: false,
-				length: Memory.soundLength(memory, i),
-				speed: Memory.channelSpeed(memory, i),
 				lastStep: -1,
 			}
 		})
@@ -48,8 +45,12 @@ class Operator extends AudioWorkletProcessor {
 		let toplay = []
 		for (let channelIndex of [0, 1, 2, 3]) {
 			let channel = this.channels[channelIndex]
-			let speed = channel.speed
-			let samplesPerStep = samplesPerBeat / (4 * speed)
+			channel.sound = Memory.sound(memory, channelIndex)
+			channel.length = Memory.soundLength(memory, channelIndex)
+			channel.speed = Memory.channelSpeed(memory, channelIndex)
+
+			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
+
 			let currentStep = ((currentFrame / samplesPerStep) | 0) % 16
 
 			if (currentStep != channel.lastStep) {

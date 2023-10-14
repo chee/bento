@@ -1,8 +1,6 @@
 const chanopts = Array.from(Array(4), (_, channel) => [
 	// 0-16
 	{name: `channel${channel}length`, type: Uint8Array, size: 1},
-	// 0.5, 0.25, 1, 2... even 0 would work i guess?
-	{name: `channel${channel}speed`, type: Int8Array, size: 1},
 	{name: `channel${channel}currentstep`, type: Uint8Array, size: 1},
 	...Array.from(Array(16), (_, step) => [
 		{name: `channel${channel}step${step}on`, type: Int8Array, size: 1},
@@ -24,6 +22,11 @@ export let arrays = [
 	{name: "swing", type: Uint8Array, size: 1},
 	{name: "space", type: Uint8Array, size: 3},
 	{name: "frame", type: Float32Array, size: 128},
+	// TODO (maybe) could use a Uint8Array here for the 5 valid vals
+	{name: `channel0speed`, type: Float32Array, size: 1},
+	{name: `channel1speed`, type: Float32Array, size: 1},
+	{name: `channel2speed`, type: Float32Array, size: 1},
+	{name: `channel3speed`, type: Float32Array, size: 1},
 	// 2.5 seconds at 48000hz
 	{name: `channel0sound`, type: Float32Array, size: 120000},
 	{name: `channel1sound`, type: Float32Array, size: 120000},
@@ -95,6 +98,7 @@ export function currentStep(memory, channel, val) {
  */
 export function channelSpeed(memory, channel, val) {
 	let field = `channel${channel}speed`
+
 	if (typeof val == "number") {
 		memory[field].set([val])
 	}

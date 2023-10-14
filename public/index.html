@@ -1,39 +1,34 @@
 <!doctype html>
-<meta charset=utf-8>
+<meta charset="utf-8" />
 <title>www.operator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="stylesheet" href="stylesheet.css">
+<link rel="stylesheet" href="stylesheet.css" />
 <meta name="theme-color" content="#ffe9ed" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="www.operator">
-<meta name="apple-mobile-web-app-title" content="Operation 0">
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="application-name" content="www.operator" />
+<meta name="apple-mobile-web-app-title" content="Operation 0" />
 <po-ui>
 	<po-master-controls>
-		<po-control name="play" control-type="simple-button">
-			▶&#xfe0e;
-		</po-control>
-		<po-control name="pause" control-type="simple-button">
-			⏸&#xfe0e;
-		</po-control>
-		<po-control name="stop" control-type="simple-button">
-			⏹&#xfe0e;
-		</po-control>
-		<po-control name="bpm" value="120" control-type="slide">
-			120
+		<po-control name="play"><button>▶&#xfe0e;</button></po-control>
+		<po-control name="pause"><button>⏸&#xfe0e;</button></po-control>
+		<po-control name="stop"><button>⏹&#xfe0e;</button></po-control>
+		<po-control name="bpm">
+			<input type="number" max="240" min="20" value="120" autocomplete="off">
 		</po-control>
 		<!-- swing -->
 	</po-master-controls>
 	<po-channel-controls>
 		<po-control name="waveform">↥</po-control>
 		<po-control name="length" control-type="slide" value="16">16</po-control>
-		<po-control
-			name="speed"
-			control-type="slide"
-			value="1"
-			value-values="0.25 0.5 1 2 4"
-			value-map="¼× ½× 1× 2× 4×">
-			1×
+		<po-control name="speed">
+			<select autocomplete="off">
+				<option value="0.25">¼×</option>
+				<option value="0.5">½×</option>
+				<option value="1" selected>1×</option>
+				<option value="2">2×</option>
+				<option value="4">4×</option>
+			</select>
 		</po-control>
 	</po-channel-controls>
 	<po-channels>
@@ -64,30 +59,12 @@
 		<po-step><po-wave></po-wave></po-step>
 	</po-steps>
 	<po-step-controls>
-		<po-control
-			name="pitch"
-			value="1.0"
-			value-type="number">
-			1.0
-		</po-control>
-		<po-control
-			name="attack"
-			value="0.0"
-			value-type="number">
+		<po-control name="pitch" value="1.0" value-type="number"> 1.0 </po-control>
+		<po-control name="attack" value="0.0" value-type="number"> 0.0 </po-control>
+		<po-control name="release" value="0.0" value-type="number">
 			0.0
 		</po-control>
-		<po-control
-			name="release"
-			value="0.0"
-			value-type="number">
-			0.0
-		</po-control>
-		<po-control
-			name="length"
-			value="0.0"
-			value-type="number">
-			1.0
-		</po-control>
+		<po-control name="length" value="0.0" value-type="number"> 1.0 </po-control>
 	</po-step-controls>
 </po-ui>
 

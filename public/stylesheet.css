@@ -1,3 +1,4 @@
+
 @font-face {
 	family: "this-font";
 	src: "font.ttf";
@@ -7,28 +8,29 @@
 	--background: #ffe9ed;
 	--line: #cc3366;
 	--intense: #cc1336;
-	--selection-background:  "#ffee88";
+	--selection-background: "#ffee88";
 	--active: #ff2a50;
 	--black: #1e1316;
-	 --blue: #407acd;
-	 --cyan: #22a6cd;
-	 --green: #00aba5;
-	 --magenta: #6d1699;
-	 --red: #ed2b3c;
-	 --yellow: #e59101;
-	 --white: #b8768c;
-	 --bright-black: #543641;
-	 --bright-blue: #3388ff;
-	 --bright-cyan: #2ec2ff;
-	 --bright-green: #01b9a4;
-	 --bright-magenta: #af40cb;
-	 --bright-red: #ff275d;
-	 --bright-yellow: #c9af13;
-	 --bright-white: #e090ae;
-	 --columns: repeat(4, 1fr);
+	--blue: #407acd;
+	--cyan: #22a6cd;
+	--green: #00aba5;
+	--magenta: #6d1699;
+	--red: #ed2b3c;
+	--yellow: #e59101;
+	--white: #b8768c;
+	--bright-black: #543641;
+	--bright-blue: #3388ff;
+	--bright-cyan: #2ec2ff;
+	--bright-green: #01b9a4;
+	--bright-magenta: #af40cb;
+	--bright-red: #ff275d;
+	--bright-yellow: #c9af13;
+	--bright-white: #e090ae;
+	--columns: repeat(4, 1fr);
+	--font-family: this-font, iosevka, monospace;
 	background: var(--background);
 	color: var(--line);
-	font-family: this-font, iosevka, monospace;
+	font-family: var(--font-family);
 	font-size: 2em;
 }
 
@@ -57,7 +59,31 @@ po-control {
 	line-height: 1.5em;
 }
 
-po-control, po-channel, po-step {
+po-control input,
+po-control button,
+po-control select,
+po-control option {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	border: none;
+	background: none;
+	font-family: var(--font-family);
+	font-size: 1em;
+	color: currentColor;
+	text-align: center;
+	width: 2em;
+}
+
+po-control input[type="number"] {
+	appearance: textfield;
+	font-size: 0.6rem;
+	width: 2.5em;
+}
+
+po-control,
+po-channel,
+po-step {
 	cursor: pointer;
 	touch-action: manipulation;
 }
@@ -115,14 +141,15 @@ po-step po-wave {
 }
 
 po-step[selected] {
-	box-shadow: -2px -2px 0 0 var(--background),
-					02px 02px 0 0 var(--background),
-					-2px 02px 0 0 var(--background),
-					02px -2px 0 0 var(--background),
-					-3px -3px 0 0 var(--line),
-					03px 03px 0 0 var(--line),
-					-3px 03px 0 0 var(--line),
-					03px -3px 0 0 var(--line);
+	box-shadow:
+		-2px -2px 0 0 var(--background),
+		02px 02px 0 0 var(--background),
+		-2px 02px 0 0 var(--background),
+		02px -2px 0 0 var(--background),
+		-3px -3px 0 0 var(--line),
+		03px 03px 0 0 var(--line),
+		-3px 03px 0 0 var(--line),
+		03px -3px 0 0 var(--line);
 	border-color: var(--line);
 }
 
@@ -137,7 +164,7 @@ po-step[playing]:after {
 	left: 50%;
 	transform: translateX(-50%);
 	bottom: -0.6em;
-	color: currentColor:
+	color: currentColor;
 }
 
 po-step-controls {
@@ -147,17 +174,24 @@ po-step-controls {
 	padding: 0 0.5em;
 }
 
-
-
 /** hidden until implemented **/
-po-step-controls,
-[name="bpm"],
-po-channel-controls {
+[name="waveform"],
+[name="length"],
+po-step-controls {
 	display: none;
 }
 
+po-channel-controls {
+	display: grid;
+	grid-template-columns: 1fr;
+}
+
+[name="bpm"] {
+	font-size: 0.6em;
+}
+
 po-master-controls {
-	grid-template-columns: repeat(3, 1fr);
+	/* grid-template-columns: repeat(3, 1fr); */
 	margin-bottom: 0.5em;
 }
 

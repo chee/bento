@@ -8,8 +8,14 @@ let channelGroup = ui.querySelector("po-channels")
 let channels = channelGroup.querySelectorAll("po-channel")
 let stepGroup = ui.querySelector("po-steps")
 let steps = stepGroup.querySelectorAll("po-step")
+let speedSelector = ui.querySelector('[name="speed"] select')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
+
+Memory.bpm(memory, 120)
+for (let channel in [0, 1, 2, 3]) {
+	Memory.channelSpeed(memory, channel, 1)
+}
 
 ui.addEventListener("click", () => sound.start(buffer), {once: true})
 
@@ -26,8 +32,11 @@ steps.forEach((step, index) => {
 })
 
 function update() {
+	let selectedChannel = Memory.selectedChannel(memory)
+	speedSelector.value = Memory.channelSpeed(memory, selectedChannel)
+
 	channels.forEach((channelElement, index) => {
-		if (index == Memory.selectedChannel(memory)) {
+		if (index == selectedChannel) {
 			channelElement.selected = true
 		} else {
 			channelElement.selected = false
@@ -35,7 +44,6 @@ function update() {
 	})
 
 	steps.forEach((stepElement, index) => {
-		let selectedChannel = Memory.selectedChannel(memory)
 		if (index == Memory.selectedStep(memory)) {
 			stepElement.selected = true
 		} else {
@@ -78,14 +86,33 @@ steps.forEach((step, index) => {
 	})
 })
 
-let worker = new Worker("worker.js")
-worker.postMessage({type: "memory", buffer})
-
-ui.querySelectorAll('po-control[control-type="simple-button"]').forEach(
-	button => {
-		button.addEventListener("click", () => {
-			console.debug(`${button.name} clicked, sending to worker`)
-			worker.postMessage({type: button.name})
-		})
+ui.querySelector('[name="play"]').addEventListener("click", () => {
+	Memory.playing(memory, true)
+})
+ui.querySelector('[name="pause"]').addEventListener("click", () => {
+	Memory.playing(memory, false)
+})
+ui.querySelector('[name="stop"]').addEventListener("click", () => {
+	Memory.playing(memory, false)
+	for (let channel in [0, 1, 2, 3]) {
+		Memory.currentStep(memory, channel, 0)
 	}
-)
+})
+ui.querySelector('[name="bpm"] input').addEventListener("change", event => {
+	let num = Number(event.target.value)
+	if (num < event.target.min) {
+		num = event.target.value = event.target.min
+	}
+	if (num > event.target.max) {
+		num = event.target.value = event.target.max
+	}
+	Memory.bpm(memory, num)
+})
+
+speedSelector.addEventListener("change", event => {
+	Memory.channelSpeed(
+		memory,
+		Memory.selectedChannel(memory),
+		Number(speedSelector.value)
+	)
+})

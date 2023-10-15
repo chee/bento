@@ -132,7 +132,8 @@ window.addEventListener(
 		let bottomRow = selected > 11
 		let rightColumn = !((selected + 1) % 4)
 		let next = selected
-		let boxes = "1234qwerasdfzxcv"
+		let boxes =
+			location.search == "?kara" ? '!"£$gylmrsntzxcv' : "1234qwerasdfzxcv"
 		let boxIndex = boxes.indexOf(event.key)
 		let toggle = false
 		if (event.key == "ArrowLeft") {

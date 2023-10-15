@@ -65,7 +65,8 @@ class Operator extends AudioWorkletProcessor {
 				Memory.currentStep(memory, channelIndex, currentStep)
 				if (Memory.stepOn(memory, channelIndex, currentStep)) {
 					// TODO trim should return 120000 for length to begin with
-					let [start, end] = Memory.stepTrim(memory, channelIndex, currentStep)
+					let {start, end} = Memory.stepTrim(memory, channelIndex, currentStep)
+
 					// TODO raw dog num use constant
 					toplay[channelIndex] = this.channels[channelIndex].sound.subarray(
 						start || 0,
@@ -83,11 +84,16 @@ class Operator extends AudioWorkletProcessor {
 				channel.point = 0
 				channel.playing = sound
 			}
+
 			if (channel.playing) {
+				if (this.tick % 1280) {
+				} else {
+				}
 				if (channel.point + 128 > channel.playing.length) {
 					channel.playing = null
 				} else {
 					let sub = channel.playing.subarray(channel.point, channel.point + 128)
+
 					outs.push(sub)
 					channel.point += 128
 				}

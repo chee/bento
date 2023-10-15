@@ -82,7 +82,7 @@ export function selectedChannel(memory, val) {
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
- * @param {number?} val
+ * @param {number} [val]
  * @returns {number}
  */
 export function currentStep(memory, channel, val) {
@@ -95,7 +95,7 @@ export function currentStep(memory, channel, val) {
 /**
  * @param {MemoryMap} memory
  * @param {number} channel
- * @param {number?} [val]
+ * @param {number} [val]
  * @returns {number}
  */
 export function channelSpeed(memory, channel, val) {
@@ -125,7 +125,7 @@ export function stepOn(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} val
+ * @param {number} [val]
  * @returns {number}
  */
 export function selectedStep(memory, val) {
@@ -202,19 +202,74 @@ export function soundLength(memory, channel, length) {
 }
 
 /**
+ * @typedef {Object} Trim
+ * @property {number} Trim.start
+ * @property {number} Trim.end
+ */
+
+/**
  * @param {MemoryMap} memory
  * @param {number} channel
  * @param {number} step
- * @param {[number, number]} [trim]
- * @returns {[number, number]}
+ * @param {Trim} [trim]
+ * @returns {Trim}
  */
 // TODO these should probably be together as stepTrims in memory
 export function stepTrim(memory, channel, step, trim) {
 	let offset = channel * STEPS + step
-	if (Array.isArray(trim)) {
-		let [start, end] = trim
+	if (typeof trim !== "undefined") {
+		let {start, end} = trim
 		memory.stepStarts.set([start], offset)
 		memory.stepEnds.set([end], offset)
 	}
-	return [memory.stepStarts.at(offset), memory.stepEnds.at(offset)]
+	return {
+		start: memory.stepStarts.at(offset),
+		end: memory.stepEnds.at(offset),
+	}
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {Trim} [trim]
+ * @returns {Trim}
+ */
+export function selectedStepTrim(memory, trim) {
+	let channel = selectedChannel(memory)
+	let step = selectedStep(memory)
+	return stepTrim(memory, channel, step, trim)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {Float32Array} [val]
+ * @returns {Float32Array}
+ */
+export function selectedChannelSound(memory, val) {
+	let channel = selectedChannel(memory)
+	return sound(memory, channel, val)
+}
+
+/**
+ * @typedef {Object} SoundDetails
+ * @property {Float32Array} SoundDetails.sound
+ * @property {Object} SoundDetails.trim
+ * @property {number} SoundDetails.trim.start
+ * @property {number} SoundDetails.trim.end
+ * @property {number} [SoundDetails.attack]
+ * @property {number} [SoundDetails.release]
+ * @property {number} [SoundDetails.pitch]
+ */
+
+/*
+ * Some read-only functions starting with `get'
+ */
+
+/**
+ * @param {MemoryMap} memory
+ * @returns {SoundDetails}
+ */
+export function getSelectedSoundDetails(memory) {
+	let sound = selectedChannelSound(memory)
+	let trim = selectedStepTrim(memory)
+	return {sound, trim}
 }

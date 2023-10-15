@@ -17,6 +17,7 @@ let canvas = ui.querySelector('[name="waveform"] canvas')
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 graphics.init(canvas)
+sounds.init()
 
 Memory.bpm(memory, 120)
 for (let channel of [0, 1, 2, 3]) {
@@ -27,7 +28,7 @@ ui.addEventListener(
 	"click",
 	() => {
 		sounds.start(buffer)
-		graphics.update(buffer, canvas)
+		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
 	},
 	{once: true}
 )
@@ -48,10 +49,13 @@ steps.forEach((step, stepIndex) => {
 })
 
 let lastChannel = Memory.selectedChannel(memory)
+let lastSelectedStep = Memory.selectedStep(memory)
 function update() {
 	let selectedChannel = Memory.selectedChannel(memory)
 	if (lastChannel != selectedChannel) {
-		setTimeout(() => graphics.update(buffer, canvas))
+		setTimeout(() =>
+			graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
+		)
 		lastChannel = selectedChannel
 	}
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel)
@@ -69,8 +73,12 @@ function update() {
 		}
 	})
 
+	let selectedStep = Memory.selectedStep(memory)
+	if (selectedStep != lastSelectedStep) {
+		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
+	}
 	steps.forEach((stepElement, index) => {
-		if (index == Memory.selectedStep(memory)) {
+		if (index == selectedStep) {
 			stepElement.selected = true
 		} else {
 			stepElement.selected = false
@@ -88,6 +96,7 @@ function update() {
 			stepElement.on = false
 		}
 	})
+	lastSelectedStep = selectedStep
 
 	requestAnimationFrame(update)
 }
@@ -128,10 +137,14 @@ ui.querySelector('[name="stop"]').addEventListener("click", () => {
 })
 
 canvas.addEventListener("trim", event => {
+	/**
+	 * @type {import("./memory.js").Trim}
+	 */
+	let trim = event.detail
 	let chanIndex = Memory.selectedChannel(memory)
 	let stepIndex = Memory.selectedStep(memory)
-	console.log("received trimp", event.detail)
-	Memory.stepTrim(memory, chanIndex, stepIndex, event.detail)
+	Memory.stepTrim(memory, chanIndex, stepIndex, trim)
+	graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
 })
 
 bpmInput.addEventListener("change", event => {
@@ -156,7 +169,8 @@ speedSelector.addEventListener("change", event => {
 recordButton.addEventListener("click", async event => {
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedChannel(memory), audio)
-	graphics.update(buffer, canvas)
+	await new Promise(yay => setTimeout(yay, 100))
+	graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
 })
 
 sounds.angel.hark("recording", recording => {

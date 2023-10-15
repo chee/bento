@@ -12,6 +12,30 @@ async function decode(thing) {
 	).getChannelData(context)
 }
 
+/**
+ * @param {Float32Array} array
+ */
+export function trim(array, threshold = 0.01) {
+	let firstAudibleFloat = -1
+	let lastAudibleFloat = array.length
+	/** @param {number} f32 */
+	let chop = f32 => (f32 / 1000) | 0
+	array.forEach((f32, i) => {
+		if (chop(f32) != 0) {
+			if (firstAudibleFloat == -1) {
+				firstAudibleFloat = i
+			}
+			lastAudibleFloat = i
+		} else {
+		}
+	})
+	if (firstAudibleFloat == -1) {
+		firstAudibleFloat = 0
+	}
+
+	return array.subarray(firstAudibleFloat, lastAudibleFloat)
+}
+
 async function wait(millis) {
 	return new Promise(yay => setTimeout(yay, millis))
 }
@@ -71,3 +95,5 @@ export async function start(buffer) {
 	})
 	operator.connect(context.destination)
 }
+
+export function init() {}

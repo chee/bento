@@ -27,9 +27,6 @@ class PocketElement extends HTMLElement {
 			}
 		}
 	}
-	log() {
-		console.log(this.values)
-	}
 }
 
 export class Control extends PocketElement {

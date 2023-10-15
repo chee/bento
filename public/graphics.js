@@ -14,8 +14,8 @@ let context
 function getContext(canvas) {
 	if (!context) {
 		context = canvas.getContext("2d", {
-			colorSpace: "display-p3",
-			alpha: false,
+			// colorSpace: "display-p3",
+			// alpha: false,
 		})
 		context.save()
 	}

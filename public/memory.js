@@ -125,6 +125,17 @@ export function stepOn(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ */
+export function toggleStep(memory, channel, step) {
+	let {stepOns} = memory
+	let at = channel * STEPS + step
+	stepOns.set([stepOns.at(at) ^ 1], at)
+}
+
+/**
+ * @param {MemoryMap} memory
  * @param {number} [val]
  * @returns {number}
  */

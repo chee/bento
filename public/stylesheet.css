@@ -1,4 +1,3 @@
-
 @font-face {
 	family: "this-font";
 	src: "font.ttf";
@@ -34,6 +33,15 @@
 	font-size: 2.2em;
 }
 
+[screenreader] {
+	position:absolute;
+	left:-10000px;
+	top:auto;
+	width:1px;
+	height:1px;
+	overflow:hidden;
+}
+
 * {
 	overscroll-behavior: none;
 }
@@ -46,13 +54,20 @@ body {
 	margin: 0;
 }
 
-po-ui {
+.ui {
 	user-select: none;
 	background: var(--background);
 	border: 1px solid;
+	touch-action: manipulation;
 }
 
-po-master-controls {
+fieldset {
+	border: none;
+	margin: 0;
+	padding: 0;
+}
+
+.master-controls {
 	display: flex;
 	justify-content: space-evenly;
 	text-align: center;
@@ -61,15 +76,14 @@ po-master-controls {
 	border-bottom: 1px solid;
 }
 
-po-control {
+.master-controls input {
 	font-size: 1em;
 	line-height: 1em;
 }
 
-po-control input,
-po-control button,
-po-control select,
-po-control option {
+input,
+select,
+option {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -82,43 +96,42 @@ po-control option {
 	text-align: center;
 }
 
-po-control button {
+input[type="button"] {
 	cursor: pointer;
 }
 
-po-control input[type="number"] {
+input[type="button"]:hover {
+	color: var(--intense)
+}
+
+input[type="number"] {
 	appearance: textfield;
 }
 
-po-control,
-po-channel,
-po-step {
-	cursor: pointer;
-	touch-action: manipulation;
-}
+.channels {
 
-po-control[control-type="slide"] {
-	cursor: row-resize;
-}
-
-po-channels {
-	text-align: center;
 	display: flex;
 	justify-content: space-evenly;
 	background: var(--background);
 }
 
-po-channel {
-	cursor: pointer;
+.channels label {
 	flex: 1;
+	padding-left: 1em;
 }
 
-po-channel[selected] {
+.channels label:has(:checked) {
 	background: var(--line);
 	color: var(--background);
 }
 
-po-channel-controls {
+/* to be clickable with voice */
+.channels label input {
+	height: 5px;
+	width: 5px;
+}
+
+.channel-controls {
 	display: flex;
 	justify-content: space-evenly;
 	text-align: center;
@@ -126,22 +139,25 @@ po-channel-controls {
 	color: var(--background);
 }
 
-[recording] [name="record"] {
+label:has([name="record"]:checked) {
 	color: var(--bright-red);
 }
 
-figure[name="waveform"] {
+label:has([name="record"]:focus) {
+	outline: 2px solid cyan;
+}
+
+figure.waveform {
 	background: var(--line);
 	width: 100%;
 	margin: 0;
 }
 
-
-figure[name="waveform"] canvas {
+figure.waveform canvas {
 	touch-action: manipulation;
 }
 
-po-steps {
+.steps {
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -152,14 +168,14 @@ po-steps {
 	margin: 0.25em;
 }
 
-po-step {
+.step {
 	height: 2em;
 	width: 2em;
 	border: 1px solid;
 	contain: layout;
 }
 
-po-step[selected] {
+.step[aria-selected="true"] {
 	box-shadow:
 		-2px -2px 0 0 var(--background),
 		02px 02px 0 0 var(--background),
@@ -168,16 +184,25 @@ po-step[selected] {
 		-3px -3px 0 0 var(--line),
 		03px 03px 0 0 var(--line),
 		-3px 03px 0 0 var(--line),
-		03px -3px 0 0 var(--line);
+		03px -3px 0 0 var(--line),
+		-4px -4px 0 0 var(--line),
+		04px 04px 0 0 var(--line),
+		-4px 04px 0 0 var(--line),
+		04px -4px 0 0 var(--line);
+	border-color: currentColor;
+}
+
+.step:checked {
+	color: var(--background);
+	background: var(--line);
 	border-color: var(--line);
 }
 
-po-step[on] {
-	color: var(--background);
-	background: var(--line);
+.step:focus {
+	outline: 1px solid white;
 }
 
-po-step[playing]:after {
+.step.playing:after {
 	content: " ";
 	height: 15%;
 	width: 15%;
@@ -189,13 +214,8 @@ po-step[playing]:after {
 	background: currentColor;
 }
 
-po-step[disabled] {
+.step[disabled] {
 	border: none;
-}
-
-po-step-controls {
-	display: flex;
-	justify-content: space-between;
 }
 
 body:not(.chee) [chee] {

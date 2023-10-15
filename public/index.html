@@ -10,14 +10,15 @@
 	<meta name="application-name" content="www.operator" />
 	<meta name="apple-mobile-web-app-title" content="Operation 0" />
 	<!-- TODO these custom elements are unnecesary -->
-
-	<po-ui>
-		<po-master-controls>
-			<po-control name="play"><button>▶&#xfe0e;</button></po-control>
-			<po-control name="pause"><button>⏸&#xfe0e;</button></po-control>
-			<po-control name="stop"><button>⏹&#xfe0e;</button></po-control>
-			<po-control name="bpm">
+	<article class="ui">
+		<header>
+			<fieldset class="master-controls">
+				<legend screenreader>Master Controls</legend>
+				<input type="button" name="play" value="▶&#xfe0e;" />
+				<input type="button" name="pause" value="⏸&#xfe0e;" />
+				<input type="button" name="stop" value="⏹&#xfe0e;" />
 				<input
+					name="bpm"
 					type="number"
 					inputmode="decimal"
 					max="240"
@@ -25,77 +26,94 @@
 					value="120"
 					autocomplete="off"
 				/>
-			</po-control>
-			<!-- swing -->
-		</po-master-controls>
-		<!-- TODO replace with input type=radio -->
-		<po-channels>
-			<po-channel selected>1</po-channel>
-			<po-channel>2</po-channel>
-			<po-channel>3</po-channel>
-			<po-channel>4</po-channel>
-		</po-channels>
+				<!-- swing -->
+			</fieldset>
+			<!-- TODO replace with input type=radio -->
+			<fieldset class="channels">
+				<legend screenreader>Channels</legend>
+				<label>
+					1
+					<input type="radio" name="channel" checked value="1" />
+				</label>
+				<label>
+					2
+					<input type="radio" name="channel" value="2" />
+				</label>
+				<label>
+					3
+					<input type="radio" name="channel" value="3" />
+				</label>
+				<label>
+					4
+					<input type="radio" name="channel" value="4" />
+				</label>
+			</fieldset>
 
-		<po-channel-controls>
-			<po-control name="speed">
-				<select autocomplete="off">
+			<fieldset class="channel-controls">
+				<legend screenreader>Channel Controls</legend>
+				<select autocomplete="off" name="speed">
 					<option value="0.25">¼×</option>
 					<option value="0.5">½×</option>
 					<option value="1" selected>1×</option>
 					<option value="2">2×</option>
 					<option value="4">4×</option>
 				</select>
-			</po-control>
-			<po-control name="length" chee>
-				<input type="number" max="15" min="0" value="16" />
-			</po-control>
-			<po-control name="upload" chee>
-				<input type="file" accept="audio/*" capture id="upload" />
-			</po-control>
-			<po-control name="record">
-				<button label="Record sound">●</button>
-			</po-control>
-		</po-channel-controls>
-		<figure name="waveform">
+				<input type="number" max="15" min="0" value="16" name="length" chee />
+				<input type="file" accept="audio/*" name="upload" chee />
+				<label>
+					●
+					<input type="checkbox" label="Recording" name="record" />
+				</label>
+			</fieldset>
+		</header>
+		<figure class="waveform">
 			<!-- TODO do height/width using computer (real size * 3) -->
-			<canvas></canvas>
+			<canvas alt=""></canvas>
+			<figcaption hidden>waveform</figcaption>
 		</figure>
-		<po-steps>
-			<!-- TODO replace with checkboxes -->
-			<po-step playing on><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-
-			<po-step on><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-
-			<po-step on><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-
-			<po-step on><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-			<po-step on><po-wave></po-wave></po-step>
-			<po-step><po-wave></po-wave></po-step>
-		</po-steps>
-		<po-step-controls chee>
-			<po-control name="pitch" value="1.0" value-type="number">
-				1.0
-			</po-control>
-			<po-control name="attack" value="0.0" value-type="number">
-				0.0
-			</po-control>
-			<po-control name="release" value="0.0" value-type="number">
-				0.0
-			</po-control>
-			<po-control name="length" value="0.0" value-type="number">
-				1.0
-			</po-control>
-		</po-step-controls>
-	</po-ui>
+		<main class="steps">
+			<input
+				type="checkbox"
+				class="step playing"
+				aria-selected="true"
+				checked="true"
+			/>
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false"
+				checked="true"
+			/>
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false"
+				checked="true"
+			/>
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false"
+				checked="true"
+			/>
+			<input type="checkbox" class="step" aria-selected="false" />
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false"
+				checked="true"
+			/>
+			<input type="checkbox" class="step" aria-selected="false" />
+		</main>
+	</article>
 	<script type="module" src="ui.js"></script>
 </html>

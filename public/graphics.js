@@ -6,13 +6,13 @@ let context
 /**
  * @param {HTMLCanvasElement} canvas
  */
-
 function getContext(canvas) {
 	if (!context) {
 		context = canvas.getContext("2d", {
-			//colorSpace: "display-p3",
-			//alpha: false,
+			colorSpace: "display-p3",
+			alpha: false,
 		})
+		context.save()
 	}
 	return context
 }
@@ -27,17 +27,29 @@ let style = {
 }
 
 /**
- * @param {HTMLCanvasElement} canvas
+ * @param {CanvasRenderingContext2D} context
+ */ function clear(context) {
+	let canvas = context.canvas
+	let {width, height} = canvas
+	context.restore()
+	context.clearRect(0, 0, width, height)
+	context.fillStyle = "#00000000"
+	context.strokeStyle = "#00000000"
+	context.lineWidth = 1
+}
+
+/**
  * @param {CanvasRenderingContext2D} context
  * @param {import("./memory.js").SoundDetails} details
  */
-function drawWaveform(canvas, context, {sound, trim}) {
+function drawWaveform(context, {sound, trim}) {
+	let {canvas} = context
 	// find the top and bottom
 	let max = 0
 	let min = 0
 
-	let lastZeroIndex = 0
 	// TODO can i loop once?
+	let lastZeroIndex = 0
 	sound.forEach((f32, i) => {
 		max = f32 > max ? f32 : max
 		min = f32 < min ? f32 : min
@@ -60,8 +72,6 @@ function drawWaveform(canvas, context, {sound, trim}) {
 	let yMult = height * (1 / verticalDistance)
 
 	let x = 0
-
-	context.moveTo(0, zeroPoint)
 
 	context.fillStyle = style.fill
 	context.fillRect(0, 0, canvas.width, canvas.height)
@@ -93,6 +103,7 @@ function drawWaveform(canvas, context, {sound, trim}) {
 	})
 	context.stroke()
 
+	// TODO extract
 	/** @param {MouseEvent} event */
 	function startTrimming(event) {
 		let start = event.offsetX
@@ -100,22 +111,21 @@ function drawWaveform(canvas, context, {sound, trim}) {
 		let context = canvas.getContext("2d")
 		let trimming = true
 		let bounds = canvas.getBoundingClientRect()
+		// TODO fix overlapping problem when wiggling around
 		context.beginPath()
 		context.lineWidth = canvas.height
 		context.strokeStyle = "#ffff0099"
 		context.moveTo(start, middle)
 		let lastX = start
-		// TODO make this good
-		// context.lineWidth = canvas.height
-		// context.strokeStyle = "#ccffff33"
-		// context.beginPath()
-		// context.moveTo(start, middle)
+
+		/** @param {number} pageX */
 		let getX = pageX =>
 			pageX < bounds.left
 				? 0
 				: pageX > bounds.right
 				? canvas.width
 				: pageX - bounds.left
+
 		/** @param {MouseEvent} event */
 		function mousemove(event) {
 			let x = getX(event.pageX)
@@ -134,7 +144,6 @@ function drawWaveform(canvas, context, {sound, trim}) {
 			"mouseup",
 			function finishTrimming(event) {
 				let end = getX(event.pageX)
-				console.log({end, px: event.pageX, bx: bounds.left})
 				let trim = {start: (start / xWidth) | 0, end: (end / xWidth) | 0}
 				if (start > end) {
 					;[trim.start, trim.end] = [trim.end, trim.start]
@@ -154,22 +163,21 @@ function drawWaveform(canvas, context, {sound, trim}) {
  */
 export async function update(canvas, details) {
 	let context = getContext(canvas)
-	context.reset()
-	context.clearRect(0, 0, canvas.width, canvas.height)
-	drawWaveform(canvas, context, details)
+	clear(context)
+	drawWaveform(context, details)
 }
 
 /**
  * @param {HTMLCanvasElement} canvas
  */
 export async function init(canvas) {
-	context = canvas.getContext("2d")
-	context.fillStyle = "#cc3366"
+	let context = getContext(canvas)
+	context.fillStyle = style.fill
 	context.fillRect(0, 0, canvas.width, canvas.height)
 	context.moveTo(0, canvas.height / 2)
 	for (let x of Array.from(Array(canvas.width), (_, i) => i)) {
 		context.lineTo(x, (canvas.height / 2) * (Math.random() + 0.5))
 	}
-	context.strokeStyle = "white"
+	context.strokeStyle = style.line
 	context.stroke()
 }

@@ -34,13 +34,16 @@
 	font-size: 2.2em;
 }
 
+* {
+	overscroll-behavior: none;
+}
+
 body {
 	display: flex;
 	min-height: 100vh;
 	align-items: center;
 	justify-content: center;
 	margin: 0;
-	overscroll-behaviour: none;
 }
 
 po-ui {

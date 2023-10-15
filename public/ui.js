@@ -173,9 +173,11 @@ recordButton.addEventListener("click", async event => {
 	graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
 })
 
-sounds.angel.hark("recording", recording => {
-	ui.toggleAttribute("recording", recording)
-})
+globalThis.onmessage = function (event) {
+	if (event.data?.type == "recording") {
+		ui.toggleAttribute("recording", event.data.state)
+	}
+}
 
 function getPattern() {
 	let pattern = ""

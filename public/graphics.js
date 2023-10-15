@@ -1,3 +1,6 @@
+let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
+	window.matchMedia("(pointer: coarse)").matches
+let DPI = 3
 /**
  * @type {CanvasRenderingContext2D | void} context
  */
@@ -35,7 +38,7 @@ let style = {
 	context.clearRect(0, 0, width, height)
 	context.fillStyle = "#00000000"
 	context.strokeStyle = "#00000000"
-	context.lineWidth = 1
+	context.lineWidth = DPI
 }
 
 /**
@@ -50,6 +53,7 @@ function drawWaveform(context, {sound, trim}) {
 
 	// TODO can i loop once?
 	let lastZeroIndex = 0
+
 	sound.forEach((f32, i) => {
 		max = f32 > max ? f32 : max
 		min = f32 < min ? f32 : min
@@ -85,8 +89,14 @@ function drawWaveform(context, {sound, trim}) {
 	context.moveTo(0, zeroPoint)
 	context.beginPath()
 	let drawingTrimRegion = false
-	sound.forEach((f32, idx) => {
-		x += xWidth
+	for (let index in sound) {
+		let idx = Number(index)
+		let f32 = sound.at(idx)
+		// only drawing every ${skip}th sample because safari canvas is v slow
+		// TODO move drawing to a webworker
+		let skip = 40
+		if (idx % skip) continue
+		x += xWidth * skip
 		if (hasTrim && x >= trimStart && x < trimEnd && !drawingTrimRegion) {
 			context.stroke()
 			context.strokeStyle = style.trim.line
@@ -95,22 +105,26 @@ function drawWaveform(context, {sound, trim}) {
 		} else if (hasTrim && x > trimEnd && drawingTrimRegion) {
 			context.stroke()
 			context.strokeStyle = style.line
-
 			context.beginPath()
 			drawingTrimRegion = false
 		}
 		context.lineTo(x, height - (f32 * yMult + zeroPoint))
-	})
+	}
+
 	context.stroke()
 
 	// TODO extract
 	/** @param {MouseEvent} event */
 	function startTrimming(event) {
-		let start = event.offsetX
-		let middle = canvas.height / 2
-		let context = canvas.getContext("2d")
-		let trimming = true
+		if (
+			IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
+		) {
+			return
+		}
+		let start = event.offsetX * DPI
 		let bounds = canvas.getBoundingClientRect()
+		let middle = canvas.height / 2
+		let trimming = true
 		// TODO fix overlapping problem when wiggling around
 		context.beginPath()
 		context.lineWidth = canvas.height
@@ -124,37 +138,78 @@ function drawWaveform(context, {sound, trim}) {
 				? 0
 				: pageX > bounds.right
 				? canvas.width
-				: pageX - bounds.left
+				: (pageX - bounds.left) * DPI
 
+		let bounce
 		/** @param {MouseEvent} event */
 		function mousemove(event) {
 			let x = getX(event.pageX)
 			if (trimming) {
-				context.beginPath()
-				context.moveTo(lastX, middle)
-				context.lineTo(x, middle)
-				context.stroke()
-				lastX = x
+				clearTimeout(bounce)
+				bounce = setTimeout(() => {
+					context.beginPath()
+					context.moveTo(lastX, middle)
+					context.lineTo(x, middle)
+					context.stroke()
+					lastX = x
+				})
 			}
 		}
 
 		window.addEventListener("mousemove", mousemove)
 
-		window.addEventListener(
-			"mouseup",
-			function finishTrimming(event) {
-				let end = getX(event.pageX)
-				let trim = {start: (start / xWidth) | 0, end: (end / xWidth) | 0}
-				if (start > end) {
-					;[trim.start, trim.end] = [trim.end, trim.start]
-				}
-				canvas.dispatchEvent(new CustomEvent("trim", {detail: trim}))
-				window.removeEventListener("mousemove", mousemove)
+		function finishTrimming(event) {
+			let end = getX(event.pageX)
+			let trim = {start: (start / xWidth) | 0, end: (end / xWidth) | 0}
+			if (start > end) {
+				;[trim.start, trim.end] = [trim.end, trim.start]
+			}
+
+			canvas.dispatchEvent(new CustomEvent("trim", {detail: trim}))
+			window.removeEventListener("mousemove", mousemove)
+		}
+
+		window.addEventListener("mouseup", finishTrimming, {once: true})
+	}
+	canvas.addEventListener("mousedown", startTrimming, {once: true})
+
+	if (
+		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
+	) {
+		let bounds = canvas.getBoundingClientRect()
+		/** @type {Touch?} */
+		let finger
+		canvas.addEventListener(
+			"touchstart",
+			event => {
+				finger = event.touches[0]
+				window.addEventListener(
+					"touchend",
+					event => {
+						let lost = event.changedTouches[0]
+						if (lost.identifier == finger.identifier) {
+							let [start, end] = [
+								finger.pageX - bounds.left,
+								lost.pageX - bounds.left,
+							]
+							if (start > end) {
+								;[start, end] = [end, start]
+							}
+							if (start < 0) start = 0
+							if (end > bounds.right) end = bounds.right
+							let trim = {
+								start: ((start * DPI) / xWidth) | 0,
+								end: ((end * DPI) / xWidth) | 0,
+							}
+							canvas.dispatchEvent(new CustomEvent("trim", {detail: trim}))
+						}
+					},
+					{once: true}
+				)
 			},
 			{once: true}
 		)
 	}
-	canvas.addEventListener("mousedown", startTrimming, {once: true})
 }
 
 /**

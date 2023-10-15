@@ -222,3 +222,7 @@ figure[name="waveform"] {
 	margin: 0;
 	height: 1em;
 }
+
+canvas {
+	touch-action: manipulation;
+}

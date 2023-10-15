@@ -70,7 +70,7 @@ class Operator extends AudioWorkletProcessor {
 					// TODO raw dog num use constant
 					toplay[channelIndex] = this.channels[channelIndex].sound.subarray(
 						start || 0,
-						end || 120000
+						end || Memory.SOUND_SIZE
 					)
 				}
 			}

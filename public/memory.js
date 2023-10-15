@@ -1,5 +1,5 @@
-// 2.5 seconds at 48000hz
-export const SOUND_SIZE = 120000
+// ~3 seconds at 44.1khz
+export const SOUND_SIZE = 2 ** 17
 const CHANNELS = 4
 const STEPS = 16
 const QUANTUM = 128

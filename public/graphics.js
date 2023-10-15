@@ -1,3 +1,5 @@
+import {SOUND_SIZE} from "./memory.js"
+
 let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
 	window.matchMedia("(pointer: coarse)").matches
 let DPI = 3
@@ -89,12 +91,13 @@ function drawWaveform(context, {sound, trim}) {
 	context.moveTo(0, zeroPoint)
 	context.beginPath()
 	let drawingTrimRegion = false
-	for (let index in sound) {
+	let subarray = sound.subarray(0, lastZeroIndex)
+	for (let index in subarray) {
 		let idx = Number(index)
 		let f32 = sound.at(idx)
 		// only drawing every ${skip}th sample because safari canvas is v slow
 		// TODO move drawing to a webworker
-		let skip = 40
+		let skip = 47
 		if (idx % skip) continue
 		x += xWidth * skip
 		if (hasTrim && x >= trimStart && x < trimEnd && !drawingTrimRegion) {
@@ -114,6 +117,7 @@ function drawWaveform(context, {sound, trim}) {
 	context.stroke()
 
 	// TODO extract
+	// these event handlers have not to do with graphics
 	/** @param {MouseEvent} event */
 	function startTrimming(event) {
 		if (
@@ -227,6 +231,12 @@ export async function update(canvas, details) {
  */
 export async function init(canvas) {
 	let context = getContext(canvas)
+	// starring lindsey lohan
+	let parentBox = canvas.parentElement.getBoundingClientRect()
+	canvas.height = parentBox.height * DPI
+	canvas.width = parentBox.width * DPI
+	canvas.style.height = parentBox.height + "px"
+	canvas.style.width = parentBox.width + "px"
 	context.fillStyle = style.fill
 	context.fillRect(0, 0, canvas.width, canvas.height)
 	context.moveTo(0, canvas.height / 2)

@@ -31,7 +31,7 @@
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
-	font-size: 2.0em;
+	font-size: 2.2em;
 }
 
 body {
@@ -40,6 +40,7 @@ body {
 	align-items: center;
 	justify-content: center;
 	margin: 0;
+	overscroll-behaviour: none;
 }
 
 po-ui {

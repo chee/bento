@@ -68,7 +68,7 @@ function fingerTrim(event) {
 			/** @type {Touch} */
 			let moved = findFinger(finger, event.changedTouches)
 			if (moved) {
-				Memory.trimX(memory, moved.pageX)
+				Memory.trimX(memory, getX(moved.pageX, bounds))
 			}
 		}
 	}

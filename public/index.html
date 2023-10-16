@@ -9,14 +9,14 @@
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="application-name" content="www.operator" />
 	<meta name="apple-mobile-web-app-title" content="Operation 0" />
-	<!-- TODO these custom elements are unnecesary -->
-	<article class="ui">
+
+	<form class="ui"  autocomplete="off">
 		<header>
 			<fieldset class="master-controls">
 				<legend screenreader>Master Controls</legend>
 				<input type="button" name="play" value="▶&#xfe0e;" />
 				<input type="button" name="pause" value="⏸&#xfe0e;" />
-				<input type="button" name="stop" value="⏹&#xfe0e;" />
+				<input type="button" name="stop" value="⏹&#xfe0e;" hidden />
 				<input
 					name="bpm"
 					type="number"
@@ -28,24 +28,24 @@
 				/>
 				<!-- swing -->
 			</fieldset>
-			<!-- TODO replace with input type=radio -->
+
 			<fieldset class="channels">
 				<legend screenreader>Channels</legend>
-				<label>
+				<label class="checked">
 					1
-					<input type="radio" name="channel" checked value="1" />
+					<input type="radio" name="channel" checked value="0" />
 				</label>
 				<label>
 					2
-					<input type="radio" name="channel" value="2" />
+					<input type="radio" name="channel" value="1" />
 				</label>
 				<label>
 					3
-					<input type="radio" name="channel" value="3" />
+					<input type="radio" name="channel" value="2" />
 				</label>
 				<label>
 					4
-					<input type="radio" name="channel" value="4" />
+					<input type="radio" name="channel" value="3" />
 				</label>
 			</fieldset>
 
@@ -67,7 +67,6 @@
 			</fieldset>
 		</header>
 		<figure class="waveform">
-			<!-- TODO do height/width using computer (real size * 3) -->
 			<canvas alt=""></canvas>
 			<figcaption hidden>waveform</figcaption>
 		</figure>

@@ -9,7 +9,9 @@ export let arrays = [
 	{name: "selectedChannel", type: Uint8Array, size: 1},
 	{name: "selectedStep", type: Uint8Array, size: 1},
 	{name: "playing", type: Uint8Array, size: 1},
+	{name: "paused", type: Uint8Array, size: 1},
 	{name: "bpm", type: Uint8Array, size: 1},
+	{name: "spacer", type: Uint8Array, size: 3},
 	{name: "channelLengths", type: Uint8Array, size: CHANNELS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
 	{name: "soundLengths", type: Uint32Array, size: CHANNELS},
@@ -22,7 +24,15 @@ export let arrays = [
 	{name: "stepStarts", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "stepEnds", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
+
+	// for the trim ui experience
+	{name: "trim", type: Float64Array, size: 4},
 ]
+
+let TRIM_START = 0
+let TRIM_END = 1
+let TRIM_X = 2
+let X_MULTIPLIER = 3
 
 export let size = arrays.reduce(
 	(total, array) => total + array.type.BYTES_PER_ELEMENT * array.size,
@@ -30,14 +40,15 @@ export let size = arrays.reduce(
 )
 
 /**
-	for (let arrays of (await import("./public/memory.js")).arrays) {
-  console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
-}
+for (let arrays of (await import("./public/memory.js")).arrays)
+console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
  * @property {Uint8Array} MemoryMap.selectedChannel
  * @property {Uint8Array} MemoryMap.selectedStep
  * @property {Uint8Array} MemoryMap.playing
+ * @property {Uint8Array} MemoryMap.paused
  * @property {Uint8Array} MemoryMap.bpm
+ * @property {Uint8Array} MemoryMap.spacer
  * @property {Uint8Array} MemoryMap.channelLengths
  * @property {Float32Array} MemoryMap.frame
  * @property {Uint32Array} MemoryMap.soundLengths
@@ -47,9 +58,10 @@ export let size = arrays.reduce(
  * @property {Int8Array} MemoryMap.stepPitches
  * @property {Uint8Array} MemoryMap.stepAttacks
  * @property {Uint8Array} MemoryMap.stepReleases
- * @property {Uint8Array} MemoryMap.stepStarts
- * @property {Uint8Array} MemoryMap.stepEnds
+ * @property {Uint32Array} MemoryMap.stepStarts
+ * @property {Uint32Array} MemoryMap.stepEnds
  * @property {Float32Array} MemoryMap.channelSounds
+ * @property {Float32Array} MemoryMap.trim
  */
 /**
  * @param {SharedArrayBuffer} buffer
@@ -160,6 +172,20 @@ export function playing(memory, val) {
 
 /**
  * @param {MemoryMap} memory
+ * @param {boolean} pause
+ * @returns {boolean}
+ */
+export function togglePlaying(memory, pause = false) {
+	if (!pause) {
+		for (let channel of [0, 1, 2, 3]) {
+			currentStep(memory, channel, 0)
+		}
+	}
+	return playing(memory, !playing(memory))
+}
+
+/**
+ * @param {MemoryMap} memory
  * @param {number} [val]
  * @returns {number}
  */
@@ -210,6 +236,71 @@ export function soundLength(memory, channel, length) {
 		memory.soundLengths.set([length], channel)
 	}
 	return memory.soundLengths.at(channel)
+}
+
+/**
+ * NOTE: Sets trim start AND clears trim end AND clears trim x
+ * @param {MemoryMap} memory
+ * @param {number} [x]
+ * @returns {number}
+ */
+export function trimStart(memory, x) {
+	if (typeof x == "number") {
+		memory.trim.set([x], TRIM_START)
+		// note this happening
+		memory.trim.set([x], TRIM_X)
+		memory.trim.set([-1], TRIM_END)
+	}
+
+	return memory.trim.at(TRIM_START)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} [x]
+ * @returns {number}
+ */
+export function trimX(memory, x) {
+	if (typeof x == "number") memory.trim.set([x], TRIM_X)
+	return memory.trim.at(TRIM_X)
+}
+
+let lr = (l, r) => (l > r ? [r, l] : [l, r])
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} [x]
+ * @returns {number}
+ */
+export function trimEnd(memory, x) {
+	if (typeof x == "number") {
+		memory.trim.set([x], TRIM_END)
+		let [start, end] = [trimStart(memory), trimEnd(memory)]
+		selectedStepTrim(memory, {
+			start: start / xm(memory),
+			end: end / xm(memory),
+		})
+	}
+	return memory.trim.at(TRIM_END)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} [xm]
+ * @returns {number}
+ */
+
+export function xm(memory, xm) {
+	if (typeof xm == "number") memory.trim.set([xm], X_MULTIPLIER)
+	return memory.trim.at(X_MULTIPLIER)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @returns {boolean}
+ */
+export function trimming(memory) {
+	return memory.trim.at(TRIM_START) != -1 && memory.trim.at(TRIM_END) == -1
 }
 
 /**

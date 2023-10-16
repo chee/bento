@@ -1,248 +1,125 @@
-import {SOUND_SIZE} from "./memory.js"
-
+// TODO add another tiny translucent canvas for the region
 let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
-	window.matchMedia("(pointer: coarse)").matches
-let DPI = 3
+	typeof window != "undefined" && window.matchMedia("(pointer: coarse)").matches
+
+import * as Memory from "./memory.js"
+/** @type {Memory.MemoryMap} */
+let memory
+
+/** @type {HTMLCanvasElement} */
+let canvas
+
 /**
- * @type {CanvasRenderingContext2D | void} context
+ * @param {number} pageX
+ * @param {DOMRectReadOnly} bounds
  */
-let context
+function getX(pageX, bounds) {
+	// TODO
+	// let bounds = canvas.getBoundingClientRect()
+
+	return pageX < bounds.left
+		? 0
+		: pageX > bounds.right
+		? canvas.width
+		: (pageX - bounds.left) * 3
+}
+
+// why is this in this file
+function mouseTrim(event) {
+	// assumes nothing ever changes size while you're trying to trim a sample
+	let bounds = canvas.getBoundingClientRect()
+	Memory.trimStart(memory, getX(event.pageX, bounds))
+	function mousemove(event) {
+		if (Memory.trimming(memory)) {
+			Memory.trimX(memory, getX(event.pageX, bounds))
+		}
+	}
+	window.addEventListener("mousemove", mousemove)
+
+	function trimComplete(event) {
+		Memory.trimEnd(memory, getX(event.pageX, bounds))
+		window.removeEventListener("mousemove", mousemove)
+	}
+
+	window.addEventListener("mouseup", trimComplete, {once: true})
+}
+
+/**
+ * @param {Touch} finger
+ * @param {TouchList} touches
+ * @returns {Touch?}
+ */
+function findFinger(finger, touches) {
+	return [].find.call(
+		touches,
+		/** @param {Touch} touch */
+		touch => touch.identifier == finger.identifier
+	)
+}
+
+/** @param {TouchEvent} event */
+function fingerTrim(event) {
+	// assumes nothing ever changes size while you're trying to trim a sample
+	let bounds = canvas.getBoundingClientRect()
+	let [finger] = event.touches
+	Memory.trimStart(memory, getX(finger.pageX, bounds))
+	function move(event) {
+		if (Memory.trimming(memory)) {
+			/** @type {Touch} */
+			let moved = findFinger(finger, event.changedTouches)
+			if (moved) {
+				Memory.trimX(memory, moved.pageX)
+			}
+		}
+	}
+	window.addEventListener("touchmove", move)
+	window.addEventListener(
+		"touchend",
+		function (event) {
+			let lost = findFinger(finger, event.changedTouches)
+			if (lost) {
+				Memory.trimEnd(memory, getX(lost.pageX, bounds))
+				window.removeEventListener("touchmove", move)
+			}
+		},
+		{once: true}
+	)
+}
+
+let worker = new Worker("./waveform.worker.js")
+
+/**
+ * @param {HTMLCanvasElement} c
+ */
+export async function init(c) {
+	canvas = c
+	// starring lindsey lohan
+	let parentBox = canvas.parentElement.getBoundingClientRect()
+	canvas.height = parentBox.height * 3
+	canvas.width = parentBox.width * 3
+	canvas.style.height = parentBox.height + "px"
+	canvas.style.width = parentBox.width + "px"
+
+	let offscreen = canvas.transferControlToOffscreen()
+	let colorSpace = matchMedia("(color-gamut: p3)").matches
+		? "display-p3"
+		: "srgb"
+	worker.postMessage({type: "init", canvas: offscreen, colorSpace}, [offscreen])
+}
 
 /**
  * @param {HTMLCanvasElement} canvas
+ * @param {SharedArrayBuffer} buffer
  */
-function getContext(canvas) {
-	if (!context) {
-		context = canvas.getContext("2d", {
-			// colorSpace: "display-p3",
-			// alpha: false,
-		})
-		context.save()
-	}
-	return context
-}
-
-let style = {
-	fill: "#cc3366",
-	line: "white",
-	trim: {
-		fill: "white",
-		line: "black",
-	},
-}
-
-/**
- * @param {CanvasRenderingContext2D} context
- */ function clear(context) {
-	let canvas = context.canvas
-	let {width, height} = canvas
-	context.restore()
-	context.clearRect(0, 0, width, height)
-	context.fillStyle = "#00000000"
-	context.strokeStyle = "#00000000"
-	context.lineWidth = DPI
-}
-
-/**
- * @param {CanvasRenderingContext2D} context
- * @param {import("./memory.js").SoundDetails} details
- */
-function drawWaveform(context, {sound, trim}) {
-	let {canvas} = context
-	// find the top and bottom
-	let max = 0
-	let min = 0
-
-	// TODO can i loop once?
-	let lastZeroIndex = 0
-
-	sound.forEach((f32, i) => {
-		max = f32 > max ? f32 : max
-		min = f32 < min ? f32 : min
-		if (f32 != 0 && !isNaN(f32)) {
-			lastZeroIndex = i
-		}
-	})
-
-	let width = canvas.width
-	let height = canvas.height
-	// the horizontal distance between each point
-	let xWidth = width / lastZeroIndex
-
-	let trimStart = trim.start * xWidth
-	let trimEnd = trim.end * xWidth
-
-	let verticalDistance = max - min
-
-	let zeroPoint = height / 2
-	let yMult = height * (1 / verticalDistance)
-
-	let x = 0
-
-	context.fillStyle = style.fill
-	context.fillRect(0, 0, canvas.width, canvas.height)
-	let hasTrim = trimStart || trimEnd
-	if (hasTrim) {
-		context.fillStyle = style.trim.fill
-		context.fillRect(trimStart, 0, trimEnd - trimStart, height)
-	}
-	// i am so bad at math lol
-	context.strokeStyle = style.line
-	context.moveTo(0, zeroPoint)
-	context.beginPath()
-	let drawingTrimRegion = false
-	let subarray = sound.subarray(0, lastZeroIndex)
-	for (let index in subarray) {
-		let idx = Number(index)
-		let f32 = sound.at(idx)
-		// only drawing every ${skip}th sample because safari canvas is v slow
-		// TODO move drawing to a webworker
-		let skip = 47
-		if (idx % skip) continue
-		x += xWidth * skip
-		if (hasTrim && x >= trimStart && x < trimEnd && !drawingTrimRegion) {
-			context.stroke()
-			context.strokeStyle = style.trim.line
-			context.beginPath()
-			drawingTrimRegion = true
-		} else if (hasTrim && x > trimEnd && drawingTrimRegion) {
-			context.stroke()
-			context.strokeStyle = style.line
-			context.beginPath()
-			drawingTrimRegion = false
-		}
-		context.lineTo(x, height - (f32 * yMult + zeroPoint))
-	}
-
-	context.stroke()
-
-	// TODO extract
-	// these event handlers have not to do with graphics
-	/** @param {MouseEvent} event */
-	function startTrimming(event) {
-		if (
-			IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
-		) {
-			return
-		}
-		let start = event.offsetX * DPI
-		let bounds = canvas.getBoundingClientRect()
-		let middle = canvas.height / 2
-		let trimming = true
-		// TODO fix overlapping problem when wiggling around
-		context.beginPath()
-		context.lineWidth = canvas.height
-		context.strokeStyle = "#ffff0099"
-		context.moveTo(start, middle)
-		let lastX = start
-
-		/** @param {number} pageX */
-		let getX = pageX =>
-			pageX < bounds.left
-				? 0
-				: pageX > bounds.right
-				? canvas.width
-				: (pageX - bounds.left) * DPI
-
-		let bounce
-		/** @param {MouseEvent} event */
-		function mousemove(event) {
-			let x = getX(event.pageX)
-			if (trimming) {
-				clearTimeout(bounce)
-				bounce = setTimeout(() => {
-					context.beginPath()
-					context.moveTo(lastX, middle)
-					context.lineTo(x, middle)
-					context.stroke()
-					lastX = x
-				})
-			}
-		}
-
-		window.addEventListener("mousemove", mousemove)
-
-		function finishTrimming(event) {
-			let end = getX(event.pageX)
-			let trim = {start: (start / xWidth) | 0, end: (end / xWidth) | 0}
-			if (start > end) {
-				;[trim.start, trim.end] = [trim.end, trim.start]
-			}
-
-			canvas.dispatchEvent(new CustomEvent("trim", {detail: trim}))
-			window.removeEventListener("mousemove", mousemove)
-		}
-
-		window.addEventListener("mouseup", finishTrimming, {once: true})
-	}
-	canvas.addEventListener("mousedown", startTrimming, {once: true})
+export function start(canvas, buffer) {
+	worker.postMessage({type: "start", buffer})
+	memory = Memory.map(buffer)
 
 	if (
 		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
 	) {
-		let bounds = canvas.getBoundingClientRect()
-		/** @type {Touch?} */
-		let finger
-		canvas.addEventListener(
-			"touchstart",
-			event => {
-				finger = event.touches[0]
-				window.addEventListener(
-					"touchend",
-					event => {
-						let lost = event.changedTouches[0]
-						if (lost.identifier == finger.identifier) {
-							let [start, end] = [
-								finger.pageX - bounds.left,
-								lost.pageX - bounds.left,
-							]
-							if (start > end) {
-								;[start, end] = [end, start]
-							}
-							if (start < 0) start = 0
-							if (end > bounds.right) end = bounds.right
-							let trim = {
-								start: ((start * DPI) / xWidth) | 0,
-								end: ((end * DPI) / xWidth) | 0,
-							}
-							canvas.dispatchEvent(new CustomEvent("trim", {detail: trim}))
-						}
-					},
-					{once: true}
-				)
-			},
-			{once: true}
-		)
+		canvas.addEventListener("touchstart", fingerTrim)
+	} else {
+		canvas.addEventListener("mousedown", mouseTrim)
 	}
-}
-
-/**
- * @param {HTMLCanvasElement} canvas
- * @param {import("./memory.js").SoundDetails} details
- */
-export async function update(canvas, details) {
-	let context = getContext(canvas)
-	clear(context)
-	drawWaveform(context, details)
-}
-
-/**
- * @param {HTMLCanvasElement} canvas
- */
-export async function init(canvas) {
-	let context = getContext(canvas)
-	// starring lindsey lohan
-	let parentBox = canvas.parentElement.getBoundingClientRect()
-	canvas.height = parentBox.height * DPI
-	canvas.width = parentBox.width * DPI
-	canvas.style.height = parentBox.height + "px"
-	canvas.style.width = parentBox.width + "px"
-	context.fillStyle = style.fill
-	context.fillRect(0, 0, canvas.width, canvas.height)
-	context.moveTo(0, canvas.height / 2)
-	for (let x of Array.from(Array(canvas.width), (_, i) => i)) {
-		context.lineTo(x, (canvas.height / 2) * (Math.random() + 0.5))
-	}
-	context.strokeStyle = style.line
-	context.stroke()
 }

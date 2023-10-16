@@ -40,6 +40,7 @@ class Operator extends AudioWorkletProcessor {
 	}
 	// :)
 	process(_inputs, outputs, _parameters) {
+		// TODO fix stop button (channel.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (!Memory.playing(memory)) {
 			return true
@@ -51,24 +52,24 @@ class Operator extends AudioWorkletProcessor {
 		let samplesPerBeat = (60 / bpm) * sampleRate
 
 		let toplay = []
-		for (let channelIndex of [0, 1, 2, 3]) {
-			let channel = this.channels[channelIndex]
+
+		for (let channel of this.channels) {
 			// TODO consider only reloading things at the start of every loop
-			channel.sound = Memory.sound(memory, channelIndex)
-			channel.speed = Memory.channelSpeed(memory, channelIndex)
+			channel.sound = Memory.sound(memory, channel.index)
+			channel.speed = Memory.channelSpeed(memory, channel.index)
 
 			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
 
 			let currentStep = ((this.tick / samplesPerStep) | 0) % 16
 
 			if (currentStep != channel.lastStep) {
-				Memory.currentStep(memory, channelIndex, currentStep)
-				if (Memory.stepOn(memory, channelIndex, currentStep)) {
+				Memory.currentStep(memory, channel.index, currentStep)
+				if (Memory.stepOn(memory, channel.index, currentStep)) {
 					// TODO trim should return 120000 for length to begin with
-					let {start, end} = Memory.stepTrim(memory, channelIndex, currentStep)
+					let {start, end} = Memory.stepTrim(memory, channel.index, currentStep)
 
 					// TODO raw dog num use constant
-					toplay[channelIndex] = this.channels[channelIndex].sound.subarray(
+					toplay[channel.index] = this.channels[channel.index].sound.subarray(
 						start || 0,
 						end || Memory.SOUND_SIZE
 					)
@@ -86,9 +87,6 @@ class Operator extends AudioWorkletProcessor {
 			}
 
 			if (channel.playing) {
-				if (this.tick % 1280) {
-				} else {
-				}
 				if (channel.point + 128 > channel.playing.length) {
 					channel.playing = null
 				} else {

@@ -21,33 +21,30 @@ let canvas = ui.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-function indexOfSelf(/** @type {HTMLElement} */ element) {
-	return [].indexOf.call(element.parentElement.children, element)
-}
-
 function init() {
 	graphics.init(canvas)
 	sounds.init()
 	Memory.bpm(memory, Number(bpmInput.value))
-	for (let channel of channels) {
-		let idx = indexOfSelf(channel)
+	channels.forEach((channel, idx) => {
 		Memory.channelSpeed(memory, idx, 1)
 		if (channel.checked) {
 			Memory.selectedChannel(memory, idx)
 		}
-	}
+	})
+
+	let interactions = ["mousedown", "touchstart", "keypress"]
 
 	let alreadyFancy = false
 	function getFancy() {
-		if (alreadyFancy) return
+		if (alreadyFancy) {
+			interactions.map(e => window.removeEventListener(e, getFancy))
+			return
+		}
 		sounds.start(buffer)
-		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
+		graphics.start(canvas, buffer)
 		alreadyFancy = true
 	}
-
-	ui.addEventListener("click", getFancy, {once: true})
-
-	window.addEventListener("keydown", getFancy, {once: true})
+	interactions.map(e => window.addEventListener(e, getFancy))
 
 	steps.forEach((step, stepIndex) => {
 		let chanIndex = Memory.selectedChannel(memory)
@@ -55,16 +52,8 @@ function init() {
 	})
 }
 
-let lastChannel = Memory.selectedChannel(memory)
-let lastSelectedStep = Memory.selectedStep(memory)
 function update() {
 	let selectedChannel = Memory.selectedChannel(memory)
-	if (lastChannel != selectedChannel) {
-		requestAnimationFrame(() =>
-			graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
-		)
-		lastChannel = selectedChannel
-	}
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel).toString()
 
 	playButton.classList.toggle("playing", Memory.playing(memory))
@@ -74,12 +63,14 @@ function update() {
 
 	channels.forEach((channelElement, index) => {
 		channelElement.checked = index == selectedChannel
+		channelElement.toggleAttribute("checked", index == selectedChannel)
+		channelElement.parentElement.classList.toggle(
+			"checked",
+			index == selectedChannel
+		)
 	})
 
 	let selectedStep = Memory.selectedStep(memory)
-	if (selectedStep != lastSelectedStep) {
-		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
-	}
 	steps.forEach((stepElement, index) => {
 		stepElement.setAttribute(
 			"aria-selected",
@@ -91,7 +82,6 @@ function update() {
 		stepElement.checked = Memory.stepOn(memory, selectedChannel, index)
 		stepElement.toggleAttribute("checked", stepElement.checked)
 	})
-	lastSelectedStep = selectedStep
 
 	requestAnimationFrame(update)
 }
@@ -108,54 +98,93 @@ channels.forEach((channel, index) => {
 })
 
 steps.forEach((step, index) => {
-	step.addEventListener("click", event => {
-		step.focus()
-		if (step.ariaSelected == "true") {
+	step.addEventListener("mousedown", event => {
+		event.stopImmediatePropagation()
+		event.preventDefault()
+	})
+	step.addEventListener("change", event => {
+		if (step.getAttribute("aria-selected") == "true") {
 			Memory.stepOn(memory, Memory.selectedChannel(memory), index, step.checked)
 		} else {
-			step.ariaSelected = "true"
 			Memory.selectedStep(memory, index)
+			step.focus()
 		}
 	})
 	step.addEventListener("focus", event => {
-		step.ariaSelected = "true"
-		Memory.selectedStep(memory, index)
+		if (step.getAttribute("aria-selected") != "true") {
+			Memory.selectedStep(memory, index)
+		}
 	})
 })
 
+// TODO extract to hotkeys and probably use a library for this if you can't make
+// something better than what already exists
 window.addEventListener(
 	"keyup",
 	/** @param {KeyboardEvent} event */ event => {
+		if (document.activeElement.tagName == "INPUT") {
+			if (
+				document.activeElement.type == "number" ||
+				document.activeElement.type == "text"
+			) {
+				return
+			}
+		}
 		let selected = Memory.selectedStep(memory)
 		let leftColumn = !(selected % 4)
 		let topRow = selected < 4
 		let bottomRow = selected > 11
 		let rightColumn = !((selected + 1) % 4)
 		let next = selected
-		let boxes =
-			location.search == "?kara" ? '!"£$gylmrsntzxcv' : "1234qwerasdfzxcv"
-		let boxIndex = boxes.indexOf(event.key)
-		let toggle = false
-		if (event.key == "ArrowLeft") {
+		let boxes = "1234qwerasdfzxcv"
+
+		// in case you are kara brightwell / french
+		let normalPersonKeyLocation =
+			(event.code.startsWith("Key") || event.code.startsWith("Digit")) &&
+			event.code.toLowerCase()[event.code.length - 1]
+
+		let modifiers = event => {
+			let ctrl = event.ctrlKey
+			let alt = event.altKey
+			let meta = event.metaKey
+			let shift = event.shiftKey
+			return {
+				ctrl,
+				alt,
+				meta,
+				shift,
+				any: ctrl | alt | meta | shift,
+			}
+		}
+
+		let boxIndex = boxes.indexOf(normalPersonKeyLocation)
+		let ops = []
+		let mod = modifiers(event)
+
+		if (!mod.any && event.key == "ArrowLeft") {
+			ops.push("move")
 			next += leftColumn ? 3 : -1
-		} else if (event.key == "ArrowUp") {
+		} else if (!mod.any && event.key == "ArrowUp") {
+			ops.push("move")
 			next += topRow ? 12 : -4
-		} else if (event.key == "ArrowRight") {
+		} else if (!mod.any && event.key == "ArrowRight") {
+			ops.push("move")
 			next += rightColumn ? -3 : 1
-		} else if (event.key == "ArrowDown") {
+		} else if (!mod.any && event.key == "ArrowDown") {
+			ops.push("move")
 			next += bottomRow ? -12 : 4
-		} else if (event.key == "p") {
-			Memory.playing(memory, true)
-		} else if (boxIndex != -1) {
-			toggle = true
+		} else if (!mod.any && event.key == "Enter") {
+			Memory.togglePlaying(memory)
+		} else if (!mod.any && boxIndex != -1) {
+			ops.push("toggle")
+			ops.push("move")
 			next = boxIndex
 		}
 		if (next == selected) {
-			console.log(next, selected)
-			if (toggle) {
+			if (ops.includes("toggle")) {
 				Memory.toggleStep(memory, Memory.selectedChannel(memory), next)
 			}
-		} else {
+		} else if (ops.includes("move")) {
 			Memory.selectedStep(memory, next)
 			steps[next].focus()
 		}
@@ -164,33 +193,18 @@ window.addEventListener(
 
 playButton.addEventListener("click", () => {
 	Memory.playing(memory, true)
+	//TOOD Memory.play(memory)
 })
 
 ui.querySelector('[name="pause"]').addEventListener("click", () => {
 	Memory.playing(memory, false)
+	//TOOD Memory.pause(memory)
 })
 
 ui.querySelector('[name="stop"]').addEventListener("click", () => {
 	Memory.playing(memory, false)
-	for (let channel of [0, 1, 2, 3]) {
-		Memory.currentStep(memory, channel, 0)
-	}
+	//TOOD Memory.stop(memory)
 })
-
-/** @typedef {Object & Event} TrimEvent
- * @property {import("./memory.js").Trim} TrimEvent.detail
- */
-canvas.addEventListener(
-	"trim",
-	/** @param {TrimEvent} event */
-	event => {
-		let trim = event.detail
-		let chanIndex = Memory.selectedChannel(memory)
-		let stepIndex = Memory.selectedStep(memory)
-		Memory.stepTrim(memory, chanIndex, stepIndex, trim)
-		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
-	}
-)
 
 /** @type {(min: number, number: number, max: number) => number} */
 let clamp = (min, num, max) => Math.min(max, Math.max(min, num))
@@ -213,9 +227,6 @@ speedSelector.addEventListener("change", event => {
 recordButton.addEventListener("click", async event => {
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedChannel(memory), audio)
-	requestAnimationFrame(() =>
-		graphics.update(canvas, Memory.getSelectedSoundDetails(memory))
-	)
 })
 
 globalThis.onmessage = function (event) {

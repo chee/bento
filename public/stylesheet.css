@@ -120,6 +120,12 @@ input[type="number"] {
 	padding-left: 1em;
 }
 
+/* until the :has selector is real */
+.channels label.checked {
+	background: var(--line);
+	color: var(--background);
+}
+
 .channels label:has(:checked) {
 	background: var(--line);
 	color: var(--background);
@@ -154,7 +160,9 @@ figure.waveform {
 }
 
 figure.waveform canvas {
-	touch-action: manipulation;
+	/* touch-action: manipulation; */
+	/* this should disable scrolling, but keep regions working */
+	touch-action: none;
 }
 
 .steps {
@@ -199,7 +207,11 @@ figure.waveform canvas {
 }
 
 .step:focus {
-	outline: 1px solid white;
+	outline: 2px solid white;
+}
+
+body.chee .step:focus {
+	outline: 2px solid lime;
 }
 
 .step.playing:after {

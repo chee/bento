@@ -80,9 +80,23 @@ export function setSound(memory, channel, sound) {
 	Memory.soundLength(memory, channel, sound.byteLength)
 }
 
+/**
+ * @param {SharedArrayBuffer} buffer
+ * @return {Promise}
+ */
 export async function start(buffer) {
+	let ready = new Promise((yay, boo) => {
+		context.onstatechange = function () {
+			if (context.state == "running") {
+				yay()
+			} else {
+				boo()
+			}
+		}
+	})
 	context.resume()
 	unmute(context, true, true)
+	await ready
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)

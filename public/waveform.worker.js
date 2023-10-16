@@ -191,7 +191,7 @@ onmessage = async event => {
 	if (message.type == "init") {
 		let {canvas, colorSpace} = message
 		context = canvas.getContext("2d", {
-			colorSpace: "display-p3",
+			//colorSpace: "display-p3",
 			alpha: false,
 		})
 		context.save()

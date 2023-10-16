@@ -275,7 +275,7 @@ let lr = (l, r) => (l > r ? [r, l] : [l, r])
 export function trimEnd(memory, x) {
 	if (typeof x == "number") {
 		memory.trim.set([x], TRIM_END)
-		let [start, end] = [trimStart(memory), trimEnd(memory)]
+		let [start, end] = lr(trimStart(memory), trimEnd(memory))
 		selectedStepTrim(memory, {
 			start: start / xm(memory),
 			end: end / xm(memory),

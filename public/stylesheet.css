@@ -27,6 +27,7 @@
 	--bright-white: #e090ae;
 	--columns: repeat(4, 1fr);
 	--font-family: this-font, iosevka, monospace;
+	--channel-name-style: japanese-informal;
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
@@ -34,12 +35,12 @@
 }
 
 [screenreader] {
-	position:absolute;
-	left:-10000px;
-	top:auto;
-	width:1px;
-	height:1px;
-	overflow:hidden;
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
 }
 
 * {
@@ -101,7 +102,7 @@ input[type="button"] {
 }
 
 input[type="button"]:hover {
-	color: var(--intense)
+	color: var(--intense);
 }
 
 input[type="number"] {
@@ -109,15 +110,20 @@ input[type="number"] {
 }
 
 .channels {
-
 	display: flex;
 	justify-content: space-evenly;
 	background: var(--background);
+	counter-reset: channel;
+}
+
+.channels label::before {
+	counter-increment: channel;
+	content: counters(channel, "", var(--channel-name-style));
 }
 
 .channels label {
-	flex: 1;
-	padding-left: 1em;
+	width: 100%;
+	text-align: center;
 }
 
 /* until the :has selector is real */
@@ -135,6 +141,7 @@ input[type="number"] {
 .channels label input {
 	height: 5px;
 	width: 5px;
+	position: absolute;
 }
 
 .channel-controls {
@@ -184,19 +191,12 @@ figure.waveform canvas {
 }
 
 .step[aria-selected="true"] {
-	box-shadow:
-		-2px -2px 0 0 var(--background),
-		02px 02px 0 0 var(--background),
-		-2px 02px 0 0 var(--background),
-		02px -2px 0 0 var(--background),
-		-3px -3px 0 0 var(--line),
-		03px 03px 0 0 var(--line),
-		-3px 03px 0 0 var(--line),
-		03px -3px 0 0 var(--line),
-		-4px -4px 0 0 var(--line),
-		04px 04px 0 0 var(--line),
-		-4px 04px 0 0 var(--line),
-		04px -4px 0 0 var(--line);
+	box-shadow: -2px -2px 0 0 var(--background), 02px 02px 0 0 var(--background),
+		-2px 02px 0 0 var(--background), 02px -2px 0 0 var(--background),
+		-3px -3px 0 0 var(--line), 03px 03px 0 0 var(--line),
+		-3px 03px 0 0 var(--line), 03px -3px 0 0 var(--line),
+		-4px -4px 0 0 var(--line), 04px 04px 0 0 var(--line),
+		-4px 04px 0 0 var(--line), 04px -4px 0 0 var(--line);
 	border-color: currentColor;
 }
 
@@ -228,6 +228,9 @@ body.chee .step:focus {
 
 .step[disabled] {
 	border: none;
+}
+
+.step[data-pitch="-12"] {
 }
 
 body:not(.chee) [chee] {

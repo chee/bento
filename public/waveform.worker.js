@@ -1,7 +1,7 @@
 // TODO share with graphics.js
 const DPI = 3
 const style = {
-	fill: "#cc3366",
+	fill: "#00000000",
 	line: "white",
 	trim: {
 		fill: "#ffffffff",
@@ -191,7 +191,7 @@ onmessage = async event => {
 	if (message.type == "init") {
 		let {canvas} = message
 		context = canvas.getContext("2d", {
-			alpha: false,
+			// alpha: false,
 		})
 		context.save()
 		context.fillStyle = style.fill

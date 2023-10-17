@@ -1,5 +1,5 @@
 {
-	"name": "www.operator",
+	"name": "bento",
 	"module": "serve.ts",
 	"type": "module",
 	"devDependencies": {

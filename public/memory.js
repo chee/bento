@@ -351,6 +351,10 @@ export function selectedChannelSound(memory, val) {
 	return sound(memory, channel, val)
 }
 
+/*
+ * Some read-only functions starting with `get'
+ */
+
 /**
  * @typedef {Object} SoundDetails
  * @property {Float32Array} SoundDetails.sound
@@ -361,11 +365,6 @@ export function selectedChannelSound(memory, val) {
  * @property {number} [SoundDetails.release]
  * @property {number} [SoundDetails.pitch]
  */
-
-/*
- * Some read-only functions starting with `get'
- */
-
 /**
  * @param {MemoryMap} memory
  * @returns {SoundDetails}

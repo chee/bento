@@ -1,7 +1,9 @@
 import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
-
+import * as offline from "./offline.js"
+import * as hotkeys from "./hotkeys.js"
+// TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
 let channelGroup = ui.querySelector(".channels")
 let channels = channelGroup.querySelectorAll("input")
@@ -21,9 +23,15 @@ let canvas = ui.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-function init() {
+async function init() {
 	graphics.init(canvas)
 	sounds.init()
+	hotkeys.start(memory)
+	// keeping this deactivated until i have time to do it right
+	// because broken service workers are a fucking nightmare
+	if (location.search == "?offline") {
+		await offline.init()
+	}
 	Memory.bpm(memory, Number(bpmInput.value))
 	channels.forEach((channel, idx) => {
 		Memory.channelSpeed(memory, idx, 1)
@@ -86,7 +94,7 @@ function update() {
 	requestAnimationFrame(update)
 }
 
-init()
+await init()
 update()
 
 channels.forEach((channel, index) => {
@@ -116,80 +124,6 @@ steps.forEach((step, index) => {
 		}
 	})
 })
-
-// TODO extract to hotkeys and probably use a library for this if you can't make
-// something better than what already exists
-window.addEventListener(
-	"keyup",
-	/** @param {KeyboardEvent} event */ event => {
-		if (document.activeElement.tagName == "INPUT") {
-			if (
-				document.activeElement.type == "number" ||
-				document.activeElement.type == "text"
-			) {
-				return
-			}
-		}
-		let selected = Memory.selectedStep(memory)
-		let leftColumn = !(selected % 4)
-		let topRow = selected < 4
-		let bottomRow = selected > 11
-		let rightColumn = !((selected + 1) % 4)
-		let next = selected
-		let boxes = "1234qwerasdfzxcv"
-
-		// in case you are kara brightwell / french
-		let normalPersonKeyLocation =
-			(event.code.startsWith("Key") || event.code.startsWith("Digit")) &&
-			event.code.toLowerCase()[event.code.length - 1]
-
-		let modifiers = event => {
-			let ctrl = event.ctrlKey
-			let alt = event.altKey
-			let meta = event.metaKey
-			let shift = event.shiftKey
-			return {
-				ctrl,
-				alt,
-				meta,
-				shift,
-				any: ctrl | alt | meta | shift,
-			}
-		}
-
-		let boxIndex = boxes.indexOf(normalPersonKeyLocation)
-		let ops = []
-		let mod = modifiers(event)
-
-		if (!mod.any && event.key == "ArrowLeft") {
-			ops.push("move")
-			next += leftColumn ? 3 : -1
-		} else if (!mod.any && event.key == "ArrowUp") {
-			ops.push("move")
-			next += topRow ? 12 : -4
-		} else if (!mod.any && event.key == "ArrowRight") {
-			ops.push("move")
-			next += rightColumn ? -3 : 1
-		} else if (!mod.any && event.key == "ArrowDown") {
-			ops.push("move")
-			next += bottomRow ? -12 : 4
-		} else if (!mod.any && event.key == "Enter") {
-			Memory.togglePlaying(memory)
-		} else if (!mod.any && boxIndex != -1) {
-			ops.push("toggle")
-			ops.push("move")
-			next = boxIndex
-		}
-		if (next == selected) {
-			if (ops.includes("toggle")) {
-				Memory.toggleStep(memory, Memory.selectedChannel(memory), next)
-			}
-		} else if (ops.includes("move")) {
-			Memory.selectedStep(memory, next)
-			steps[next].focus()
-		}
-	}
-)
 
 playButton.addEventListener("click", () => {
 	Memory.playing(memory, true)

@@ -117,6 +117,13 @@ export async function start(buffer) {
 			expression,
 		})
 	})
+	/** @param {string} expression */
+	globalThis.exp = function (expression) {
+		expressions.port.postMessage({
+			type: "expression",
+			expression,
+		})
+	}
 }
 
 export function init() {}

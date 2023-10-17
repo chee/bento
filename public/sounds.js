@@ -69,6 +69,7 @@ async function fetchSound(name) {
 }
 
 await context.audioWorklet.addModule("./operator.worklet.js")
+await context.audioWorklet.addModule("./expression.worklet.js")
 
 let kick = await fetchSound("skk")
 let snar = await fetchSound("sks")
@@ -102,10 +103,20 @@ export async function start(buffer) {
 	setSound(memory, 1, snar)
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
+
 	let operator = new AudioWorkletNode(context, "operator", {
 		processorOptions: {buffer},
 	})
-	operator.connect(context.destination)
+	let expressions = new AudioWorkletNode(context, "expressions")
+	operator.connect(expressions)
+	expressions.connect(context.destination)
+	document.addEventListener("expression", event => {
+		let expression = event.detail
+		expressions.port.postMessage({
+			type: "expression",
+			expression,
+		})
+	})
 }
 
 export function init() {}

@@ -1,7 +1,8 @@
 import * as Memory from "./memory.js"
 
-let sampleRate = /** @type {number} The samplerate, it never changes once the
-context has been defined according to mdn */ (globalThis.sampleRate)
+let sampleRate =
+	/** @type {number} The samplerate, it never changes once the
+context has been defined according to mdn */ globalThis.sampleRate
 
 function add(arrays) {
 	if (!arrays.length) {
@@ -100,9 +101,10 @@ class Operator extends AudioWorkletProcessor {
 
 		if (outs.length) {
 			output.forEach(ear => {
-				add(outs).forEach((f, i) => {
-					ear[i] = f
-				})
+				let out = add(outs)
+				for (let i = 0; i < ear.length; i += 1) {
+					ear[i] = out[i]
+				}
 			})
 		}
 

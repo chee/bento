@@ -13,6 +13,7 @@
 		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321"
 	},
 	"dependencies": {
-		"@bitarray/typedarray": "^1.1.1"
+		"@bitarray/typedarray": "^1.1.1",
+		"@types/audioworklet": "^0.0.50"
 	}
 }

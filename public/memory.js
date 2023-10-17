@@ -6,33 +6,35 @@ const QUANTUM = 128
 
 // TODO swing?
 export let arrays = [
-	{name: "selectedChannel", type: Uint8Array, size: 1},
-	{name: "selectedStep", type: Uint8Array, size: 1},
-	{name: "playing", type: Uint8Array, size: 1},
-	{name: "paused", type: Uint8Array, size: 1},
-	{name: "bpm", type: Uint8Array, size: 1},
-	{name: "spacer", type: Uint8Array, size: 3},
+	// for the trim ui experience
+	{name: "trim", type: Float32Array, size: 4},
+	{name: "master", type: Uint8Array, size: 16},
 	{name: "channelLengths", type: Uint8Array, size: CHANNELS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
 	{name: "soundLengths", type: Uint32Array, size: CHANNELS},
+	{name: "channelGains", type: Uint8Array, size: CHANNELS},
 	{name: "channelSpeeds", type: Float32Array, size: CHANNELS},
 	{name: "currentSteps", type: Uint8Array, size: CHANNELS},
 	{name: "stepOns", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepPitches", type: Int8Array, size: CHANNELS * STEPS},
+	{name: "stepGains", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepAttacks", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepReleases", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepStarts", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "stepEnds", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
-
-	// for the trim ui experience
-	{name: "trim", type: Float64Array, size: 4},
 ]
 
-let TRIM_START = 0
-let TRIM_END = 1
-let TRIM_X = 2
-let X_MULTIPLIER = 3
+const BPM = 0
+const SELECTED_CHANNEL = 1
+const SELECTED_STEP = 2
+const PLAYING = 3
+const PAUSED = 4
+
+const TRIM_START = 0
+const TRIM_END = 1
+const TRIM_X = 2
+const X_MULTIPLIER = 3
 
 export let size = arrays.reduce(
 	(total, array) => total + array.type.BYTES_PER_ELEMENT * array.size,
@@ -43,12 +45,8 @@ export let size = arrays.reduce(
 for (let arrays of (await import("./public/memory.js")).arrays)
 console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
- * @property {Uint8Array} MemoryMap.selectedChannel
- * @property {Uint8Array} MemoryMap.selectedStep
- * @property {Uint8Array} MemoryMap.playing
- * @property {Uint8Array} MemoryMap.paused
- * @property {Uint8Array} MemoryMap.bpm
- * @property {Uint8Array} MemoryMap.spacer
+ * @property {Float32Array} MemoryMap.trim
+ * @property {Uint8Array} MemoryMap.master
  * @property {Uint8Array} MemoryMap.channelLengths
  * @property {Float32Array} MemoryMap.frame
  * @property {Uint32Array} MemoryMap.soundLengths
@@ -61,7 +59,6 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Uint32Array} MemoryMap.stepStarts
  * @property {Uint32Array} MemoryMap.stepEnds
  * @property {Float32Array} MemoryMap.channelSounds
- * @property {Float32Array} MemoryMap.trim
  */
 /**
  * @param {SharedArrayBuffer} buffer
@@ -86,9 +83,9 @@ export function map(buffer) {
  */
 export function selectedChannel(memory, val) {
 	if (typeof val == "number") {
-		memory.selectedChannel.set([val])
+		memory.master.set([val], SELECTED_CHANNEL)
 	}
-	return memory.selectedChannel.at(0)
+	return memory.master.at(SELECTED_CHANNEL)
 }
 
 /**
@@ -153,9 +150,9 @@ export function toggleStep(memory, channel, step) {
  */
 export function selectedStep(memory, val) {
 	if (typeof val == "number") {
-		memory.selectedStep.set([val])
+		memory.master.set([val], SELECTED_STEP)
 	}
-	return memory.selectedStep.at(0)
+	return memory.master.at(SELECTED_STEP)
 }
 
 /**
@@ -165,9 +162,21 @@ export function selectedStep(memory, val) {
  */
 export function playing(memory, val) {
 	if (typeof val == "boolean") {
-		memory.playing.set([Number(val)])
+		memory.master.set([Number(val)], PLAYING)
 	}
-	return Boolean(memory.playing.at(0))
+	return Boolean(memory.master.at(PLAYING))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {boolean} [val]
+ * @returns {boolean}
+ */
+export function paused(memory, val) {
+	if (typeof val == "boolean") {
+		memory.master.set([Number(val)], PAUSED)
+	}
+	return Boolean(memory.master.at(PAUSED))
 }
 
 /**
@@ -191,9 +200,9 @@ export function togglePlaying(memory, pause = false) {
  */
 export function bpm(memory, val) {
 	if (typeof val == "number") {
-		memory.bpm.set([val])
+		memory.master.set([val], BPM)
 	}
-	return memory.bpm.at(0)
+	return memory.master.at(BPM)
 }
 
 /**

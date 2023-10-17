@@ -1,118 +1,146 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-ca">
-	<meta charset="utf-8" />
-	<title>www.operator</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<link rel="stylesheet" href="stylesheet.css" />
-	<meta name="theme-color" content="#ffe9ed" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="mobile-web-app-capable" content="yes" />
-	<meta name="application-name" content="www.operator" />
-	<meta name="apple-mobile-web-app-title" content="Operation 0" />
+<meta charset="utf-8">
+<title>bento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="stylesheet.css">
+<meta name="theme-color" content="#ffe9ed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="bento">
+<meta name="apple-mobile-web-app-title" content="bento">
 
-	<form class="ui"  autocomplete="off">
-		<header>
-			<fieldset class="master-controls">
-				<legend screenreader>Master Controls</legend>
-				<input type="button" name="play" value="▶&#xfe0e;" />
-				<input type="button" name="pause" value="⏸&#xfe0e;" />
-				<input type="button" name="stop" value="⏹&#xfe0e;" hidden />
-				<input
-					name="bpm"
-					type="number"
-					inputmode="decimal"
-					max="240"
-					min="20"
-					value="120"
-					autocomplete="off"
-				/>
-				<!-- swing -->
-			</fieldset>
+<form class="ui"  autocomplete="off">
+	<header>
+		<fieldset class="master-controls">
+			<legend screenreader>Master Controls</legend>
+			<input type="button" name="play" value="▶&#xfe0e;">
+			<input type="button" name="pause" value="⏸&#xfe0e;">
+			<input type="button" name="stop" value="⏹&#xfe0e;" hidden>
+			<input
+				name="bpm"
+				type="number"
+				inputmode="decimal"
+				max="240"
+				min="20"
+				value="120"
+				autocomplete="off"
+			>
+			<!-- swing -->
+		</fieldset>
 
-			<fieldset class="channels">
-				<legend screenreader>Channels</legend>
-				<label class="checked">
-					1
-					<input type="radio" name="channel" checked value="0" />
-				</label>
-				<label>
-					2
-					<input type="radio" name="channel" value="1" />
-				</label>
-				<label>
-					3
-					<input type="radio" name="channel" value="2" />
-				</label>
-				<label>
-					4
-					<input type="radio" name="channel" value="3" />
-				</label>
-			</fieldset>
+		<fieldset class="channels">
+			<legend screenreader>Channels</legend>
+			<label class="checked">
+				1
+				<input type="radio" name="channel" checked value="0">
+			</label>
+			<label>
+				2
+				<input type="radio" name="channel" value="1">
+			</label>
+			<label>
+				3
+				<input type="radio" name="channel" value="2">
+			</label>
+			<label>
+				4
+				<input type="radio" name="channel" value="3">
+			</label>
+		</fieldset>
 
-			<fieldset class="channel-controls">
-				<legend screenreader>Channel Controls</legend>
-				<select autocomplete="off" name="speed">
-					<option value="0.25">¼×</option>
-					<option value="0.5">½×</option>
-					<option value="1" selected>1×</option>
-					<option value="2">2×</option>
-					<option value="4">4×</option>
-				</select>
-				<input type="number" max="15" min="0" value="16" name="length" chee />
-				<input type="file" accept="audio/*" name="upload" chee />
-				<label>
-					●
-					<input type="checkbox" label="Recording" name="record" />
-				</label>
-			</fieldset>
-		</header>
-		<figure class="waveform">
-			<canvas alt=""></canvas>
-			<figcaption hidden>waveform</figcaption>
-		</figure>
-		<main class="steps">
-			<input
-				type="checkbox"
-				class="step playing"
-				aria-selected="true"
-				checked="true"
-			/>
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false"
-				checked="true"
-			/>
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false"
-				checked="true"
-			/>
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false"
-				checked="true"
-			/>
-			<input type="checkbox" class="step" aria-selected="false" />
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false"
-				checked="true"
-			/>
-			<input type="checkbox" class="step" aria-selected="false" />
-		</main>
-	</article>
-	<script type="module" src="ui.js"></script>
-</html>
+		<fieldset class="channel-controls">
+			<legend screenreader>Channel Controls</legend>
+			<select autocomplete="off" name="speed">
+				<option value="0.25">¼×</option>
+				<option value="0.5">½×</option>
+				<option value="1" selected>1×</option>
+				<option value="2">2×</option>
+				<option value="4">4×</option>
+			</select>
+			<input type="number" max="15" min="0" value="16" name="length" chee>
+			<input type="file" accept="audio/*" name="upload" chee>
+			<label>
+				●
+				<input type="checkbox" label="Recording" name="record">
+			</label>
+		</fieldset>
+	</header>
+	<figure class="waveform">
+		<canvas alt=""></canvas>
+		<figcaption hidden>waveform</figcaption>
+	</figure>
+	<main class="steps">
+		<input
+			type="checkbox"
+			class="step playing"
+			aria-selected="true"
+			checked="true">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false"
+			checked="true">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false"
+			checked="true">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false"
+			checked="true">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false"
+			checked="true">
+		<input
+			type="checkbox"
+			class="step"
+			aria-selected="false">
+	</main>
+</article>
+
+<script type="module" src="ui.js"></script>

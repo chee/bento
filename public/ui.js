@@ -61,11 +61,22 @@ async function init() {
 
 function update() {
 	let selectedChannel = Memory.selectedChannel(memory)
+	let bpm = Memory.bpm(memory).toString()
+	speedSelector.querySelectorAll("option").forEach(option => {
+		let label = option.dataset.label || option.value
+		let full = bpm + "×" + label
+
+		// why not a span inside? or an attr?
+		if (option.textContent != full) {
+			option.textContent = full
+		}
+	})
+
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel).toString()
 
 	playButton.classList.toggle("playing", Memory.playing(memory))
 	if (bpmInput != document.activeElement) {
-		bpmInput.value = Memory.bpm(memory).toString()
+		bpmInput.value = bpm
 	}
 
 	channels.forEach((channelElement, index) => {
@@ -167,7 +178,11 @@ globalThis.onmessage = function (event) {
 		recordButton.checked = event.data.start
 	}
 }
-document.body.classList.toggle("chee", location.search == "?rabbit")
+
+let featureflags = new URLSearchParams(location.search.slice(1))
+for (let [flag, value] of featureflags.entries()) {
+	document.body.setAttribute(flag, value)
+}
 
 /*
  * =============================================================================

@@ -26,7 +26,6 @@ let memory = Memory.map(buffer)
 async function init() {
 	graphics.init(canvas)
 	sounds.init()
-	hotkeys.start(memory)
 	// keeping this deactivated until i have time to do it right
 	// because broken service workers are a fucking nightmare
 	if (location.search == "?offline") {
@@ -169,3 +168,82 @@ globalThis.onmessage = function (event) {
 	}
 }
 document.body.classList.toggle("chee", location.search == "?rabbit")
+
+/*
+ * =============================================================================
+ * ================================== hotkeys ==================================
+ * =============================================================================
+ */
+globalThis.addEventListener(
+	"keyup",
+	/** @param {KeyboardEvent} event */ event => {
+		if (document.activeElement.tagName == "INPUT") {
+			if (
+				// why does ^ that guard not work, typescript?
+				// you KNOW this mfer is an input element
+				document.activeElement?.type == "number" ||
+				document.activeElement?.type == "text"
+			) {
+				return
+			}
+		}
+		let selected = Memory.selectedStep(memory)
+		let leftColumn = !(selected % 4)
+		let topRow = selected < 4
+		let bottomRow = selected > 11
+		let rightColumn = !((selected + 1) % 4)
+		let next = selected
+		let boxes = "1234qwerasdfzxcv"
+
+		// in case you are kara brightwell / french
+		let normalPersonKeyLocation =
+			(event.code.startsWith("Key") || event.code.startsWith("Digit")) &&
+			event.code.toLowerCase()[event.code.length - 1]
+
+		let modifiers = event => {
+			let ctrl = event.ctrlKey
+			let alt = event.altKey
+			let meta = event.metaKey
+			let shift = event.shiftKey
+			return {
+				ctrl,
+				alt,
+				meta,
+				shift,
+				any: ctrl | alt | meta | shift,
+			}
+		}
+
+		let boxIndex = boxes.indexOf(normalPersonKeyLocation)
+		let ops = []
+		let mod = modifiers(event)
+
+		if (!mod.any && event.key == "ArrowLeft") {
+			ops.push("move")
+			next += leftColumn ? 3 : -1
+		} else if (!mod.any && event.key == "ArrowUp") {
+			ops.push("move")
+			next += topRow ? 12 : -4
+		} else if (!mod.any && event.key == "ArrowRight") {
+			ops.push("move")
+			next += rightColumn ? -3 : 1
+		} else if (!mod.any && event.key == "ArrowDown") {
+			ops.push("move")
+			next += bottomRow ? -12 : 4
+		} else if (!mod.any && event.key == "Enter") {
+			Memory.togglePlaying(memory)
+		} else if (!mod.any && boxIndex != -1) {
+			ops.push("toggle")
+			ops.push("move")
+			next = boxIndex
+		}
+		if (next == selected) {
+			if (ops.includes("toggle")) {
+				Memory.toggleStep(memory, Memory.selectedChannel(memory), next)
+			}
+		} else if (ops.includes("move")) {
+			Memory.selectedStep(memory, next)
+			steps[next].focus()
+		}
+	}
+)

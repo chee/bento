@@ -32,11 +32,15 @@ todo:
 	• load sample from URL
 	• drag and drop sample into channel
 	• saving
+	  * current pattern + sounds
+	  * many patterns + sounds
 	• sharing
+	  * consider webrtc datachannels for this rather than a db
 	• desktop keybindings for quick ops
 	• sync between multiple tabs
 	• sync with local daw
 	• p.o. SY1 mode
 	• offline
 	• swing
+	• bring the stop button back!
 	✓ move canvas drawing off main thread (done!)

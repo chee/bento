@@ -23,6 +23,8 @@ export let arrays = [
 	{name: "stepStarts", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "stepEnds", type: Uint32Array, size: CHANNELS * STEPS},
 	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
+	// TODO what size is this? is it the same on every platform? hahaha
+	{name: "channelWaveforms", type: Uint8ClampedArray, size: CHANNELS},
 ]
 
 const BPM = 0
@@ -54,11 +56,13 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Uint8Array} MemoryMap.currentSteps
  * @property {Uint8Array} MemoryMap.stepOns
  * @property {Int8Array} MemoryMap.stepPitches
+ * @property {Uint8Array} MemoryMap.stepGains
  * @property {Uint8Array} MemoryMap.stepAttacks
  * @property {Uint8Array} MemoryMap.stepReleases
  * @property {Uint32Array} MemoryMap.stepStarts
  * @property {Uint32Array} MemoryMap.stepEnds
  * @property {Float32Array} MemoryMap.channelSounds
+ * @property {Uint8ClampedArray} MemoryMap.channelWaveform
  */
 /**
  * @param {SharedArrayBuffer} buffer
@@ -66,7 +70,8 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  */
 export function map(buffer) {
 	/** @type {MemoryMap}*/
-	let memory = {} // shut up typescript it's fine
+	// @ts-ignore: i know what i'm doing
+	let memory = {}
 	let offset = 0
 	for (let array of arrays) {
 		// TODO handle the offset needing to be a multiple of BYTES_PER_ELEMENT
@@ -130,6 +135,78 @@ export function stepOn(memory, channel, step, val) {
 	}
 
 	return Boolean(stepOns.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepAttack(memory, channel, step, val) {
+	let {stepAttacks} = memory
+	let at = channel * STEPS + step
+
+	if (typeof val == "number") {
+		stepAttacks.set([val], at)
+	}
+
+	return Number(stepAttacks.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepRelease(memory, channel, step, val) {
+	let {stepReleases} = memory
+	let at = channel * STEPS + step
+
+	if (typeof val == "number") {
+		stepReleases.set([val], at)
+	}
+
+	return Number(stepReleases.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepPitch(memory, channel, step, val) {
+	let {stepPitches} = memory
+	let at = channel * STEPS + step
+
+	if (typeof val == "number") {
+		stepPitches.set([val], at)
+	}
+
+	return Number(stepPitches.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepGain(memory, channel, step, val) {
+	let {stepGains} = memory
+	let at = channel * STEPS + step
+
+	if (typeof val == "number") {
+		stepGains.set([val], at)
+	}
+
+	return Number(stepGains.at(at))
 }
 
 /**
@@ -274,6 +351,11 @@ export function trimX(memory, x) {
 	return memory.trim.at(TRIM_X)
 }
 
+/**
+ * @param {number} l
+ * @param {number} r
+ * @returns {[number, number]}
+ */
 let lr = (l, r) => (l > r ? [r, l] : [l, r])
 
 /**
@@ -370,16 +452,47 @@ export function selectedChannelSound(memory, val) {
  * @property {Object} SoundDetails.trim
  * @property {number} SoundDetails.trim.start
  * @property {number} SoundDetails.trim.end
- * @property {number} [SoundDetails.attack]
- * @property {number} [SoundDetails.release]
- * @property {number} [SoundDetails.pitch]
+ * @property {number} SoundDetails.channel
+ * @property {number} SoundDetails.step
+ * @property {number} SoundDetails.attack
+ * @property {number} SoundDetails.release
+ * @property {number} SoundDetails.pitch
+ * @property {number} SoundDetails.gain
  */
 /**
  * @param {MemoryMap} memory
  * @returns {SoundDetails}
  */
 export function getSelectedSoundDetails(memory) {
-	let sound = selectedChannelSound(memory)
-	let trim = selectedStepTrim(memory)
-	return {sound, trim}
+	let channel = selectedChannel(memory)
+	let snd = sound(memory, channel)
+	let step = selectedStep(memory)
+	let trim = stepTrim(memory, channel, step)
+	let attack = stepAttack(memory, channel, step)
+	let release = stepRelease(memory, channel, step)
+	let gain = stepGain(memory, channel, step)
+	let pitch = stepPitch(memory, channel, step)
+	return {
+		sound: snd,
+		trim,
+		channel,
+		attack,
+		release,
+		gain,
+		pitch,
+		step,
+	}
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {Uint8ClampedArray} [val]
+ * @returns {Uint8ClampedArray}
+ */
+export function selectedChannelWaveform(memory, val) {
+	if (typeof val != undefined) {
+		// memory.channelWaveform.set(val)
+	}
+
+	return memory.channelWaveform
 }

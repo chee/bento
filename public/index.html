@@ -58,11 +58,27 @@
 			<fieldset class="channel-controls">
 				<legend screenreader>Channel Controls</legend>
 				<select autocomplete="off" name="speed">
-					<option value="0.25">¼×</option>
-					<option value="0.5">½×</option>
-					<option value="1" selected>1×</option>
-					<option value="2">2×</option>
-					<option value="4">4×</option>
+					<option value="0.25" data-label="¼">
+						120×¼
+					</option>
+					<option value="0.5" data-label="½">
+						120×½
+					</option>
+					<option value="0.75" data-label="¾" chee>
+						120×¾
+					</option>
+					<option value="1" selected>
+						120×1
+					</option>
+					<option value="2">
+						120×2
+					</option>
+					<option value="3" chee>
+						120×3
+					</option>
+					<option value="4">
+						120×4
+					</option>
 				</select>
 				<input type="number" max="15" min="0" value="16" name="length" chee>
 				<input type="file" accept="audio/*" name="upload" chee>

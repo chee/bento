@@ -3,7 +3,7 @@ bento
 
 sampler + sequencer for the web!
 
-check it out on-line: https://bento.chee.party
+check it out on-line: https://bento.party
 
 features:
 	• keeps perfect time!
@@ -45,6 +45,7 @@ todo:
 	• bring the stop button back!
 	• progressive web app improvements
 	• pretty unfurling for discord y slack &c
+	• _dynamic_ unfurling for discord y slack &c
 	• fx
 	• expression language for user fx
 	✓ move canvas drawing off main thread (done!)

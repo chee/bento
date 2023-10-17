@@ -1,15 +1,39 @@
-# www.operator
+bento
+=====
 
-To install dependencies:
+sampler sequencer for the web!
 
-```bash
-bun install
-```
+features:
+	• keeps perfect time!
+	• 4 separate single-voice channels, each with their own waveform
+	• record new audio from your microphone
+	• per-step sample trimming
+	• set the bpm
+	• per-channel bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
 
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.4. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+todo:
+	• per-step pitch control (¹²√₂)
+	• per-step AR envelope
+	• per-step volume control
+	• per-step reverse
+	• per-channel length (polyrhythms)
+	• better keyboard, touch, and mouse controls for multi-ops
+	  * snarf
+	  * xerox
+	  * yank
+	  * shift
+	  * etc
+	• drag and drop one step to another
+	• per-channel base sample speed (fine tune between 50% + 200%)
+	• upload sample from disk
+	• load sample from URL
+	• drag and drop sample into channel
+	• saving
+	• sharing
+	• desktop keybindings for quick ops
+	• sync between multiple tabs
+	• sync with local daw
+	• p.o. SY1 mode
+	• offline
+	• swing
+	✓ move canvas drawing off main thread (done!)

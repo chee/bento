@@ -2,7 +2,7 @@ import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as offline from "./offline.js"
-import * as hotkeys from "./hotkeys.js"
+
 // TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
 let channelGroup = ui.querySelector(".channels")

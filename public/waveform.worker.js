@@ -43,9 +43,9 @@ function fillTrim(start, end, fill) {
 	context.fillRect(start, 0, end - start, context.canvas.height)
 }
 
-function drawSampleLine({style, array, x, xm, height, ym, zp}) {
+function drawSampleLine({context, color, array, x, xm, height, ym, zp}) {
 	context.beginPath()
-	context.strokeStyle = style.line
+	context.strokeStyle = color
 	for (let index in array) {
 		let idx = Number(index)
 		let f32 = array.at(idx)
@@ -66,9 +66,53 @@ function drawSampleLine({style, array, x, xm, height, ym, zp}) {
 	return x
 }
 
-function update(frame) {
+/**
+ * @param {Float32Array} sound1
+ * @param {Float32Array} sound2
+ * @returns {boolean}
+ * probably replace this with an event that forces the draw haha
+ */
+function fuzzySoundMatch(sound1, sound2) {
+	if (sound1.length != sound2.length) {
+		return false
+	}
+	let len = sound1.length
+	let getindex = () => (Math.random() * len - 1) | 0
+	let idxes = Array.from(Array(1000), getindex)
+	return idxes.every(n => sound1[n] == sound2[n])
+}
+
+/**
+ * @param {import("./memory.js").SoundDetails} deet1
+ * @param {import("./memory.js").SoundDetails} deet2
+ * @returns {boolean}
+ */
+function deetMatch(deet1, deet2) {
+	return (
+		deet1 &&
+		deet2 &&
+		deet1.trim.start == deet2.trim.start &&
+		deet1.step == deet2.step &&
+		deet1.channel == deet2.channel &&
+		fuzzySoundMatch(deet1.sound, deet2.sound)
+	)
+}
+
+/**
+ * @type {import("./memory.js").SoundDetails}
+ * @param {number} frame
+ * @param {boolean} force
+ */
+let lastDeets
+function update(_frame, force = false) {
 	if (!context || !memory || !Memory) return
-	let {sound, trim: activeTrim} = Memory.getSelectedSoundDetails(memory)
+	let deets = Memory.getSelectedSoundDetails(memory)
+	// if (deetMatch(deets, lastDeets) && !force) {
+	// 	return
+	// }
+	lastDeets = deets
+	let {sound, trim: activeTrim} = deets
+
 	let {canvas} = context
 
 	clear()
@@ -128,7 +172,8 @@ function update(frame) {
 	context.moveTo(0, zp)
 	let visibleSound = sound.subarray(0, lastZeroIndex)
 	drawSampleLine({
-		style: style,
+		context,
+		color: style.line,
 		array: visibleSound,
 		x: 0,
 		xm,
@@ -136,6 +181,10 @@ function update(frame) {
 		ym,
 		zp,
 	})
+	let imageData = context.getImageData(0, 0, width, height)
+	let imageDataBuffer = imageData.data
+	Memory.selectedChannelWaveform(memory, imageDataBuffer)
+	console.log(imageDataBuffer.length)
 
 	if (hasActiveTrim) {
 		fillTrim(activeTrimStart, activeTrimEnd, style.trim.fill)
@@ -145,7 +194,8 @@ function update(frame) {
 		let array = visibleSound.subarray(s, e)
 
 		drawSampleLine({
-			style: style.trim,
+			context,
+			color: style.trim.line,
 			array,
 			x: activeTrimStart,
 			xm,
@@ -162,7 +212,8 @@ function update(frame) {
 		let array = visibleSound.subarray(s, e)
 
 		drawSampleLine({
-			style: style.newTrim,
+			context,
+			color: style.newTrim.line,
 			array,
 			x: newTrimStart,
 			xm,

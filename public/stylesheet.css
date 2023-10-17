@@ -92,7 +92,7 @@ option {
 	background: none;
 	font-family: var(--font-family);
 	font-size: 1em;
-	max-width: 3em;
+	max-width: 3rem;
 	color: currentColor;
 	text-align: center;
 }
@@ -107,6 +107,10 @@ input[type="button"]:hover {
 
 input[type="number"] {
 	appearance: textfield;
+}
+
+[name="speed"] {
+	font-size: 0.7rem;
 }
 
 .channels {
@@ -233,6 +237,6 @@ body.chee .step:focus {
 .step[data-pitch="-12"] {
 }
 
-body:not(.chee) [chee] {
+body:not([chee]) [chee] {
 	display: none;
 }

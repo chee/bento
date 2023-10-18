@@ -16,6 +16,7 @@ export let arrays = [
 	{name: "channelSpeeds", type: Float32Array, size: CHANNELS},
 	{name: "currentSteps", type: Uint8Array, size: CHANNELS},
 	{name: "stepOns", type: Uint8Array, size: CHANNELS * STEPS},
+	{name: "stepReverseds", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepPitches", type: Int8Array, size: CHANNELS * STEPS},
 	{name: "stepGains", type: Uint8Array, size: CHANNELS * STEPS},
 	{name: "stepAttacks", type: Uint8Array, size: CHANNELS * STEPS},
@@ -55,7 +56,7 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Float32Array} MemoryMap.channelSpeeds
  * @property {Uint8Array} MemoryMap.currentSteps
  * @property {Uint8Array} MemoryMap.stepOns
- * @property {Int8Array} MemoryMap.stepPitches
+ * @property {Uint8Array} MemoryMap.stepReverseds
  * @property {Uint8Array} MemoryMap.stepGains
  * @property {Uint8Array} MemoryMap.stepAttacks
  * @property {Uint8Array} MemoryMap.stepReleases
@@ -135,6 +136,24 @@ export function stepOn(memory, channel, step, val) {
 	}
 
 	return Boolean(stepOns.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
+ * @param {boolean} [val]
+ * @returns {boolean}
+ */
+export function stepReversed(memory, channel, step, val) {
+	let {stepReverseds} = memory
+	let at = channel * STEPS + step
+
+	if (typeof val == "boolean") {
+		stepReverseds.set([Number(val)], at)
+	}
+
+	return Boolean(stepReverseds.at(at))
 }
 
 /**
@@ -449,6 +468,7 @@ export function selectedChannelSound(memory, val) {
 /**
  * @typedef {Object} SoundDetails
  * @property {Float32Array} SoundDetails.sound
+ * @property {number} SoundDetails.trim.soundLength the channel's soundLength
  * @property {Object} SoundDetails.trim
  * @property {number} SoundDetails.trim.start
  * @property {number} SoundDetails.trim.end
@@ -458,22 +478,29 @@ export function selectedChannelSound(memory, val) {
  * @property {number} SoundDetails.release
  * @property {number} SoundDetails.pitch
  * @property {number} SoundDetails.gain
+ * @property {boolean} SoundDetails.on
+ * @property {boolean} SoundDetails.reversed
  */
+
 /**
  * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} step
  * @returns {SoundDetails}
  */
-export function getSelectedSoundDetails(memory) {
-	let channel = selectedChannel(memory)
+export function getSoundDetails(memory, channel, step) {
 	let snd = sound(memory, channel)
-	let step = selectedStep(memory)
+	let length = soundLength(memory, channel)
 	let trim = stepTrim(memory, channel, step)
 	let attack = stepAttack(memory, channel, step)
 	let release = stepRelease(memory, channel, step)
 	let gain = stepGain(memory, channel, step)
 	let pitch = stepPitch(memory, channel, step)
+	let on = stepOn(memory, channel, step)
+	let reversed = stepReversed(memory, channel, step)
 	return {
 		sound: snd,
+		soundLength: length,
 		trim,
 		channel,
 		attack,
@@ -481,7 +508,17 @@ export function getSelectedSoundDetails(memory) {
 		gain,
 		pitch,
 		step,
+		on,
+		reversed,
 	}
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @returns {SoundDetails}
+ */
+export function getSelectedSoundDetails(memory) {
+	return getSoundDetails(memory, selectedChannel(memory), selectedStep(memory))
 }
 
 /**

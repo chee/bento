@@ -195,12 +195,20 @@ figure.waveform canvas {
 }
 
 .step[aria-selected="true"] {
-	box-shadow: -2px -2px 0 0 var(--background), 02px 02px 0 0 var(--background),
-		-2px 02px 0 0 var(--background), 02px -2px 0 0 var(--background),
-		-3px -3px 0 0 var(--line), 03px 03px 0 0 var(--line),
-		-3px 03px 0 0 var(--line), 03px -3px 0 0 var(--line),
-		-4px -4px 0 0 var(--line), 04px 04px 0 0 var(--line),
-		-4px 04px 0 0 var(--line), 04px -4px 0 0 var(--line);
+	/* prettier-ignore */
+	box-shadow:
+		-2px -2px 0 0 var(--background),
+		02px 02px 0 0 var(--background),
+		-2px 02px 0 0 var(--background),
+		02px -2px 0 0 var(--background),
+		-3px -3px 0 0 var(--line),
+		03px 03px 0 0 var(--line),
+		-3px 03px 0 0 var(--line),
+		03px -3px 0 0 var(--line),
+		-4px -4px 0 0 var(--line),
+		04px 04px 0 0 var(--line),
+		-4px 04px 0 0 var(--line),
+		04px -4px 0 0 var(--line);
 	border-color: currentColor;
 }
 

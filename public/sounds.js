@@ -126,4 +126,7 @@ export async function start(buffer) {
 	}
 }
 
-export function init() {}
+import {Samplerate} from "./vendor/@toots/libsamplerate.js/dist/libsamplerate_browser.js"
+export async function init() {
+	await Samplerate.initialized
+}

@@ -1,8 +1,12 @@
 import * as Memory from "./memory.js"
+import {
+	Samplerate,
+	Converter,
+} from "./vendor/@toots/libsamplerate.js/dist/libsamplerate_browser.js"
 
-let sampleRate =
-	/** @type {number} The samplerate, it never changes once the
-context has been defined according to mdn */ globalThis.sampleRate
+/** @type {number} The samplerate, it never changes once the context has been
+defined according to mdn */
+let sampleRate = globalThis.sampleRate
 
 function add(arrays) {
 	if (!arrays.length) {
@@ -19,6 +23,21 @@ function add(arrays) {
 	return end
 }
 
+/**
+ * @param {import("./memory.js").SoundDetails} soundDetails
+ * @returns {import("./memory.js").SoundDetails}
+ */
+function alter(soundDetails) {
+	let {sound: originalSound, trim, soundLength, reversed} = soundDetails
+
+	let sound = originalSound.subarray(trim.start, trim.end || soundLength)
+
+	if (reversed) {
+		sound = sound.reverse()
+	}
+	return {...soundDetails, sound}
+}
+
 class Operator extends AudioWorkletProcessor {
 	constructor(options) {
 		super()
@@ -29,9 +48,12 @@ class Operator extends AudioWorkletProcessor {
 			return {
 				index: i,
 				point: 0,
-				playing: null,
 				lastStep: -1,
-				sound: new Float32Array(),
+				lastRealSound: new Float32Array(),
+				realSound: new Float32Array(),
+				pitchedSounds: {},
+				/** @type {import("./memory.js").SoundDetails} */
+				alteredSound: null,
 				speed: 1,
 				end: 0,
 			}
@@ -39,8 +61,46 @@ class Operator extends AudioWorkletProcessor {
 		this.channels = channels
 		this.tick = 0
 	}
+	repitch(cidx) {
+		let resampler = new Samplerate(Converter.FASTEST)
+		let channel = this.channels[cidx]
+		let sound = channel.alteredSound?.sound || channel.realSound
+		// lol,
+		for (let pitch of [
+			//-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
+			1, 2, 3, 4, 5, 6,
+			//7, 8, 9, 10, 11, 12,
+		]) {
+			let ratio = 1
+			let twelfthpoweroftwo = Math.pow(2, 1 / 12)
+			/** @type {(x: number) => number} */
+			let op =
+				Math.sign(pitch) < 0
+					? x => x * twelfthpoweroftwo
+					: x => x / twelfthpoweroftwo
+			for (let i = 0; i < Math.abs(pitch); i++) {
+				ratio = op(ratio)
+			}
+			let result = this.resampler.process({
+				data: sound,
+				ratio,
+				last: false,
+			})
+			channel.pitchedSounds[pitch] = result.data
+		}
+		resampler.close()
+	}
 	// :)
+	/**
+	 * @param {Float32Array[][]} _inputs
+	 * @param {Float32Array[][]} outputs
+	 * @param {Record<string, Float32Array>} _parameters
+	 */
 	process(_inputs, outputs, _parameters) {
+		if (!this.resampler) {
+			this.resampler = new Samplerate(Converter.BEST_QUALITY)
+		}
+
 		// TODO fix stop button (channel.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (!Memory.playing(memory)) {
@@ -52,11 +112,20 @@ class Operator extends AudioWorkletProcessor {
 		let output = outputs[0]
 		let samplesPerBeat = (60 / bpm) * sampleRate
 
-		let toplay = []
+		let activeChannelFrames = []
 
-		for (let channel of this.channels) {
+		for (let channel of channels) {
 			// TODO consider only reloading things at the start of every loop
-			channel.sound = Memory.sound(memory, channel.index)
+			//
+			// TODO also make some get* helper functions in memory.js for the
+			// things needed in this worklet
+			channel.realSound = Memory.sound(memory, channel.index)
+			// TODO change to event-based or have a memory item for sound id
+			// sound id can use source + time of recording
+			if (channel.realSound.length != channel.lastRealSound.length) {
+				this.repitch(channel.index)
+			}
+			channel.lastRealSound = channel.realSound
 			channel.speed = Memory.channelSpeed(memory, channel.index)
 
 			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
@@ -65,47 +134,47 @@ class Operator extends AudioWorkletProcessor {
 
 			if (currentStep != channel.lastStep) {
 				Memory.currentStep(memory, channel.index, currentStep)
-				if (Memory.stepOn(memory, channel.index, currentStep)) {
-					// TODO trim should return 120000 for length to begin with
-					let {start, end} = Memory.stepTrim(memory, channel.index, currentStep)
+				let soundDetails = Memory.getSoundDetails(
+					memory,
+					channel.index,
+					currentStep
+				)
+				if (soundDetails.on) {
+					channel.point = 0
 
-					// TODO raw dog num use constant
-					toplay[channel.index] = this.channels[channel.index].sound.subarray(
-						start || 0,
-						end || Memory.SOUND_SIZE
-					)
+					let pitch = ((Math.random() * 4) | 0) + 1
+
+					channel.alteredSound = alter({
+						...soundDetails,
+						sound: channel.pitchedSounds[pitch] || channel.realSound,
+					})
 				}
 			}
+
 			channel.lastStep = currentStep
-		}
 
-		let outs = []
-		for (let channel of channels) {
-			let sound = toplay[channel.index]
-			if (sound) {
-				channel.point = 0
-				channel.playing = sound
-			}
-
-			if (channel.playing) {
-				if (channel.point + 128 > channel.playing.length) {
-					channel.playing = null
+			if (channel.alteredSound) {
+				if (channel.point + 128 > channel.alteredSound.sound.length) {
+					channel.alteredSound = null
 				} else {
-					let sub = channel.playing.subarray(channel.point, channel.point + 128)
+					let frame = channel.alteredSound.sound.subarray(
+						channel.point,
+						channel.point + 128
+					)
 
-					outs.push(sub)
+					activeChannelFrames.push(frame)
 					channel.point += 128
 				}
 			}
 		}
 
-		if (outs.length) {
-			output.forEach(ear => {
-				let out = add(outs)
+		if (activeChannelFrames.length) {
+			for (let ear of output) {
+				let out = add(activeChannelFrames)
 				for (let i = 0; i < ear.length; i += 1) {
 					ear[i] = out[i]
 				}
-			})
+			}
 		}
 
 		return true

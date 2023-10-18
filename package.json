@@ -10,10 +10,13 @@
 		"typescript": "^5.0.0"
 	},
 	"scripts": {
-		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321"
+		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321",
+		"vendor": "npx swc -d public/vendor node_modules/@toots/libsamplerate.js/dist/libsamplerate_browser*"
 	},
 	"dependencies": {
 		"@bitarray/typedarray": "^1.1.1",
+		"@swc/cli": "^0.1.62",
+		"@toots/libsamplerate.js": "^1.0.0",
 		"@types/audioworklet": "^0.0.50"
 	}
 }

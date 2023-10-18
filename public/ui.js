@@ -25,7 +25,7 @@ let memory = Memory.map(buffer)
 
 async function init() {
 	graphics.init(canvas)
-	sounds.init()
+	await sounds.init()
 	// keeping this deactivated until i have time to do it right
 	// because broken service workers are a fucking nightmare
 	if (location.search == "?offline") {

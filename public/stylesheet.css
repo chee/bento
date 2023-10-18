@@ -220,6 +220,7 @@ figure.waveform canvas {
 
 .step:focus {
 	outline: 2px solid white;
+	outline-offset: 0;
 }
 
 body.chee .step:focus {

@@ -66,10 +66,41 @@ function drawSampleLine({style, array, x, xm, height, ym, zp}) {
 	return x
 }
 
-function update(frame) {
+/**
+ * @param {import("./memory.js").SoundDetails} one
+ * @param {import("./memory.js").SoundDetails} two
+ */
+function same(one, two) {
+	if (Object.is(one, two)) return true
+	if (!two) {
+		return false
+	}
+	let entries = Object.entries(one)
+
+	for (let [key, value] of entries) {
+		if (typeof value == "number" || typeof value == "boolean") {
+			if (one[key] != two[key]) {
+				return false
+			}
+		}
+	}
+	if (one.trim.start != two.trim.start || one.trim.end != two.trim.end) {
+		return false
+	}
+	return same
+}
+
+let lastSoundDetails
+function update(frame, force = false) {
 	if (!context || !memory || !Memory) return
-	let {sound, trim: activeTrim} = Memory.getSelectedSoundDetails(memory)
+	let soundDetails = Memory.getSelectedSoundDetails(memory)
 	let {canvas} = context
+	let isBeingTrimmed = Memory.trimming(memory)
+	if (!force && !isBeingTrimmed && same(soundDetails, lastSoundDetails)) {
+		return requestAnimationFrame(update)
+	}
+	lastSoundDetails = soundDetails
+	let {sound, trim: activeTrim} = soundDetails
 
 	clear()
 
@@ -112,7 +143,6 @@ function update(frame) {
 	if (newTrimStart > newTrimEnd) {
 		;[newTrimStart, newTrimEnd] = [newTrimEnd, newTrimStart]
 	}
-	let isBeingTrimmed = Memory.trimming(memory)
 
 	let activeTrimStart = activeTrim.start * xm
 	let activeTrimEnd = activeTrim.end * xm

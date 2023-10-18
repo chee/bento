@@ -9,8 +9,10 @@ let channelGroup = ui.querySelector(".channels")
 let channels = channelGroup.querySelectorAll("input")
 let stepGroup = ui.querySelector(".steps")
 let steps = stepGroup.querySelectorAll("input")
-/** @type {HTMLInputElement} */
+/** @type {HTMLSelectElement} */
 let speedSelector = ui.querySelector('[name="speed"]')
+/** @type {HTMLSelectElement} */
+let lengthSelector = ui.querySelector('[name="length"]')
 /** @type {HTMLInputElement} */
 let bpmInput = ui.querySelector('[name="bpm"]')
 /** @type {HTMLInputElement} */
@@ -32,8 +34,10 @@ async function init() {
 		await offline.init()
 	}
 	Memory.bpm(memory, Number(bpmInput.value))
+
 	channels.forEach((channel, idx) => {
 		Memory.channelSpeed(memory, idx, 1)
+		Memory.channelLength(memory, idx, 16)
 		if (channel.checked) {
 			Memory.selectedChannel(memory, idx)
 		}
@@ -66,13 +70,15 @@ function update() {
 		let label = option.dataset.label || option.value
 		let full = bpm + "×" + label
 
-		// why not a span inside? or an attr?
+		// why not a span inside? or an attr? for use in a ::before??
 		if (option.textContent != full) {
 			option.textContent = full
 		}
 	})
 
 	speedSelector.value = Memory.channelSpeed(memory, selectedChannel).toString()
+	let patternLength = Memory.channelLength(memory, selectedChannel)
+	lengthSelector.value = patternLength.toString()
 
 	playButton.classList.toggle("playing", Memory.playing(memory))
 	if (bpmInput != document.activeElement) {
@@ -99,6 +105,12 @@ function update() {
 		stepElement.classList.toggle("playing", index == currentStep)
 		stepElement.checked = Memory.stepOn(memory, selectedChannel, index)
 		stepElement.toggleAttribute("checked", stepElement.checked)
+		stepElement.dataset.gain = Memory.stepGain(
+			memory,
+			selectedChannel,
+			index
+		).toString()
+		stepElement.toggleAttribute("hidden", index >= patternLength)
 	})
 
 	requestAnimationFrame(update)
@@ -168,6 +180,14 @@ speedSelector.addEventListener("change", event => {
 	)
 })
 
+lengthSelector.addEventListener("change", event => {
+	Memory.channelLength(
+		memory,
+		Memory.selectedChannel(memory),
+		Number(lengthSelector.value)
+	)
+})
+
 recordButton.addEventListener("click", async event => {
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedChannel(memory), audio)
@@ -202,6 +222,7 @@ globalThis.addEventListener(
 				return
 			}
 		}
+		let chan = Memory.selectedChannel(memory)
 		let selected = Memory.selectedStep(memory)
 		let leftColumn = !(selected % 4)
 		let topRow = selected < 4
@@ -251,7 +272,19 @@ globalThis.addEventListener(
 			ops.push("toggle")
 			ops.push("move")
 			next = boxIndex
+		} else if (mod.ctrl && event.key == "ArrowDown") {
+			let gain = Memory.stepGain(memory, chan, selected)
+			gain = clamp(0, gain + 1, 12)
+			Memory.stepGain(memory, chan, selected, gain)
+		} else if (mod.ctrl && event.key == "ArrowUp") {
+			let gain = Memory.stepGain(memory, chan, selected)
+			gain = clamp(0, gain - 1, 12)
+			Memory.stepGain(memory, chan, selected, gain)
+		} else if (mod.ctrl && event.key == "r") {
+			let reversed = Memory.stepReversed(memory, chan, selected)
+			Memory.stepReversed(memory, chan, selected, !reversed)
 		}
+		// TODO ctrl+space + arrows for trim region??
 		if (next == selected) {
 			if (ops.includes("toggle")) {
 				Memory.toggleStep(memory, Memory.selectedChannel(memory), next)
@@ -262,3 +295,13 @@ globalThis.addEventListener(
 		}
 	}
 )
+
+function generateExtraStyles() {
+	let style = document.createElement("style")
+	for (let n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+		console.log(`.step[data-gain="${n}"] {
+	opacity: ${(12.5 - n) / 12};
+}
+`)
+	}
+}

@@ -1,9 +1,5 @@
 import * as Memory from "./memory.js"
 
-let sampleRate =
-	/** @type {number} The samplerate, it never changes once the
-context has been defined according to mdn */ globalThis.sampleRate
-
 function add(arrays) {
 	if (!arrays.length) {
 		return []
@@ -19,6 +15,38 @@ function add(arrays) {
 	return end
 }
 
+/**
+ * @param {import("./memory.js").SoundDetails} soundDetails
+ * @returns {import("./memory.js").SoundDetails}
+ */
+function alter(soundDetails) {
+	let {
+		sound: originalSound,
+		trim,
+		soundLength,
+		reversed,
+		gain,
+		attack,
+		release,
+	} = soundDetails
+
+	let sound = originalSound.subarray(trim.start, trim.end || soundLength)
+
+	if (gain || attack || release || reversed) {
+		let output = new Float32Array(sound.length)
+		// gain is a number from 0-12
+		// TODO make this non-linear using some kind of math
+		let gm = 1 * ((13 - gain) / 12)
+		for (let i = 0; i < sound.length; i++) {
+			let targetIndex = reversed ? sound.length - i : i
+			output[targetIndex] = sound[i] * gm
+			// TODO apply envelope
+		}
+		sound = output
+	}
+	return {...soundDetails, sound}
+}
+
 class Operator extends AudioWorkletProcessor {
 	constructor(options) {
 		super()
@@ -29,9 +57,9 @@ class Operator extends AudioWorkletProcessor {
 			return {
 				index: i,
 				point: 0,
-				playing: null,
 				lastStep: -1,
-				sound: new Float32Array(),
+				/** @type {import("./memory.js").SoundDetails} */
+				alteredSound: null,
 				speed: 1,
 				end: 0,
 			}
@@ -39,7 +67,13 @@ class Operator extends AudioWorkletProcessor {
 		this.channels = channels
 		this.tick = 0
 	}
+
 	// :)
+	/**
+	 * @param {Float32Array[][]} _inputs
+	 * @param {Float32Array[][]} outputs
+	 * @param {Record<string, Float32Array>} _parameters
+	 */
 	process(_inputs, outputs, _parameters) {
 		// TODO fix stop button (channel.lastStep, may need a mem field for paused)
 		let memory = this.memory
@@ -52,60 +86,57 @@ class Operator extends AudioWorkletProcessor {
 		let output = outputs[0]
 		let samplesPerBeat = (60 / bpm) * sampleRate
 
-		let toplay = []
+		let activeChannelFrames = []
 
-		for (let channel of this.channels) {
+		for (let channel of channels) {
 			// TODO consider only reloading things at the start of every loop
-			channel.sound = Memory.sound(memory, channel.index)
+			//
+			// TODO also make some get* helper functions in memory.js for the
+			// things needed in this worklet
 			channel.speed = Memory.channelSpeed(memory, channel.index)
+			let length = Memory.channelLength(memory, channel.index)
 
 			let samplesPerStep = samplesPerBeat / (4 * channel.speed)
 
-			let currentStep = ((this.tick / samplesPerStep) | 0) % 16
+			let currentStep = ((this.tick / samplesPerStep) | 0) % length
 
 			if (currentStep != channel.lastStep) {
 				Memory.currentStep(memory, channel.index, currentStep)
-				if (Memory.stepOn(memory, channel.index, currentStep)) {
-					// TODO trim should return 120000 for length to begin with
-					let {start, end} = Memory.stepTrim(memory, channel.index, currentStep)
-
-					// TODO raw dog num use constant
-					toplay[channel.index] = this.channels[channel.index].sound.subarray(
-						start || 0,
-						end || Memory.SOUND_SIZE
-					)
+				let soundDetails = Memory.getSoundDetails(
+					memory,
+					channel.index,
+					currentStep
+				)
+				if (soundDetails.on) {
+					channel.point = 0
+					channel.alteredSound = alter(soundDetails)
 				}
 			}
+
 			channel.lastStep = currentStep
-		}
 
-		let outs = []
-		for (let channel of channels) {
-			let sound = toplay[channel.index]
-			if (sound) {
-				channel.point = 0
-				channel.playing = sound
-			}
-
-			if (channel.playing) {
-				if (channel.point + 128 > channel.playing.length) {
-					channel.playing = null
+			if (channel.alteredSound) {
+				if (channel.point + 128 > channel.alteredSound.sound.length) {
+					channel.alteredSound = null
 				} else {
-					let sub = channel.playing.subarray(channel.point, channel.point + 128)
+					let frame = channel.alteredSound.sound.subarray(
+						channel.point,
+						channel.point + 128
+					)
 
-					outs.push(sub)
+					activeChannelFrames.push(frame)
 					channel.point += 128
 				}
 			}
 		}
 
-		if (outs.length) {
-			output.forEach(ear => {
-				let out = add(outs)
+		if (activeChannelFrames.length) {
+			for (let ear of output) {
+				let out = add(activeChannelFrames)
 				for (let i = 0; i < ear.length; i += 1) {
 					ear[i] = out[i]
 				}
-			})
+			}
 		}
 
 		return true

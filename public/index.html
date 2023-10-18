@@ -15,7 +15,7 @@
 	<meta name="twitter:card" content="summary">
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-	<form class="ui"  autocomplete="off">
+	<form class="ui"  autocomplete="off" onsubmit="event.preventDefault()">
 		<header>
 			<fieldset class="master-controls">
 				<legend screenreader>Master Controls</legend>
@@ -64,25 +64,77 @@
 					<option value="0.5" data-label="½">
 						120×½
 					</option>
-					<option value="0.75" data-label="¾" chee>
-						120×¾
-					</option>
 					<option value="1" selected>
 						120×1
 					</option>
 					<option value="2">
 						120×2
 					</option>
-					<option value="3" chee>
-						120×3
-					</option>
 					<option value="4">
 						120×4
 					</option>
+					<optgroup label="ethically non-monogamous">
+						<option value="0.75" data-label="¾">
+							120×¾
+						</option>
+						<option value="3">
+							120×3
+						</option>
+					</optgroup>
 				</select>
-				<input type="number" max="15" min="0" value="16" name="length" chee>
+
+				<select aria-label="Length of channel pattern"
+					autocomplete="off"
+					name="length">
+					<option value="16" selected>
+						16
+					</option>
+					<option value="15">
+						15
+					</option>
+					<option value="14">
+						14
+					</option>
+					<option value="13">
+						13
+					</option>
+					<option value="12">
+						12
+					</option>
+					<option value="11">
+						11
+					</option>
+					<option value="10">
+						10
+					</option>
+					<option value="9">
+						9
+					</option>
+					<option value="8">
+						8
+					</option>
+					<option value="7">
+						7
+					</option>
+					<option value="6">
+						6
+					</option>
+					<option value="5">
+						5
+					</option>
+					<option value="4">
+						4
+					</option>
+					<option value="3">
+						3
+					</option>
+					<option value="2">
+						2
+					</option>
+
+				</select>
 				<input type="file" accept="audio/*" name="upload" chee>
-				<label>
+				<label aria-label="Record a sound">
 					●
 					<input type="checkbox" label="Recording" name="record">
 				</label>

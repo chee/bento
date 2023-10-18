@@ -113,6 +113,19 @@ export function currentStep(memory, channel, val) {
  * @param {number} [val]
  * @returns {number}
  */
+export function channelLength(memory, channel, val) {
+	if (typeof val == "number") {
+		memory.channelLengths.set([val], channel)
+	}
+	return memory.channelLengths.at(channel)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} channel
+ * @param {number} [val]
+ * @returns {number}
+ */
 export function channelSpeed(memory, channel, val) {
 	if (typeof val == "number") {
 		memory.channelSpeeds.set([val], channel)
@@ -498,6 +511,7 @@ export function getSoundDetails(memory, channel, step) {
 	let pitch = stepPitch(memory, channel, step)
 	let on = stepOn(memory, channel, step)
 	let reversed = stepReversed(memory, channel, step)
+
 	return {
 		sound: snd,
 		soundLength: length,

@@ -109,7 +109,7 @@ input[type="number"] {
 	appearance: textfield;
 }
 
-[name="speed"] {
+.channel-controls select {
 	font-size: 0.7rem;
 }
 
@@ -242,8 +242,52 @@ body.chee .step:focus {
 .step[disabled] {
 	border: none;
 }
+.step[data-gain="1"] {
+	opacity: 0.9583333333333334;
+}
 
-.step[data-pitch="-12"] {
+.step[data-gain="2"] {
+	opacity: 0.875;
+}
+
+.step[data-gain="3"] {
+	opacity: 0.7916666666666666;
+}
+
+.step[data-gain="4"] {
+	opacity: 0.7083333333333334;
+}
+
+.step[data-gain="5"] {
+	opacity: 0.625;
+}
+
+.step[data-gain="6"] {
+	opacity: 0.5416666666666666;
+}
+
+.step[data-gain="7"] {
+	opacity: 0.4583333333333333;
+}
+
+.step[data-gain="8"] {
+	opacity: 0.375;
+}
+
+.step[data-gain="9"] {
+	opacity: 0.2916666666666667;
+}
+
+.step[data-gain="10"] {
+	opacity: 0.20833333333333334;
+}
+
+.step[data-gain="11"] {
+	opacity: 0.125;
+}
+
+.step[data-gain="12"] {
+	opacity: 0.041666666666666664;
 }
 
 body:not([chee]) [chee] {

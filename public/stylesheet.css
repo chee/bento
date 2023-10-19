@@ -206,8 +206,8 @@ label:has([name="record"]:focus) {
 	margin: 0;
 }
 
-.screen.draghim {
-	outline: 4px dotted var(--green);
+.screen.dragz {
+	outline: 4px solid var(--green);
 }
 
 figure.waveform canvas {

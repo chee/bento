@@ -28,6 +28,27 @@ let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
+let alreadyFancy = false
+let fancyListeners = ["mousedown", "touchstart", "keydown"]
+
+async function getFancy(event) {
+	if (alreadyFancy) {
+		removeFancyEventListeners()
+		return
+	}
+	await sounds.start(buffer)
+	graphics.start(screenWaveformCanvas, buffer)
+	alreadyFancy = true
+	removeFancyEventListeners()
+}
+
+function removeFancyEventListeners() {
+	fancyListeners.map(e => window.removeEventListener(e, getFancy))
+	fancyListeners.map(e =>
+		stepInputs.forEach(l => l.addEventListener(e, getFancy))
+	)
+}
+
 async function init() {
 	graphics.init(screenWaveformCanvas)
 	sounds.init()
@@ -45,29 +66,10 @@ async function init() {
 		}
 	})
 
-	let interactions = ["mousedown", "touchstart", "keypress"]
-
-	let alreadyFancy = false
-	async function getFancy() {
-		if (alreadyFancy) {
-			removeFancyEventListeners()
-			return
-		}
-		await sounds.start(buffer)
-		graphics.start(screenWaveformCanvas, buffer)
-		alreadyFancy = true
-		removeFancyEventListeners()
-	}
-	interactions.map(e => window.addEventListener(e, getFancy))
-	interactions.map(e =>
+	fancyListeners.map(e => window.addEventListener(e, getFancy))
+	fancyListeners.map(e =>
 		stepInputs.forEach(l => l.addEventListener(e, getFancy))
 	)
-	function removeFancyEventListeners() {
-		interactions.map(e => window.removeEventListener(e, getFancy))
-		interactions.map(e =>
-			stepInputs.forEach(l => l.addEventListener(e, getFancy))
-		)
-	}
 
 	stepInputs.forEach((step, stepIndex) => {
 		let chanIndex = Memory.selectedPattern(memory)
@@ -213,16 +215,36 @@ recordButton.addEventListener("click", async () => {
 
 screen.addEventListener("dragenter", event => {
 	event.preventDefault()
-	screen.classList.add("drag")
+	screen.classList.add("dragz")
+	if (!alreadyFancy) {
+		getFancy()
+	}
+})
+
+screen.addEventListener("dragover", event => {
+	event.preventDefault()
+	screen.classList.add("dragz")
+	if (!alreadyFancy) {
+		getFancy()
+	}
 })
 
 screen.addEventListener("dragleave", event => {
 	event.preventDefault()
-	screen.classList.remove("drag")
+	screen.classList.remove("dragz")
+})
+
+screen.addEventListener("dragend", event => {
+	event.preventDefault()
+	screen.classList.remove("dragz")
 })
 
 screen.addEventListener("drop", async event => {
 	event.preventDefault()
+	if (!alreadyFancy) {
+		getFancy()
+	}
+	screen.classList.remove("dragz")
 	if (event.dataTransfer.items) {
 		for (let item of Array.from(event.dataTransfer.items)) {
 			if (item.kind == "file") {

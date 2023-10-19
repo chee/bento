@@ -153,12 +153,15 @@
 							2
 						</option>
 					</select>
-					<input
-						type="file"
-						accept="audio/*"
-						name="upload"
-						aria-label="upload sound from disk"
-						chee>
+					<label aria-label="Upload a sound from your computer" class="upload">
+						↥
+						<input
+							type="file"
+							accept="audio/*"
+							name="upload"
+							aria-label="upload sound from disk"
+							screenreader>
+					</label>
 					<label aria-label="Record a sound" class="recorder">
 						●
 						<input type="checkbox" label="Recording" name="record">

@@ -25,13 +25,14 @@ function normalize(sound) {
 }
 
 /**
- * @param {Blob | Response} blob
+ * @param {Blob | Response | File} blob
  */
-async function decode(blob) {
+export async function decode(blob, begin = 0, end = Memory.SOUND_SIZE) {
 	return (
 		(await context.decodeAudioData(await blob.arrayBuffer()))
 			// TODO stereo?
 			.getChannelData(0)
+			.subarray(begin, end)
 	)
 }
 

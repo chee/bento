@@ -20,6 +20,7 @@ let bpmInput = ui.querySelector('[name="bpm"]')
 let playButton = ui.querySelector('[name="play"]')
 /** @type {HTMLInputElement} */
 let recordButton = ui.querySelector('[name="record"]')
+/** @type {HTMLElement} */
 let screen = ui.querySelector(".screen")
 /** @type {HTMLCanvasElement} */
 let screenWaveformCanvas = screen.querySelector(".waveform canvas")
@@ -205,18 +206,35 @@ lengthSelector.addEventListener("change", () => {
 })
 
 recordButton.addEventListener("click", async () => {
-	recordButton.parentElement.classList.add("recording")
+	document.body.setAttribute("recording", "recording")
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
 
 screen.addEventListener("dragenter", event => {
-	event.dataTransfer.dropEffect = "copy"
 	event.preventDefault()
+	screen.classList.add("drag")
 })
 
-screen.addEventListener("dragover", event => {
+screen.addEventListener("dragleave", event => {
 	event.preventDefault()
+	screen.classList.remove("drag")
+})
+
+screen.addEventListener("drop", async event => {
+	event.preventDefault()
+	if (event.dataTransfer.items) {
+		for (let item of Array.from(event.dataTransfer.items)) {
+			if (item.kind == "file") {
+				let file = item.getAsFile()
+				sounds.setSound(
+					memory,
+					Memory.selectedPattern(memory),
+					await sounds.decode(file)
+				)
+			}
+		}
+	}
 })
 
 /**
@@ -228,8 +246,7 @@ window.onmessage = function (event) {
 	let message = event.data
 	if (message.type == "recording") {
 		recordButton.checked = event.data.start
-		// until there is a :has selector
-		recordButton.parentElement.classList.toggle("recording", event.data.start)
+		document.body.toggleAttribute("recording", event.data.start)
 	}
 }
 

@@ -180,6 +180,16 @@ input[type="number"] {
 	font-size: 0.7rem;
 }
 
+label.upload {
+	font-size: 0.5em;
+	line-height: 1rem;
+}
+
+label.recorder {
+	font-size: 0.8em;
+	line-height: 1rem;
+}
+
 label.recorder.recording,
 label:has([name="record"]:checked) {
 	color: var(--bright-red);
@@ -190,10 +200,14 @@ label:has([name="record"]:focus) {
 	outline: 2px solid cyan;
 }
 
-figure.waveform {
+.screen figure {
 	background: var(--line);
 	width: 100%;
 	margin: 0;
+}
+
+.screen.draghim {
+	outline: 4px dotted var(--green);
 }
 
 figure.waveform canvas {

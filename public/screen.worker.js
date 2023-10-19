@@ -35,7 +35,11 @@ let context
  */
 let memory
 
-function clear() {
+/**
+ * Clear the canvas and reset the tools
+ * @param {OffscreenCanvasRenderingContext2D} context
+ */
+function clear(context) {
 	if (!context) return
 	let canvas = context.canvas
 	let {width, height} = canvas
@@ -157,6 +161,7 @@ function postBitmap(memory, context, pattern, step) {
 	if (!Memory) {
 		throw new Error("tried to post bitmap before init!")
 	}
+	clear(context)
 
 	let {height, width} = context.canvas
 	let stepDetails = Memory.getStepDetails(memory, pattern, step)
@@ -249,6 +254,7 @@ function update(_frame = 0, force = false) {
 	if (!force && !regionIsBeingDrawn && same(stepDetails, lastStepDetails)) {
 		return requestAnimationFrame(update)
 	}
+	clear(context)
 
 	lastStepDetails = stepDetails
 	// Send the current line to the window so it can be used as the step button's
@@ -259,12 +265,10 @@ function update(_frame = 0, force = false) {
 
 	if (!same(soundDetails, lastSoundDetails)) {
 		if (!regionIsBeingDrawn) {
-			clear()
 			postAllBitmaps(memory, context)
 		}
 	}
 	if (!regionIsBeingDrawn) {
-		clear()
 		postBitmap(memory, context, stepDetails.pattern, stepDetails.step)
 	}
 	lastSoundDetails = soundDetails

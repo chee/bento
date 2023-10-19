@@ -15,7 +15,6 @@ features:
 	• v cool
 
 todo:
-	• per-step pitch control (¹²√₂)
 	• per-step AR envelope
 	• per-step volume control
 	• per-step reverse
@@ -49,3 +48,5 @@ todo:
 	• fx
 	• expression language for user fx
 	✓ move canvas drawing off main thread (done!)
+todo but hard:
+	• per-step pitch control (¹²√₂)

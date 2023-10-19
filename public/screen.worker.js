@@ -31,7 +31,7 @@ let Memory
 let context
 
 /**
- * @type {import("public/memory.js").MemoryMap | void} memory
+ * @type {import("public/memory.js").MemoryMap?} [memory]
  */
 let memory
 
@@ -57,7 +57,7 @@ function fillRegion(start, end, fill) {
 	context.fillRect(start, 0, end - start, context.canvas.height)
 }
 
-function drawSampleLine({style, array, x, xm, height}) {
+function drawSampleLine({style, array, x, xm, height, skip = 16}) {
 	context.beginPath()
 	context.strokeStyle = style.line
 	context.lineWidth = style.lineWidth || DPI
@@ -70,7 +70,6 @@ function drawSampleLine({style, array, x, xm, height}) {
 		// TODO check how slow this is on low-powered devices !!
 		// TODO keep accuracy high when the sample is small
 		// TODO keep accurancy high when not on safari!!!
-		let skip = 16
 		if (idx % skip) {
 			continue
 		}
@@ -87,8 +86,8 @@ function drawSampleLine({style, array, x, xm, height}) {
 }
 
 /**
- * @param {import("public/memory.js").SoundDetails} one
- * @param {import("public/memory.js").SoundDetails} two
+ * @param {import("public/memory.js").StepDetails | import("public/memory.js").SoundDetails} one
+ * @param {import("public/memory.js").StepDetails | import("public/memory.js").SoundDetails} two
  */
 function same(one, two) {
 	if (Object.is(one, two)) return true
@@ -104,16 +103,16 @@ function same(one, two) {
 			}
 		}
 	}
-	if (
-		one.region.start != two.region.start ||
-		one.region.end != two.region.end
-	) {
-		return false
+	if (one.region || two.region) {
+		if (
+			one.region.start != two.region.start ||
+			one.region.end != two.region.end
+		) {
+			return false
+		}
 	}
 	return same
 }
-
-let lastSoundDetails
 
 /**
  * @param {import("public/memory.js").Region} region
@@ -129,10 +128,10 @@ function getReversedRegion(region, soundLength) {
 /**
  * Get the visible portion of a sound, in the right direction.
  *
- * @param {import("public/memory.js").SoundDetails} soundDetails
+ * @param {import("public/memory.js").StepDetails} stepDetails
  */
-function getVisibleSound(soundDetails) {
-	let {sound, soundLength, reversed} = soundDetails
+function getVisibleSound(stepDetails) {
+	let {sound, soundLength, reversed} = stepDetails
 	let visibleSound = sound.subarray(0, soundLength)
 	if (reversed) {
 		let reversedVisibleSound
@@ -145,6 +144,7 @@ function getVisibleSound(soundDetails) {
 	return visibleSound
 }
 
+let bitmapCache = {}
 /**
  * Create and post the bitmap for a step
 
@@ -153,15 +153,15 @@ function getVisibleSound(soundDetails) {
  * @param {number} pattern
  * @param {number} step
  */
-function postBitmap(memory, context, pattern, step, caller = "no one") {
+function postBitmap(memory, context, pattern, step) {
 	if (!Memory) {
 		throw new Error("tried to post bitmap before init!")
 	}
 
 	let {height, width} = context.canvas
-	let soundDetails = Memory.getSoundDetails(memory, pattern, step)
-	let {region, reversed, soundLength} = soundDetails
-	let visibleSound = getVisibleSound(soundDetails)
+	let stepDetails = Memory.getStepDetails(memory, pattern, step)
+	let {region, reversed, soundLength, version} = stepDetails
+	let visibleSound = getVisibleSound(stepDetails)
 	let hasRegion = region.start || region.end
 	let reversedRegion = getReversedRegion(region, visibleSound.length)
 	let length = hasRegion ? region.end - region.start : soundLength
@@ -170,22 +170,25 @@ function postBitmap(memory, context, pattern, step, caller = "no one") {
 	let start = hasRegion ? r.start : 0
 	let end = hasRegion ? r.end : soundLength
 	let array = visibleSound.subarray(start, end)
+	let cachename = `s${start}e${end}r${reversed}v${version}p${pattern}`
 
-	drawSampleLine({
-		style: style.step,
-		array,
-		x: 0,
-		xm: width / length,
-		height,
-	})
-
-	let bmp = context.canvas.transferToImageBitmap()
-
+	if (!bitmapCache[cachename]) {
+		drawSampleLine({
+			style: style.step,
+			array,
+			x: 0,
+			xm: width / length,
+			height,
+		})
+		let bmp = context.canvas.transferToImageBitmap()
+		bitmapCache[cachename] = bmp
+	}
 	globalThis.postMessage({
 		type: "waveform",
-		bmp,
+		bmp: bitmapCache[cachename],
 		pattern,
 		step,
+		cachename,
 	})
 }
 
@@ -199,11 +202,10 @@ function postAllBitmaps(memory, context) {
 	if (!Memory) {
 		throw new Error("tried to post all bitmaps before init!")
 	}
-	for (let pidx = 0; pidx < Memory.NUMBER_OF_PATTERNS; pidx++) {
-		for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
-			if (Memory.stepOn(memory, pidx, sidx)) {
-				postBitmap(memory, context, pidx, sidx)
-			}
+	let pidx = Memory.selectedPattern(memory)
+	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
+		if (Memory.stepOn(memory, pidx, sidx)) {
+			postBitmap(memory, context, pidx, sidx)
 		}
 	}
 }
@@ -231,27 +233,45 @@ function getXMultiplier(context, soundLength) {
 	return context.canvas.width / soundLength
 }
 
-let lastPattern = -1
+let lastStepDetails
+let lastSoundDetails
 function update(_frame = 0, force = false) {
 	if (!context || !memory || !Memory) return
-	let soundDetails = Memory.getSelectedSoundDetails(memory)
+	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let soundDetails = Memory.getSoundDetails(
+		memory,
+		Memory.selectedPattern(memory)
+	)
 
 	let {canvas} = context
 	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
-	if (!force && !regionIsBeingDrawn && same(soundDetails, lastSoundDetails)) {
+
+	if (!force && !regionIsBeingDrawn && same(stepDetails, lastStepDetails)) {
 		return requestAnimationFrame(update)
 	}
 
-	clear()
-	if (soundDetails.pattern != lastPattern && !regionIsBeingDrawn) {
-		postAllBitmaps(memory, context)
+	lastStepDetails = stepDetails
+	// Send the current line to the window so it can be used as the step button's
+	// background colour. Don't update while the region is being drawn, that's
+	// silly and would be v slow
+	// This'll clear the current canvas, so needs to be done before anything else
+	// that means it has be be done synchronously too
+
+	if (!same(soundDetails, lastSoundDetails)) {
+		if (!regionIsBeingDrawn) {
+			clear()
+			postAllBitmaps(memory, context)
+		}
 	}
-	lastPattern = soundDetails.pattern
-
+	if (!regionIsBeingDrawn) {
+		clear()
+		postBitmap(memory, context, stepDetails.pattern, stepDetails.step)
+	}
 	lastSoundDetails = soundDetails
-	let {region, reversed} = soundDetails
 
-	let visibleSound = getVisibleSound(soundDetails)
+	let {region, reversed} = stepDetails
+
+	let visibleSound = getVisibleSound(stepDetails)
 	let width = canvas.width
 	let height = canvas.height
 
@@ -279,14 +299,6 @@ function update(_frame = 0, force = false) {
 	let hasRegion = pixelRegion.start || pixelRegion.end
 
 	let reversedRegion = getReversedRegion(region, visibleSound.length)
-
-	// Send the current line to the window so it can be used as the step button's
-	// background colour. Don't update while the region is being drawn, that's
-	// silly and would be v slow
-	// This'll clear the current canvas, so needs to be done before anything else
-	if (!regionIsBeingDrawn) {
-		postBitmap(memory, context, soundDetails.pattern, soundDetails.step)
-	}
 
 	// this is more draws than the previous version, so it is slower.
 	// but the logic is a lot simpler, so i am forgiven.

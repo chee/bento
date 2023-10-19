@@ -1,10 +1,10 @@
 import * as Memory from "./memory.js"
 
 /**
- * @param {import("./memory.js").SoundDetails} soundDetails
- * @returns {import("./memory.js").SoundDetails}
+ * @param {import("./memory.js").StepDetails} stepDetails
+ * @returns {import("./memory.js").StepDetails}
  */
-function alter(soundDetails) {
+function alter(stepDetails) {
 	let {
 		sound: originalSound,
 		region,
@@ -13,7 +13,7 @@ function alter(soundDetails) {
 		gain,
 		attack,
 		release,
-	} = soundDetails
+	} = stepDetails
 
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
@@ -29,7 +29,7 @@ function alter(soundDetails) {
 		}
 		sound = output
 	}
-	return {...soundDetails, sound}
+	return {...stepDetails, sound}
 }
 
 class Bako extends AudioWorkletProcessor {
@@ -40,7 +40,7 @@ class Bako extends AudioWorkletProcessor {
 		this.patternNumber = options.processorOptions.patternNumber
 		this.point = 0
 		this.lastStep = -1
-		/** @type {import("./memory.js").SoundDetails} */
+		/** @type {import("./memory.js").StepDetails} */
 		this.alteredSound = null
 		this.tick = 0
 	}
@@ -70,14 +70,14 @@ class Bako extends AudioWorkletProcessor {
 
 		if (currentStep != this.lastStep) {
 			Memory.currentStep(memory, patternNumber, currentStep)
-			let soundDetails = Memory.getSoundDetails(
+			let stepDetails = Memory.getStepDetails(
 				memory,
 				patternNumber,
 				currentStep
 			)
-			if (soundDetails.on) {
+			if (stepDetails.on) {
 				this.point = 0
-				this.alteredSound = alter(soundDetails)
+				this.alteredSound = alter(stepDetails)
 			}
 		}
 

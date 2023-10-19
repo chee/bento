@@ -195,6 +195,7 @@ lengthSelector.addEventListener("change", () => {
 })
 
 recordButton.addEventListener("click", async () => {
+	recordButton.parentElement.classList.add("recording")
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
@@ -213,6 +214,8 @@ window.onmessage = function (event) {
 	}
 }
 
+let canvas = document.createElement("canvas")
+let stepWaveformUrlCache = {}
 document.addEventListener(
 	"waveform",
 	/**
@@ -221,16 +224,18 @@ document.addEventListener(
 	async ({detail}) => {
 		/** @type {ImageBitmap} */
 		let bmp = detail.bmp
-		let {pattern, step} = detail
+		let {pattern, step, cachename} = detail
 		if (pattern != Memory.selectedPattern(memory)) return
-		let canvas = document.createElement("canvas")
 		canvas.width = bmp.width
 		canvas.height = bmp.height
-		let context = canvas.getContext("bitmaprenderer")
-		context.transferFromImageBitmap(bmp)
-		let url = canvas.toDataURL("image/webp")
 		let stepElement = stepInputs[step]
-		stepElement.style.backgroundImage = `url(${url})`
+		if (!stepWaveformUrlCache[cachename]) {
+			let context = canvas.getContext("bitmaprenderer")
+			context.transferFromImageBitmap(bmp)
+			stepWaveformUrlCache[cachename] = canvas.toDataURL("image/webp")
+		}
+
+		stepElement.style.backgroundImage = `url(${stepWaveformUrlCache[cachename]})`
 	}
 )
 

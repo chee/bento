@@ -10,6 +10,10 @@ export let arrays = [
 	{name: "patternLengths", type: Uint8Array, size: NUMBER_OF_PATTERNS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
 	{name: "soundLengths", type: Uint32Array, size: NUMBER_OF_PATTERNS},
+	// this monotonic exists just to force a refresh when things change
+	// user may experience unexpected behaviour if they replace a sound more than
+	// 4294967295 times in one session
+	{name: "soundVersions", type: Uint32Array, size: NUMBER_OF_PATTERNS},
 	{name: "patternGains", type: Uint8Array, size: NUMBER_OF_PATTERNS},
 	{name: "patternSpeeds", type: Float32Array, size: NUMBER_OF_PATTERNS},
 	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_PATTERNS},
@@ -101,6 +105,7 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Uint8Array} MemoryMap.patternLengths
  * @property {Float32Array} MemoryMap.frame
  * @property {Uint32Array} MemoryMap.soundLengths
+ * @property {Uint32Array} MemoryMap.soundVersions
  * @property {Uint8Array} MemoryMap.patternGains
  * @property {Float32Array} MemoryMap.patternSpeeds
  * @property {Uint8Array} MemoryMap.currentSteps
@@ -390,6 +395,7 @@ export function sound(memory, pattern, sound) {
 	if (typeof sound != "undefined") {
 		memory.patternSounds.set(sound, start)
 		memory.soundLengths.set([sound.length], pattern)
+		memory.soundVersions.set([memory.soundVersions.at(pattern) + 1], pattern)
 	}
 
 	return memory.patternSounds.subarray(start, start + SOUND_SIZE)
@@ -444,7 +450,7 @@ export function drawingRegionEnd(memory, x) {
 	if (typeof x == "number") {
 		memory.drawingRegion.set([x], DrawingRegion.end)
 		let [start, end] = [drawingRegionStart(memory), drawingRegionEnd(memory)]
-		let details = getSelectedSoundDetails(memory)
+		let details = getSelectedStepDetails(memory)
 		let m = drawingRegionXMultiplier(memory)
 		;[start, end] = [start / m, end / m]
 		if (start > end) {
@@ -543,26 +549,43 @@ export function selectedPatternSound(memory, val) {
  * @typedef {Object} SoundDetails
  * @property {Float32Array} SoundDetails.sound
  * @property {number} SoundDetails.soundLength the pattern's soundLength
- * @property {Object} SoundDetails.region
- * @property {number} SoundDetails.region.start
- * @property {number} SoundDetails.region.end
  * @property {number} SoundDetails.pattern
- * @property {number} SoundDetails.step
- * @property {number} SoundDetails.attack
- * @property {number} SoundDetails.release
- * @property {number} SoundDetails.pitch
- * @property {number} SoundDetails.gain
- * @property {boolean} SoundDetails.on
- * @property {boolean} SoundDetails.reversed
+ * @property {number} SoundDetails.version
+ */
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} pattern
+ * @returns {SoundDetails}
+ */
+export function getSoundDetails(memory, pattern) {
+	return {
+		pattern,
+		sound: sound(memory, pattern),
+		soundLength: soundLength(memory, pattern),
+		version: memory.soundVersions.at(pattern),
+	}
+}
+
+/**
+ * @typedef {Object & SoundDetails} StepDetails
+ * @property {Region} StepDetails.region
+ * @property {number} StepDetails.step
+ * @property {number} StepDetails.attack
+ * @property {number} StepDetails.release
+ * @property {number} StepDetails.pitch
+ * @property {number} StepDetails.gain
+ * @property {boolean} StepDetails.on
+ * @property {boolean} StepDetails.reversed
  */
 
 /**
  * @param {MemoryMap} memory
  * @param {number} pattern
  * @param {number} step
- * @returns {SoundDetails}
+ * @returns {StepDetails}
  */
-export function getSoundDetails(memory, pattern, step) {
+export function getStepDetails(memory, pattern, step) {
 	let snd = sound(memory, pattern)
 	let length = soundLength(memory, pattern)
 	let region = stepRegion(memory, pattern, step)
@@ -572,6 +595,7 @@ export function getSoundDetails(memory, pattern, step) {
 	let pitch = stepPitch(memory, pattern, step)
 	let on = stepOn(memory, pattern, step)
 	let reversed = stepReversed(memory, pattern, step)
+	let version = memory.soundVersions.at(pattern)
 
 	return {
 		sound: snd,
@@ -585,26 +609,14 @@ export function getSoundDetails(memory, pattern, step) {
 		step,
 		on,
 		reversed,
+		version,
 	}
 }
 
 /**
  * @param {MemoryMap} memory
- * @returns {SoundDetails}
+ * @returns {StepDetails}
  */
-export function getSelectedSoundDetails(memory) {
-	return getSoundDetails(memory, selectedPattern(memory), selectedStep(memory))
+export function getSelectedStepDetails(memory) {
+	return getStepDetails(memory, selectedPattern(memory), selectedStep(memory))
 }
-
-/**
- * @param {MemoryMap} memory
- * @param {Uint8ClampedArray} [val]
- * @returns {Uint8ClampedArray}
- */
-// export function selectedPatternWaveformGraphic(memory, val) {
-// 	if (typeof val != undefined) {
-// 		memory.waveformGraphics.set(val, selectedPattern(memory))
-// 	}
-
-// 	return memory.waveformGraphics.at(selectedPattern(memory))
-// }

@@ -200,9 +200,10 @@ function postAllBitmaps(memory, context) {
 		throw new Error("tried to post all bitmaps before init!")
 	}
 	for (let pidx = 0; pidx < Memory.NUMBER_OF_PATTERNS; pidx++) {
-	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
-		if (Memory.stepOn(memory, pidx, sidx)) {
-			postBitmap(memory, context, pidx, sidx)
+		for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
+			if (Memory.stepOn(memory, pidx, sidx)) {
+				postBitmap(memory, context, pidx, sidx)
+			}
 		}
 	}
 }

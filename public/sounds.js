@@ -57,7 +57,7 @@ export async function recordSound() {
 		})
 		globalThis.postMessage({type: "recording", state: false})
 
-		return normalize(await decode(new Blob(blobs, {type: blobs[0].type})))
+		return decode(new Blob(blobs, {type: blobs[0].type}))
 	} catch (error) {
 		console.error(`Unable to record.`, error)
 	}

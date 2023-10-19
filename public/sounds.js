@@ -123,7 +123,7 @@ export async function start(buffer) {
 		}
 	})
 	context.resume()
-	unmute(context)
+	unmute(context, true)
 	await ready
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)

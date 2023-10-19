@@ -22,13 +22,13 @@ let playButton = ui.querySelector('[name="play"]')
 let recordButton = ui.querySelector('[name="record"]')
 let screen = ui.querySelector(".screen")
 /** @type {HTMLCanvasElement} */
-let waveformCanvas = screen.querySelector(".waveform canvas")
+let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
 async function init() {
-	graphics.init(waveformCanvas)
+	graphics.init(screenWaveformCanvas)
 	sounds.init()
 	// keeping this deactivated until i have time to do it right
 	// because broken service workers are a fucking nightmare
@@ -49,14 +49,24 @@ async function init() {
 	let alreadyFancy = false
 	async function getFancy() {
 		if (alreadyFancy) {
-			interactions.map(e => window.removeEventListener(e, getFancy))
+			removeFancyEventListeners()
 			return
 		}
 		await sounds.start(buffer)
-		graphics.start(waveformCanvas, buffer)
+		graphics.start(screenWaveformCanvas, buffer)
 		alreadyFancy = true
+		removeFancyEventListeners()
 	}
 	interactions.map(e => window.addEventListener(e, getFancy))
+	interactions.map(e =>
+		stepInputs.forEach(l => l.addEventListener(e, getFancy))
+	)
+	function removeFancyEventListeners() {
+		interactions.map(e => window.removeEventListener(e, getFancy))
+		interactions.map(e =>
+			stepInputs.forEach(l => l.addEventListener(e, getFancy))
+		)
+	}
 
 	stepInputs.forEach((step, stepIndex) => {
 		let chanIndex = Memory.selectedPattern(memory)
@@ -200,6 +210,15 @@ recordButton.addEventListener("click", async () => {
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
 
+screen.addEventListener("dragenter", event => {
+	event.dataTransfer.dropEffect = "copy"
+	event.preventDefault()
+})
+
+screen.addEventListener("dragover", event => {
+	event.preventDefault()
+})
+
 /**
  * Handle messages from my friends
  * TODO window.dispatchEvent?
@@ -214,7 +233,7 @@ window.onmessage = function (event) {
 	}
 }
 
-let canvas = document.createElement("canvas")
+let stepWaveformCanvas = document.createElement("canvas")
 let stepWaveformUrlCache = {}
 document.addEventListener(
 	"waveform",
@@ -226,13 +245,14 @@ document.addEventListener(
 		let bmp = detail.bmp
 		let {pattern, step, cachename} = detail
 		if (pattern != Memory.selectedPattern(memory)) return
-		canvas.width = bmp.width
-		canvas.height = bmp.height
+		stepWaveformCanvas.width = bmp.width
+		stepWaveformCanvas.height = bmp.height
 		let stepElement = stepInputs[step]
 		if (!stepWaveformUrlCache[cachename]) {
-			let context = canvas.getContext("bitmaprenderer")
+			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)
-			stepWaveformUrlCache[cachename] = canvas.toDataURL("image/webp")
+			stepWaveformUrlCache[cachename] =
+				stepWaveformCanvas.toDataURL("image/webp")
 		}
 
 		stepElement.style.backgroundImage = `url(${stepWaveformUrlCache[cachename]})`

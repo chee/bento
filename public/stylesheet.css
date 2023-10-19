@@ -1,11 +1,11 @@
 @font-face {
-	font-family: "quiet party";
+	font-family: qp;
 	src: url("/iosevka-qp-regular.ttf");
 	display: swap;
 }
 
 @font-face {
-	font-family: "quiet party";
+	font-family: qp;
 	src: url("/iosevka-qp-light.ttf");
 	font-weight: light;
 	display: swap;
@@ -34,12 +34,13 @@
 	--bright-yellow: #c9af13;
 	--bright-white: #e090ae;
 	--columns: repeat(4, 1fr);
-	--font-family: quiet party, iosevka, monaco, monospace;
+	--font-family: qp, iosevka, monaco, monospace;
 	--pattern-name-style: lower-latin;
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
 	font-size: 2.2em;
+	line-height: 1.15;
 }
 
 [screenreader] {
@@ -53,14 +54,25 @@
 
 * {
 	overscroll-behavior: none;
+	scrollbar-color: var(--line) var(--background);
+	box-sizing: border-box;
 }
 
 body {
+	margin: 0;
+}
+
+.bento {
+	min-height: 95vh;
 	display: flex;
-	min-height: 100vh;
 	align-items: center;
 	justify-content: center;
-	margin: 0;
+	flex-direction: column;
+	font-family: var(--font-family);
+}
+
+h1 {
+	text-align: center;
 }
 
 .ui {
@@ -68,6 +80,9 @@ body {
 	background: var(--background);
 	border: 1px solid;
 	touch-action: manipulation;
+	margin: 0;
+	contain: layout;
+	display: flow-root;
 }
 
 fieldset {
@@ -132,6 +147,7 @@ input[type="number"] {
 .pattern-selector label {
 	width: 100%;
 	text-align: center;
+	cursor: pointer;
 }
 
 /* until the :has selector is real */
@@ -184,6 +200,35 @@ figure.waveform canvas {
 	/* touch-action: manipulation; */
 	/* this should disable scrolling, but keep regions working */
 	touch-action: none;
+}
+
+.screen-selector fieldset {
+	display: grid;
+	text-align: center;
+	grid-template-columns: repeat(4, 1fr);
+	font-size: 0.5em;
+}
+
+.screen-selector label {
+	text-align: center;
+	border-bottom: 1px solid;
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.screen-selector label.checked {
+	background: var(--line);
+	color: var(--background);
+}
+
+.screen-selector label:not(:last-child) {
+	border-right: 1px solid;
+}
+
+.screen-selector label input {
+	position: absolute;
+	width: 5px;
+	height: 5px;
 }
 
 .pattern {

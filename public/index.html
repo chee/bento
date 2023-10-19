@@ -14,206 +14,275 @@
 	<meta property="og:image" content="/apple-touch-icon.png?0">
 	<meta name="twitter:card" content="summary">
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png?0">
+	<h1 screenreader>bento</h1>
 
-	<form class="ui"  autocomplete="off" onsubmit="event.preventDefault()">
-		<header>
-			<fieldset class="master-controls">
-				<legend screenreader>Master Controls</legend>
-				<input type="button" name="play" value="▶&#xfe0e;">
-				<input type="button" name="pause" value="⏸&#xfe0e;">
-				<input type="button" name="stop" value="⏹&#xfe0e;" hidden>
-				<input
-					name="bpm"
-					type="number"
-					inputmode="decimal"
-					max="240"
-					min="20"
-					value="120"
-					autocomplete="off"
-				>
-				<!-- swing -->
-			</fieldset>
+	<article class="bento">
+		<form class="ui"  autocomplete="off" onsubmit="event.preventDefault()">
+			<header>
+				<fieldset class="master-controls">
+					<legend screenreader>Master Controls</legend>
+					<input
+						type="button"
+						name="play"
+						value="▶&#xfe0e;"
+						aria-label="stop">
+					<input
+						type="button"
+						name="pause"
+						value="⏸&#xfe0e;"
+						aria-label="stop">
+					<input
+						type="button"
+						name="stop"
+						value="⏹&#xfe0e;"
+						aria-label="stop"
+						hidden>
+					<input
+						name="bpm"
+						type="number"
+						inputmode="decimal"
+						max="240"
+						min="20"
+						value="120"
+						autocomplete="off"
+						id="bpm"
+						aria-label="bpm">
 
-			<fieldset class="pattern-selector">
-				<legend screenreader>Pattern</legend>
+				</fieldset>
 
-				<label class="checked">
-					<input type="radio" name="pattern" checked value="0">
-				</label>
+				<fieldset class="pattern-selector">
+					<legend screenreader>Pattern</legend>
 
-				<label>
-					<input type="radio" name="pattern" value="1">
-				</label>
+					<label class="checked">
+						<span screenreader>pattern a</span>
+						<input type="radio" name="pattern" checked value="0">
+					</label>
 
-				<label>
-					<input type="radio" name="pattern" value="2">
-				</label>
+					<label>
+						<span screenreader>pattern b</span>
+						<input type="radio" name="pattern" value="1">
+					</label>
 
-				<label>
-					<input type="radio" name="pattern" value="3">
-				</label>
+					<label>
+						<span screenreader>pattern c</span>
+						<input type="radio" name="pattern" value="2">
+					</label>
 
-			</fieldset>
+					<label>
+						<span screenreader>pattern d</span>
+						<input type="radio" name="pattern" value="3">
+					</label>
 
-			<fieldset class="pattern-controls">
-				<legend screenreader>Pattern Controls</legend>
-				<select autocomplete="off" name="speed">
-					<option value="0.25" data-label="¼">
-						120×¼
-					</option>
-					<option value="0.5" data-label="½">
-						120×½
-					</option>
-					<option value="1" selected>
-						120×1
-					</option>
-					<option value="2">
-						120×2
-					</option>
-					<option value="4">
-						120×4
-					</option>
-					<optgroup label="ethically non-monogamous">
-						<option value="0.75" data-label="¾">
-							120×¾
+				</fieldset>
+
+				<fieldset class="pattern-controls">
+					<legend screenreader>Pattern Controls</legend>
+					<select autocomplete="off" name="speed" aria-label="fractional speed of pattern calculated from bpm">
+						<option value="0.25" data-label="¼">
+							120×¼
+						</option>
+						<option value="0.5" data-label="½">
+							120×½
+						</option>
+						<option value="1" selected>
+							120×1
+						</option>
+						<option value="2">
+							120×2
+						</option>
+						<option value="4">
+							120×4
+						</option>
+						<optgroup label="ethically non-monogamous">
+							<option value="0.75" data-label="¾">
+								120×¾
+							</option>
+							<option value="3">
+								120×3
+							</option>
+						</optgroup>
+					</select>
+
+					<select
+						aria-label="Length of pattern"
+						autocomplete="off"
+						name="length">
+						<option value="16" selected>
+							16
+						</option>
+						<option value="15">
+							15
+						</option>
+						<option value="14">
+							14
+						</option>
+						<option value="13">
+							13
+						</option>
+						<option value="12">
+							12
+						</option>
+						<option value="11">
+							11
+						</option>
+						<option value="10">
+							10
+						</option>
+						<option value="9">
+							9
+						</option>
+						<option value="8">
+							8
+						</option>
+						<option value="7">
+							7
+						</option>
+						<option value="6">
+							6
+						</option>
+						<option value="5">
+							5
+						</option>
+						<option value="4">
+							4
 						</option>
 						<option value="3">
-							120×3
+							3
 						</option>
-					</optgroup>
-				</select>
+						<option value="2">
+							2
+						</option>
+					</select>
+					<input
+						type="file"
+						accept="audio/*"
+						name="upload"
+						aria-label="upload sound from disk"
+						chee>
+					<label aria-label="Record a sound" class="recorder">
+						●
+						<input type="checkbox" label="Recording" name="record">
+					</label>
+				</fieldset>
+			</header>
+			<article class="screen">
+				<figure class="waveform">
+					<canvas alt=""></canvas>
+					<figcaption hidden>waveform</figcaption>
+				</figure>
+			</article>
+			<nav class="screen-selector" chee>
+				<fieldset>
+					<legend screenreader>Pattern</legend>
+					<label class="checked">
+						wav
+						<input type="radio" name="screen" checked value="wav">
+					</label>
 
-				<select aria-label="Length of pattern"
-					autocomplete="off"
-					name="length">
-					<option value="16" selected>
-						16
-					</option>
-					<option value="15">
-						15
-					</option>
-					<option value="14">
-						14
-					</option>
-					<option value="13">
-						13
-					</option>
-					<option value="12">
-						12
-					</option>
-					<option value="11">
-						11
-					</option>
-					<option value="10">
-						10
-					</option>
-					<option value="9">
-						9
-					</option>
-					<option value="8">
-						8
-					</option>
-					<option value="7">
-						7
-					</option>
-					<option value="6">
-						6
-					</option>
-					<option value="5">
-						5
-					</option>
-					<option value="4">
-						4
-					</option>
-					<option value="3">
-						3
-					</option>
-					<option value="2">
-						2
-					</option>
+					<label>
+						env
+						<input type="radio" name="screen" value="env">
+					</label>
 
-				</select>
-				<input type="file" accept="audio/*" name="upload" chee>
-				<label aria-label="Record a sound" class="recorder">
-					●
-					<input type="checkbox" label="Recording" name="record">
-				</label>
-			</fieldset>
-		</header>
-		<article class="screen">
-			<figure class="waveform">
-				<canvas alt=""></canvas>
-				<figcaption hidden>waveform</figcaption>
-			</figure>
-		</article>
-		<main class="pattern">
-			<input
-				checked
-				type="checkbox"
-				class="step playing"
-				aria-selected="true">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				checked
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false">
-		</main>
-		</article>
+					<label>
+						mix
+						<input type="radio" name="screen" value="mix">
+					</label>
 
-<script type="module" src="ui.js"></script>
+					<label>
+						fx
+						<input type="radio" name="screen" value="fx">
+					</label>
+				</fieldset>
+			</nav>
+			<main class="pattern">
+				<input
+					checked
+					type="checkbox"
+					class="step playing"
+					aria-label="step 0"
+					aria-selected="true">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 1"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 2"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 3"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					checked
+					aria-label="step 4"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 5"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 6"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 7"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					checked
+					aria-label="step 8"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 9"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 10"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 11"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					checked
+					aria-label="step 12"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 13"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					aria-label="step 14"
+					aria-selected="false">
+				<input
+					type="checkbox"
+					class="step"
+					checked
+					aria-label="step 15"
+					aria-selected="false">
+			</main>
+		</form>
+	</article>
+
+		<script type="module" src="ui.js"></script>

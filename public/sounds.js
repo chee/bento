@@ -68,7 +68,7 @@ async function fetchSound(name) {
 	}
 }
 
-await context.audioWorklet.addModule("./operator.worklet.js")
+await context.audioWorklet.addModule("./bako.worklet.js")
 await context.audioWorklet.addModule("./expression.worklet.js")
 
 let kick = await fetchSound("skk")
@@ -81,6 +81,18 @@ export function setSound(memory, channel, sound) {
 	Memory.soundLength(memory, channel, sound.byteLength)
 }
 
+/**
+ * @param {AudioBuffer} audiobuffer
+ */
+function createReverb(audiobuffer) {
+	let convolver = context.createConvolver()
+	convolver.buffer = audiobuffer
+	return convolver
+}
+
+let ps1s = await context.decodeAudioData(
+	await (await fetch("sounds/ps1s.flac")).arrayBuffer()
+)
 /**
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
@@ -104,25 +116,34 @@ export async function start(buffer) {
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
 
-	let operator = new AudioWorkletNode(context, "operator", {
-		processorOptions: {buffer},
-	})
-	let expressions = new AudioWorkletNode(context, "expressions")
-	operator.connect(expressions)
-	expressions.connect(context.destination)
-	document.addEventListener("expression", event => {
-		let expression = event.detail
-		expressions.port.postMessage({
-			type: "expression",
-			expression,
+	let boxes = Array.from(Array(4), (_, channelNumber) => {
+		return new AudioWorkletNode(context, "bako", {
+			processorOptions: {buffer, channelNumber},
+			channelCount: 2,
+			outputChannelCount: [2],
 		})
 	})
-	/** @param {string} expression */
-	globalThis.exp = function (expression) {
-		expressions.port.postMessage({
-			type: "expression",
-			expression,
-		})
+
+	// let delays = Array.from(Array(4), () => context.createDelay())
+	// let feedbacks = Array.from(Array(4), () => context.createGain())
+	// let reverbs = Array.from(Array(4), () => createReverb(ps1s))
+	let filters = Array.from(Array(4), () => context.createBiquadFilter())
+	let pans = Array.from(Array(4), () => context.createPanner())
+	let analyzer = context.createAnalyser()
+	for (let channel = 0; channel < 4; channel++) {
+		let filter = filters[channel]
+		filter.type = "allpass"
+		boxes[channel].connect(filters[channel])
+		filter.connect(pans[channel])
+		filter.connect(analyzer)
+		pans[channel].connect(context.destination)
+		// reverbs[channel].connect(context.destination)
+
+		// delays[channel].connect(feedbacks[channel])
+		// delays[channel].delayTime.value = 0.3
+		// feedbacks[channel].gain.value = 0.5
+		// feedbacks[channel].connect(delays[channel])
+		// feedbacks[channel].connect(context.destination)
 	}
 }
 

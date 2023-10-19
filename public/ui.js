@@ -210,7 +210,7 @@ for (let [flag, value] of featureflags.entries()) {
  * =============================================================================
  */
 globalThis.addEventListener(
-	"keyup",
+	"keydown",
 	/** @param {KeyboardEvent} event */ event => {
 		if (document.activeElement.tagName == "INPUT") {
 			if (
@@ -272,6 +272,8 @@ globalThis.addEventListener(
 			ops.push("toggle")
 			ops.push("move")
 			next = boxIndex
+		} else if (mod.shift && boxIndex > -1 && boxIndex < 4) {
+			Memory.selectedChannel(memory, boxIndex)
 		} else if (mod.ctrl && event.key == "ArrowDown") {
 			let gain = Memory.stepGain(memory, chan, selected)
 			gain = clamp(0, gain + 1, 12)
@@ -283,6 +285,7 @@ globalThis.addEventListener(
 		} else if (mod.ctrl && event.key == "r") {
 			let reversed = Memory.stepReversed(memory, chan, selected)
 			Memory.stepReversed(memory, chan, selected, !reversed)
+		} else {
 		}
 		// TODO ctrl+space + arrows for trim region??
 		if (next == selected) {

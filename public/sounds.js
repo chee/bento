@@ -17,10 +17,11 @@ function normalize(sound) {
 	}
 	if (max != 0) {
 		let mult = 1 / max
-		loop.range(sound.length, index => {
+		loop.range(sound.length).forEach(index => {
 			sound[index] *= mult
 		})
 	}
+	return sound
 }
 
 /**
@@ -57,7 +58,7 @@ export async function recordSound() {
 		})
 		globalThis.postMessage({type: "recording", state: false})
 
-		return decode(new Blob(blobs, {type: blobs[0].type}))
+		return normalize(await decode(new Blob(blobs, {type: blobs[0].type})))
 	} catch (error) {
 		console.error(`Unable to record.`, error)
 	}

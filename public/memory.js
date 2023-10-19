@@ -456,7 +456,7 @@ export function drawingRegionEnd(memory, x) {
 		if ((start | 0) == (end | 0)) {
 			;[start, end] = [0, 0]
 		}
-		console.log(start, end)
+
 		selectedStepDrawingRegion(memory, {
 			start,
 			end,

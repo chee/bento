@@ -331,13 +331,3 @@ globalThis.addEventListener(
 		}
 	}
 )
-
-function generateExtraStyles() {
-	let style = document.createElement("style")
-	for (let n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
-		console.log(`.step[data-gain="${n}"] {
-	opacity: ${(12.5 - n) / 12};
-}
-`)
-	}
-}

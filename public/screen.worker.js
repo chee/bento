@@ -180,7 +180,6 @@ function postBitmap(memory, context, pattern, step, caller = "no one") {
 	})
 
 	let bmp = context.canvas.transferToImageBitmap()
-	console.log({pattern, step})
 
 	globalThis.postMessage({
 		type: "waveform",

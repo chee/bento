@@ -1,43 +1,92 @@
 // ~3 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 17
-const CHANNELS = 4
-const STEPS = 16
-const QUANTUM = 128
+export const NUMBER_OF_PATTERNS = 4
+export const NUMBER_OF_STEPS = 16
+export const QUANTUM = 128
 
 // TODO swing?
 export let arrays = [
-	// for the trim ui experience
-	{name: "trim", type: Float32Array, size: 4},
 	{name: "master", type: Uint8Array, size: 16},
-	{name: "channelLengths", type: Uint8Array, size: CHANNELS},
+	{name: "patternLengths", type: Uint8Array, size: NUMBER_OF_PATTERNS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
-	{name: "soundLengths", type: Uint32Array, size: CHANNELS},
-	{name: "channelGains", type: Uint8Array, size: CHANNELS},
-	{name: "channelSpeeds", type: Float32Array, size: CHANNELS},
-	{name: "currentSteps", type: Uint8Array, size: CHANNELS},
-	{name: "stepOns", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepReverseds", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepPitches", type: Int8Array, size: CHANNELS * STEPS},
-	{name: "stepGains", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepAttacks", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepReleases", type: Uint8Array, size: CHANNELS * STEPS},
-	{name: "stepStarts", type: Uint32Array, size: CHANNELS * STEPS},
-	{name: "stepEnds", type: Uint32Array, size: CHANNELS * STEPS},
-	{name: "channelSounds", type: Float32Array, size: SOUND_SIZE * CHANNELS},
+	{name: "soundLengths", type: Uint32Array, size: NUMBER_OF_PATTERNS},
+	{name: "patternGains", type: Uint8Array, size: NUMBER_OF_PATTERNS},
+	{name: "patternSpeeds", type: Float32Array, size: NUMBER_OF_PATTERNS},
+	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_PATTERNS},
+	{
+		name: "stepOns",
+		type: Uint8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepReverseds",
+		type: Uint8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepPitches",
+		type: Int8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepGains",
+		type: Uint8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepAttacks",
+		type: Uint8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepReleases",
+		type: Uint8Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{
+		name: "stepStarts",
+		type: Uint32Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS * 2,
+	},
+	{
+		name: "stepEnds",
+		type: Uint32Array,
+		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS,
+	},
+	{name: "drawingRegion", type: Float32Array, size: 4},
+	{
+		name: "patternSounds",
+		type: Float32Array,
+		size: SOUND_SIZE * NUMBER_OF_PATTERNS,
+	},
 	// TODO what size is this? is it the same on every platform? hahaha
-	{name: "channelWaveforms", type: Uint8ClampedArray, size: CHANNELS},
+	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_PATTERNS *},
 ]
 
-const BPM = 0
-const SELECTED_CHANNEL = 1
-const SELECTED_STEP = 2
-const PLAYING = 3
-const PAUSED = 4
+/**
+ * Location of item in master control state
+ * @readonly
+ * @enum {number}
+ */
+const Master = {
+	bpm: 0,
+	selectedPattern: 1,
+	selectedStep: 2,
+	playing: 3,
+	paused: 4,
+}
 
-const TRIM_START = 0
-const TRIM_END = 1
-const TRIM_X = 2
-const X_MULTIPLIER = 3
+/**
+ * Location of item in the actively draawn region
+ * @readonly
+ * @enum {number}
+ */
+const DrawingRegion = {
+	start: 0,
+	end: 1,
+	x: 2,
+	xMultiplier: 3,
+}
 
 export let size = arrays.reduce(
 	(total, array) => total + array.type.BYTES_PER_ELEMENT * array.size,
@@ -48,22 +97,24 @@ export let size = arrays.reduce(
 for (let arrays of (await import("./public/memory.js")).arrays)
 console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
- * @property {Float32Array} MemoryMap.trim
  * @property {Uint8Array} MemoryMap.master
- * @property {Uint8Array} MemoryMap.channelLengths
+ * @property {Uint8Array} MemoryMap.patternLengths
  * @property {Float32Array} MemoryMap.frame
  * @property {Uint32Array} MemoryMap.soundLengths
- * @property {Float32Array} MemoryMap.channelSpeeds
+ * @property {Uint8Array} MemoryMap.patternGains
+ * @property {Float32Array} MemoryMap.patternSpeeds
  * @property {Uint8Array} MemoryMap.currentSteps
  * @property {Uint8Array} MemoryMap.stepOns
  * @property {Uint8Array} MemoryMap.stepReverseds
+ * @property {Int8Array} MemoryMap.stepPitches
  * @property {Uint8Array} MemoryMap.stepGains
  * @property {Uint8Array} MemoryMap.stepAttacks
  * @property {Uint8Array} MemoryMap.stepReleases
  * @property {Uint32Array} MemoryMap.stepStarts
  * @property {Uint32Array} MemoryMap.stepEnds
- * @property {Float32Array} MemoryMap.channelSounds
- * @property {Uint8ClampedArray} MemoryMap.channelWaveform
+ * @property {Float32Array} MemoryMap.drawingRegion
+ * @property {Float32Array} MemoryMap.patternSounds
+
  */
 /**
  * @param {SharedArrayBuffer} buffer
@@ -87,62 +138,62 @@ export function map(buffer) {
  * @param {number} [val]
  * @returns {number}
  */
-export function selectedChannel(memory, val) {
+export function selectedPattern(memory, val) {
 	if (typeof val == "number") {
-		memory.master.set([val], SELECTED_CHANNEL)
+		memory.master.set([val], Master.selectedPattern)
 	}
-	return memory.master.at(SELECTED_CHANNEL)
+	return memory.master.at(Master.selectedPattern)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} [val]
  * @returns {number}
  */
-export function currentStep(memory, channel, val) {
+export function currentStep(memory, pattern, val) {
 	if (typeof val == "number") {
-		memory.currentSteps.set([val], channel)
+		memory.currentSteps.set([val], pattern)
 	}
-	return memory.currentSteps.at(channel)
+	return memory.currentSteps.at(pattern)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} [val]
  * @returns {number}
  */
-export function channelLength(memory, channel, val) {
+export function patternLength(memory, pattern, val) {
 	if (typeof val == "number") {
-		memory.channelLengths.set([val], channel)
+		memory.patternLengths.set([val], pattern)
 	}
-	return memory.channelLengths.at(channel)
+	return memory.patternLengths.at(pattern)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} [val]
  * @returns {number}
  */
-export function channelSpeed(memory, channel, val) {
+export function patternSpeed(memory, pattern, val) {
 	if (typeof val == "number") {
-		memory.channelSpeeds.set([val], channel)
+		memory.patternSpeeds.set([val], pattern)
 	}
-	return memory.channelSpeeds.at(channel)
+	return memory.patternSpeeds.at(pattern)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {boolean} [val]
  * @returns {boolean}
  */
-export function stepOn(memory, channel, step, val) {
+export function stepOn(memory, pattern, step, val) {
 	let {stepOns} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
@@ -153,14 +204,14 @@ export function stepOn(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {boolean} [val]
  * @returns {boolean}
  */
-export function stepReversed(memory, channel, step, val) {
+export function stepReversed(memory, pattern, step, val) {
 	let {stepReverseds} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "boolean") {
 		stepReverseds.set([Number(val)], at)
@@ -171,14 +222,14 @@ export function stepReversed(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepAttack(memory, channel, step, val) {
+export function stepAttack(memory, pattern, step, val) {
 	let {stepAttacks} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepAttacks.set([val], at)
@@ -189,14 +240,14 @@ export function stepAttack(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepRelease(memory, channel, step, val) {
+export function stepRelease(memory, pattern, step, val) {
 	let {stepReleases} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepReleases.set([val], at)
@@ -207,14 +258,14 @@ export function stepRelease(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepPitch(memory, channel, step, val) {
+export function stepPitch(memory, pattern, step, val) {
 	let {stepPitches} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepPitches.set([val], at)
@@ -225,14 +276,14 @@ export function stepPitch(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepGain(memory, channel, step, val) {
+export function stepGain(memory, pattern, step, val) {
 	let {stepGains} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepGains.set([val], at)
@@ -243,12 +294,12 @@ export function stepGain(memory, channel, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  */
-export function toggleStep(memory, channel, step) {
+export function toggleStep(memory, pattern, step) {
 	let {stepOns} = memory
-	let at = channel * STEPS + step
+	let at = pattern * NUMBER_OF_STEPS + step
 	stepOns.set([stepOns.at(at) ^ 1], at)
 }
 
@@ -259,9 +310,9 @@ export function toggleStep(memory, channel, step) {
  */
 export function selectedStep(memory, val) {
 	if (typeof val == "number") {
-		memory.master.set([val], SELECTED_STEP)
+		memory.master.set([val], Master.selectedStep)
 	}
-	return memory.master.at(SELECTED_STEP)
+	return memory.master.at(Master.selectedStep)
 }
 
 /**
@@ -271,9 +322,9 @@ export function selectedStep(memory, val) {
  */
 export function playing(memory, val) {
 	if (typeof val == "boolean") {
-		memory.master.set([Number(val)], PLAYING)
+		memory.master.set([Number(val)], Master.playing)
 	}
-	return Boolean(memory.master.at(PLAYING))
+	return Boolean(memory.master.at(Master.playing))
 }
 
 /**
@@ -283,9 +334,9 @@ export function playing(memory, val) {
  */
 export function paused(memory, val) {
 	if (typeof val == "boolean") {
-		memory.master.set([Number(val)], PAUSED)
+		memory.master.set([Number(val)], Master.paused)
 	}
-	return Boolean(memory.master.at(PAUSED))
+	return Boolean(memory.master.at(Master.paused))
 }
 
 /**
@@ -295,8 +346,8 @@ export function paused(memory, val) {
  */
 export function togglePlaying(memory, pause = false) {
 	if (!pause) {
-		for (let channel of [0, 1, 2, 3]) {
-			currentStep(memory, channel, 0)
+		for (let pattern of [0, 1, 2, 3]) {
+			currentStep(memory, pattern, 0)
 		}
 	}
 	return playing(memory, !playing(memory))
@@ -309,9 +360,9 @@ export function togglePlaying(memory, pause = false) {
  */
 export function bpm(memory, val) {
 	if (typeof val == "number") {
-		memory.master.set([val], BPM)
+		memory.master.set([val], Master.bpm)
 	}
-	return memory.master.at(BPM)
+	return memory.master.at(Master.bpm)
 }
 
 /**
@@ -329,48 +380,49 @@ export function bpm(memory, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {Float32Array} [sound]
  * @returns {Float32Array}
  */
-export function sound(memory, channel, sound) {
-	let start = channel * SOUND_SIZE
+export function sound(memory, pattern, sound) {
+	let start = pattern * SOUND_SIZE
 	// TODO instanceof
 	if (typeof sound != "undefined") {
-		memory.channelSounds.set(sound, start)
+		memory.patternSounds.set(sound, start)
+		memory.soundLengths.set([sound.length], pattern)
 	}
 
-	return memory.channelSounds.subarray(start, start + SOUND_SIZE)
+	return memory.patternSounds.subarray(start, start + SOUND_SIZE)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} [length]
  * @returns {number}
  */
-export function soundLength(memory, channel, length) {
+export function soundLength(memory, pattern, length) {
 	if (typeof length == "number") {
-		memory.soundLengths.set([length], channel)
+		memory.soundLengths.set([length], pattern)
 	}
-	return memory.soundLengths.at(channel)
+	return memory.soundLengths.at(pattern)
 }
 
 /**
- * NOTE: Sets trim start AND clears trim end AND clears trim x
+ * NOTE: Sets drawingRegion start AND clears drawingRegion end AND clears drawingRegion x
  * @param {MemoryMap} memory
  * @param {number} [x]
  * @returns {number}
  */
-export function trimStart(memory, x) {
+export function drawingRegionStart(memory, x) {
 	if (typeof x == "number") {
-		memory.trim.set([x], TRIM_START)
+		memory.drawingRegion.set([x], DrawingRegion.start)
 		// note this happening
-		memory.trim.set([x], TRIM_X)
-		memory.trim.set([-1], TRIM_END)
+		memory.drawingRegion.set([x], DrawingRegion.x)
+		memory.drawingRegion.set([-1], DrawingRegion.end)
 	}
 
-	return memory.trim.at(TRIM_START)
+	return memory.drawingRegion.at(DrawingRegion.start)
 }
 
 /**
@@ -378,33 +430,39 @@ export function trimStart(memory, x) {
  * @param {number} [x]
  * @returns {number}
  */
-export function trimX(memory, x) {
-	if (typeof x == "number") memory.trim.set([x], TRIM_X)
-	return memory.trim.at(TRIM_X)
+export function drawingRegionX(memory, x) {
+	if (typeof x == "number") memory.drawingRegion.set([x], DrawingRegion.x)
+	return memory.drawingRegion.at(DrawingRegion.x)
 }
-
-/**
- * @param {number} l
- * @param {number} r
- * @returns {[number, number]}
- */
-let lr = (l, r) => (l > r ? [r, l] : [l, r])
 
 /**
  * @param {MemoryMap} memory
  * @param {number} [x]
  * @returns {number}
  */
-export function trimEnd(memory, x) {
+export function drawingRegionEnd(memory, x) {
 	if (typeof x == "number") {
-		memory.trim.set([x], TRIM_END)
-		let [start, end] = lr(trimStart(memory), trimEnd(memory))
-		selectedStepTrim(memory, {
-			start: start / xm(memory),
-			end: end / xm(memory),
+		memory.drawingRegion.set([x], DrawingRegion.end)
+		let [start, end] = [drawingRegionStart(memory), drawingRegionEnd(memory)]
+		let details = getSelectedSoundDetails(memory)
+		let m = drawingRegionXMultiplier(memory)
+		;[start, end] = [start / m, end / m]
+		if (start > end) {
+			;[start, end] = [end, start]
+		}
+		if (details.reversed) {
+			;[start, end] = [details.soundLength - end, details.soundLength - start]
+		}
+		if ((start | 0) == (end | 0)) {
+			;[start, end] = [0, 0]
+		}
+		console.log(start, end)
+		selectedStepDrawingRegion(memory, {
+			start,
+			end,
 		})
 	}
-	return memory.trim.at(TRIM_END)
+	return memory.drawingRegion.at(DrawingRegion.end)
 }
 
 /**
@@ -413,37 +471,40 @@ export function trimEnd(memory, x) {
  * @returns {number}
  */
 
-export function xm(memory, xm) {
-	if (typeof xm == "number") memory.trim.set([xm], X_MULTIPLIER)
-	return memory.trim.at(X_MULTIPLIER)
+export function drawingRegionXMultiplier(memory, xm) {
+	if (typeof xm == "number")
+		memory.drawingRegion.set([xm], DrawingRegion.xMultiplier)
+	return memory.drawingRegion.at(DrawingRegion.xMultiplier)
 }
 
 /**
  * @param {MemoryMap} memory
  * @returns {boolean}
  */
-export function trimming(memory) {
-	return memory.trim.at(TRIM_START) != -1 && memory.trim.at(TRIM_END) == -1
+export function regionIsBeingDrawn(memory) {
+	return (
+		memory.drawingRegion.at(DrawingRegion.start) != -1 &&
+		memory.drawingRegion.at(DrawingRegion.end) == -1
+	)
 }
 
 /**
- * @typedef {Object} Trim
- * @property {number} Trim.start
- * @property {number} Trim.end
+ * @typedef {Object} Region
+ * @property {number} Region.start
+ * @property {number} Region.end
  */
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
- * @param {Trim} [trim]
- * @returns {Trim}
+ * @param {Region} [region]
+ * @returns {Region}
  */
-// TODO these should probably be together as stepTrims in memory
-export function stepTrim(memory, channel, step, trim) {
-	let offset = channel * STEPS + step
-	if (typeof trim !== "undefined") {
-		let {start, end} = trim
+export function stepRegion(memory, pattern, step, region) {
+	let offset = pattern * NUMBER_OF_STEPS + step
+	if (typeof region !== "undefined") {
+		let {start, end} = region
 		memory.stepStarts.set([start], offset)
 		memory.stepEnds.set([end], offset)
 	}
@@ -455,13 +516,13 @@ export function stepTrim(memory, channel, step, trim) {
 
 /**
  * @param {MemoryMap} memory
- * @param {Trim} [trim]
- * @returns {Trim}
+ * @param {Region} [region]
+ * @returns {Region}
  */
-export function selectedStepTrim(memory, trim) {
-	let channel = selectedChannel(memory)
+export function selectedStepDrawingRegion(memory, region) {
+	let pattern = selectedPattern(memory)
 	let step = selectedStep(memory)
-	return stepTrim(memory, channel, step, trim)
+	return stepRegion(memory, pattern, step, region)
 }
 
 /**
@@ -469,9 +530,9 @@ export function selectedStepTrim(memory, trim) {
  * @param {Float32Array} [val]
  * @returns {Float32Array}
  */
-export function selectedChannelSound(memory, val) {
-	let channel = selectedChannel(memory)
-	return sound(memory, channel, val)
+export function selectedPatternSound(memory, val) {
+	let pattern = selectedPattern(memory)
+	return sound(memory, pattern, val)
 }
 
 /*
@@ -481,11 +542,11 @@ export function selectedChannelSound(memory, val) {
 /**
  * @typedef {Object} SoundDetails
  * @property {Float32Array} SoundDetails.sound
- * @property {number} SoundDetails.trim.soundLength the channel's soundLength
- * @property {Object} SoundDetails.trim
- * @property {number} SoundDetails.trim.start
- * @property {number} SoundDetails.trim.end
- * @property {number} SoundDetails.channel
+ * @property {number} SoundDetails.soundLength the pattern's soundLength
+ * @property {Object} SoundDetails.region
+ * @property {number} SoundDetails.region.start
+ * @property {number} SoundDetails.region.end
+ * @property {number} SoundDetails.pattern
  * @property {number} SoundDetails.step
  * @property {number} SoundDetails.attack
  * @property {number} SoundDetails.release
@@ -497,26 +558,26 @@ export function selectedChannelSound(memory, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} channel
+ * @param {number} pattern
  * @param {number} step
  * @returns {SoundDetails}
  */
-export function getSoundDetails(memory, channel, step) {
-	let snd = sound(memory, channel)
-	let length = soundLength(memory, channel)
-	let trim = stepTrim(memory, channel, step)
-	let attack = stepAttack(memory, channel, step)
-	let release = stepRelease(memory, channel, step)
-	let gain = stepGain(memory, channel, step)
-	let pitch = stepPitch(memory, channel, step)
-	let on = stepOn(memory, channel, step)
-	let reversed = stepReversed(memory, channel, step)
+export function getSoundDetails(memory, pattern, step) {
+	let snd = sound(memory, pattern)
+	let length = soundLength(memory, pattern)
+	let region = stepRegion(memory, pattern, step)
+	let attack = stepAttack(memory, pattern, step)
+	let release = stepRelease(memory, pattern, step)
+	let gain = stepGain(memory, pattern, step)
+	let pitch = stepPitch(memory, pattern, step)
+	let on = stepOn(memory, pattern, step)
+	let reversed = stepReversed(memory, pattern, step)
 
 	return {
 		sound: snd,
 		soundLength: length,
-		trim,
-		channel,
+		region,
+		pattern,
 		attack,
 		release,
 		gain,
@@ -532,7 +593,7 @@ export function getSoundDetails(memory, channel, step) {
  * @returns {SoundDetails}
  */
 export function getSelectedSoundDetails(memory) {
-	return getSoundDetails(memory, selectedChannel(memory), selectedStep(memory))
+	return getSoundDetails(memory, selectedPattern(memory), selectedStep(memory))
 }
 
 /**
@@ -540,10 +601,10 @@ export function getSelectedSoundDetails(memory) {
  * @param {Uint8ClampedArray} [val]
  * @returns {Uint8ClampedArray}
  */
-export function selectedChannelWaveform(memory, val) {
-	if (typeof val != undefined) {
-		// memory.channelWaveform.set(val)
-	}
+// export function selectedPatternWaveformGraphic(memory, val) {
+// 	if (typeof val != undefined) {
+// 		memory.waveformGraphics.set(val, selectedPattern(memory))
+// 	}
 
-	return memory.channelWaveform
-}
+// 	return memory.waveformGraphics.at(selectedPattern(memory))
+// }

@@ -1,6 +1,14 @@
 @font-face {
-	family: "this-font";
-	src: "font.ttf";
+	font-family: "quiet party";
+	src: url("/iosevka-qp-regular.ttf");
+	display: swap;
+}
+
+@font-face {
+	font-family: "quiet party";
+	src: url("/iosevka-qp-light.ttf");
+	font-weight: light;
+	display: swap;
 }
 
 :root {
@@ -26,8 +34,8 @@
 	--bright-yellow: #c9af13;
 	--bright-white: #e090ae;
 	--columns: repeat(4, 1fr);
-	--font-family: this-font, iosevka, monospace;
-	--channel-name-style: japanese-informal;
+	--font-family: quiet party, iosevka, monaco, monospace;
+	--pattern-name-style: lower-latin;
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
@@ -109,46 +117,42 @@ input[type="number"] {
 	appearance: textfield;
 }
 
-.channel-controls select {
-	font-size: 0.7rem;
-}
-
-.channels {
+.pattern-selector {
 	display: flex;
 	justify-content: space-evenly;
 	background: var(--background);
-	counter-reset: channel;
+	counter-reset: pattern;
 }
 
-.channels label::before {
-	counter-increment: channel;
-	content: counters(channel, "", var(--channel-name-style));
+.pattern-selector label::before {
+	counter-increment: pattern;
+	content: counters(pattern, "", var(--pattern-name-style));
 }
 
-.channels label {
+.pattern-selector label {
 	width: 100%;
 	text-align: center;
 }
 
 /* until the :has selector is real */
-.channels label.checked {
+.pattern-selector label.checked {
 	background: var(--line);
 	color: var(--background);
 }
 
-.channels label:has(:checked) {
+.pattern-selector label:has(:checked) {
 	background: var(--line);
 	color: var(--background);
 }
 
 /* to be clickable with voice */
-.channels label input {
+.pattern-selector label input {
 	height: 5px;
 	width: 5px;
 	position: absolute;
 }
 
-.channel-controls {
+.pattern-controls {
 	display: flex;
 	justify-content: space-evenly;
 	text-align: center;
@@ -156,10 +160,16 @@ input[type="number"] {
 	color: var(--background);
 }
 
+.pattern-controls select {
+	font-size: 0.7rem;
+}
+
+label.recorder.recording,
 label:has([name="record"]:checked) {
 	color: var(--bright-red);
 }
 
+label.recorder:focus,
 label:has([name="record"]:focus) {
 	outline: 2px solid cyan;
 }
@@ -176,7 +186,7 @@ figure.waveform canvas {
 	touch-action: none;
 }
 
-.steps {
+.pattern {
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -192,6 +202,7 @@ figure.waveform canvas {
 	width: 2em;
 	border: 1px solid;
 	contain: layout;
+	background-size: 100% 100%;
 }
 
 .step[aria-selected="true"] {
@@ -214,8 +225,12 @@ figure.waveform canvas {
 
 .step:checked {
 	color: var(--background);
-	background: var(--line);
+	background-color: var(--line);
 	border-color: var(--line);
+}
+
+.step:not(:checked) {
+	background-image: none !important;
 }
 
 .step:focus {

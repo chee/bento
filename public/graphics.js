@@ -9,6 +9,8 @@ let memory
 /** @type {HTMLCanvasElement} */
 let canvas
 
+let screenWorker = new Worker("/screen.worker.js")
+
 /**
  * @param {number} pageX
  * @param {DOMRectReadOnly} bounds
@@ -25,23 +27,27 @@ function getX(pageX, bounds) {
 }
 
 // why is this in this file
-function mouseTrim(event) {
+// TODO make this work for both TouchEvent and MouseEvent
+/** @param {MouseEvent} event */
+function startSelectingRegion(event) {
 	// assumes nothing ever changes size while you're trying to trim a sample
 	let bounds = canvas.getBoundingClientRect()
-	Memory.trimStart(memory, getX(event.pageX, bounds))
+	Memory.drawingRegionStart(memory, getX(event.pageX, bounds))
+	/** @param {MouseEvent} event */
 	function mousemove(event) {
-		if (Memory.trimming(memory)) {
-			Memory.trimX(memory, getX(event.pageX, bounds))
+		if (Memory.regionIsBeingDrawn(memory)) {
+			Memory.drawingRegionX(memory, getX(event.pageX, bounds))
 		}
 	}
 	window.addEventListener("mousemove", mousemove)
 
-	function trimComplete(event) {
-		Memory.trimEnd(memory, getX(event.pageX, bounds))
+	/** @param {MouseEvent} event */
+	function drawingRegionComplete(event) {
+		Memory.drawingRegionEnd(memory, getX(event.pageX, bounds))
 		window.removeEventListener("mousemove", mousemove)
 	}
 
-	window.addEventListener("mouseup", trimComplete, {once: true})
+	window.addEventListener("mouseup", drawingRegionComplete, {once: true})
 }
 
 /**
@@ -58,35 +64,35 @@ function findFinger(finger, touches) {
 }
 
 /** @param {TouchEvent} event */
-function fingerTrim(event) {
-	// assumes nothing ever changes size while you're trying to trim a sample
+function startSelectingRegionWithFinger(event) {
+	// assumes nothing ever changes size while you're trying to drawingRegion a sample
 	let bounds = canvas.getBoundingClientRect()
-	let [finger] = event.touches
-	Memory.trimStart(memory, getX(finger.pageX, bounds))
+	let finger = event.touches.item(0)
+	Memory.drawingRegionStart(memory, getX(finger.pageX, bounds))
+	/** @param {TouchEvent} event */
 	function move(event) {
-		if (Memory.trimming(memory)) {
+		if (Memory.regionIsBeingDrawn(memory)) {
 			/** @type {Touch} */
 			let moved = findFinger(finger, event.changedTouches)
 			if (moved) {
-				Memory.trimX(memory, getX(moved.pageX, bounds))
+				Memory.drawingRegionX(memory, getX(moved.pageX, bounds))
 			}
 		}
 	}
 	window.addEventListener("touchmove", move)
 	window.addEventListener(
 		"touchend",
+		/** @param {TouchEvent} event */
 		function (event) {
 			let lost = findFinger(finger, event.changedTouches)
 			if (lost) {
-				Memory.trimEnd(memory, getX(lost.pageX, bounds))
+				Memory.drawingRegionEnd(memory, getX(lost.pageX, bounds))
 				window.removeEventListener("touchmove", move)
 			}
 		},
 		{once: true}
 	)
 }
-
-let worker = new Worker("./waveform.worker.js")
 
 /**
  * @param {HTMLCanvasElement} c
@@ -101,10 +107,7 @@ export async function init(c) {
 	canvas.style.width = parentBox.width + "px"
 
 	let offscreen = canvas.transferControlToOffscreen()
-	let colorSpace = matchMedia("(color-gamut: p3)").matches
-		? "display-p3"
-		: "srgb"
-	worker.postMessage({type: "init", canvas: offscreen, colorSpace}, [offscreen])
+	screenWorker.postMessage({type: "init", canvas: offscreen}, [offscreen])
 }
 
 /**
@@ -112,14 +115,31 @@ export async function init(c) {
  * @param {SharedArrayBuffer} buffer
  */
 export function start(canvas, buffer) {
-	worker.postMessage({type: "start", buffer})
+	screenWorker.postMessage({type: "start", buffer})
+	screenWorker.onmessage = onWorkerMessage
 	memory = Memory.map(buffer)
 
 	if (
 		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
 	) {
-		canvas.addEventListener("touchstart", fingerTrim)
+		canvas.addEventListener("touchstart", startSelectingRegionWithFinger)
 	} else {
-		canvas.addEventListener("mousedown", mouseTrim)
+		canvas.addEventListener("mousedown", startSelectingRegion)
+	}
+}
+
+/**
+ * Handle messages from the waveform worker
+ * @param {MessageEvent} event
+ */
+
+function onWorkerMessage(event) {
+	let {type, ...message} = event.data
+	if (type == "waveform") {
+		document.dispatchEvent(
+			new CustomEvent("waveform", {
+				detail: message,
+			})
+		)
 	}
 }

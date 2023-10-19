@@ -34,29 +34,29 @@
 				<!-- swing -->
 			</fieldset>
 
-			<fieldset class="channels">
-				<legend screenreader>Channels</legend>
+			<fieldset class="pattern-selector">
+				<legend screenreader>Pattern</legend>
 
 				<label class="checked">
-					<input type="radio" name="channel" checked value="0">
+					<input type="radio" name="pattern" checked value="0">
 				</label>
 
 				<label>
-					<input type="radio" name="channel" value="1">
+					<input type="radio" name="pattern" value="1">
 				</label>
 
 				<label>
-					<input type="radio" name="channel" value="2">
+					<input type="radio" name="pattern" value="2">
 				</label>
 
 				<label>
-					<input type="radio" name="channel" value="3">
+					<input type="radio" name="pattern" value="3">
 				</label>
 
 			</fieldset>
 
-			<fieldset class="channel-controls">
-				<legend screenreader>Channel Controls</legend>
+			<fieldset class="pattern-controls">
+				<legend screenreader>Pattern Controls</legend>
 				<select autocomplete="off" name="speed">
 					<option value="0.25" data-label="¼">
 						120×¼
@@ -83,7 +83,7 @@
 					</optgroup>
 				</select>
 
-				<select aria-label="Length of channel pattern"
+				<select aria-label="Length of pattern"
 					autocomplete="off"
 					name="length">
 					<option value="16" selected>
@@ -134,23 +134,24 @@
 
 				</select>
 				<input type="file" accept="audio/*" name="upload" chee>
-				<label aria-label="Record a sound">
+				<label aria-label="Record a sound" class="recorder">
 					●
 					<input type="checkbox" label="Recording" name="record">
 				</label>
 			</fieldset>
 		</header>
-		<figure class="waveform">
-			<canvas alt=""></canvas>
-			<figcaption hidden>waveform</figcaption>
-		</figure>
-		<main class="steps">
+		<article class="screen">
+			<figure class="waveform">
+				<canvas alt=""></canvas>
+				<figcaption hidden>waveform</figcaption>
+			</figure>
+		</article>
+		<main class="pattern">
 			<input
-				data-pitch="-1"
+				checked
 				type="checkbox"
 				class="step playing"
-				aria-selected="true"
-				checked="true">
+				aria-selected="true">
 			<input
 				type="checkbox"
 				class="step"
@@ -166,8 +167,15 @@
 			<input
 				type="checkbox"
 				class="step"
-				aria-selected="false"
-				checked="true">
+				aria-selected="false">
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false">
+			<input
+				type="checkbox"
+				class="step"
+				aria-selected="false">
 			<input
 				type="checkbox"
 				class="step"
@@ -183,11 +191,6 @@
 			<input
 				type="checkbox"
 				class="step"
-				aria-selected="false"
-				checked="true">
-			<input
-				type="checkbox"
-				class="step"
 				aria-selected="false">
 			<input
 				type="checkbox"
@@ -200,22 +203,17 @@
 			<input
 				type="checkbox"
 				class="step"
-				aria-selected="false"
-				checked="true">
+				aria-selected="false">
 			<input
+				checked
 				type="checkbox"
 				class="step"
 				aria-selected="false">
-			<input
-				type="checkbox"
-				class="step"
-				aria-selected="false"
-				checked="true">
 			<input
 				type="checkbox"
 				class="step"
 				aria-selected="false">
 		</main>
-</article>
+		</article>
 
 <script type="module" src="ui.js"></script>

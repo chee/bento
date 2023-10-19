@@ -7,7 +7,7 @@ import * as Memory from "./memory.js"
 function alter(soundDetails) {
 	let {
 		sound: originalSound,
-		trim,
+		region,
 		soundLength,
 		reversed,
 		gain,
@@ -15,7 +15,7 @@ function alter(soundDetails) {
 		release,
 	} = soundDetails
 
-	let sound = originalSound.subarray(trim.start, trim.end || soundLength)
+	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
 	if (gain || attack || release || reversed) {
 		let output = new Float32Array(sound.length)
@@ -37,7 +37,7 @@ class Bako extends AudioWorkletProcessor {
 		super()
 		let memory = Memory.map(options.processorOptions.buffer)
 		this.memory = memory
-		this.channelNumber = options.processorOptions.channelNumber
+		this.patternNumber = options.processorOptions.patternNumber
 		this.point = 0
 		this.lastStep = -1
 		/** @type {import("./memory.js").SoundDetails} */
@@ -53,7 +53,7 @@ class Bako extends AudioWorkletProcessor {
 	 */
 	process(_inputs, outputs, _parameters) {
 		let [output] = outputs
-		// TODO fix stop button (channel.lastStep, may need a mem field for paused)
+		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (!Memory.playing(memory) /*|| Memory.paused(memory)*/) {
 			return true
@@ -62,17 +62,17 @@ class Bako extends AudioWorkletProcessor {
 		let bpm = Memory.bpm(memory)
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		// TODO do i need to use `this'? or can i let above the class
-		let channelNumber = this.channelNumber
-		let speed = Memory.channelSpeed(memory, channelNumber)
-		let length = Memory.channelLength(memory, channelNumber)
+		let patternNumber = this.patternNumber
+		let speed = Memory.patternSpeed(memory, patternNumber)
+		let length = Memory.patternLength(memory, patternNumber)
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		let currentStep = ((this.tick / samplesPerStep) | 0) % length
 
 		if (currentStep != this.lastStep) {
-			Memory.currentStep(memory, channelNumber, currentStep)
+			Memory.currentStep(memory, patternNumber, currentStep)
 			let soundDetails = Memory.getSoundDetails(
 				memory,
-				channelNumber,
+				patternNumber,
 				currentStep
 			)
 			if (soundDetails.on) {

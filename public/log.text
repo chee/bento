@@ -1,0 +1,25 @@
+Thu 19 Oct 2023 10:01:50 BST
+• lol. turns out the canvas always appears to blank to the main thread when it's
+off screen. have to come up with a new plan for getting waveforms into buttons.
+
+Thu 19 Oct 2023 12:00:13 BST
+removing this piece of code:
+
+	// find the top and bottom
+	for (let f32 of visibleSound) {
+	  max = f32 > max ? f32 : max
+	  min = f32 < min ? f32 : min
+	}
+
+i think it might matter if the sound being input was ever 32-bit floating point(?)
+but right now it never will be and using -1 to 1 will mean i get to remove 1
+extra loop. the code in the canvas has to run 60 times a second so it's
+important to do as little as possible.
+
+the sound worker's code runs like 500 times a second!
+
+Thu 19 Oct 2023 13:39:04 BST
+also this code:
+	let colorSpace = matchMedia("(color-gamut: p3)").matches
+		? "display-p3"
+		: "srgb"

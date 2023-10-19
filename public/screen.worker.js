@@ -155,7 +155,7 @@ function getVisibleSound(soundDetails) {
  */
 function postBitmap(memory, context, pattern, step, caller = "no one") {
 	if (!Memory) {
-		throw new Error("tried to post bitmap before init")
+		throw new Error("tried to post bitmap before init!")
 	}
 
 	let {height, width} = context.canvas
@@ -187,6 +187,24 @@ function postBitmap(memory, context, pattern, step, caller = "no one") {
 		pattern,
 		step,
 	})
+}
+
+/**
+ * Create and post the bitmap for a step
+
+ * @param {import("public/memory.js").MemoryMap} memory
+ * @param {OffscreenCanvasRenderingContext2D} context
+ */
+function postAllBitmaps(memory, context) {
+	if (!Memory) {
+		throw new Error("tried to post all bitmaps before init!")
+	}
+	for (let pidx = 0; pidx < Memory.NUMBER_OF_PATTERNS; pidx++) {
+	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
+		if (Memory.stepOn(memory, pidx, sidx)) {
+			postBitmap(memory, context, pidx, sidx)
+		}
+	}
 }
 
 /**
@@ -225,13 +243,7 @@ function update(_frame = 0, force = false) {
 
 	clear()
 	if (soundDetails.pattern != lastPattern && !regionIsBeingDrawn) {
-		for (let pidx = 0; pidx < Memory.NUMBER_OF_PATTERNS; pidx++) {
-			for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
-				if (Memory.stepOn(memory, pidx, sidx)) {
-					postBitmap(memory, context, pidx, sidx)
-				}
-			}
-		}
+		postAllBitmaps(memory, context)
 	}
 	lastPattern = soundDetails.pattern
 
@@ -329,7 +341,7 @@ function update(_frame = 0, force = false) {
 
 onmessage = async event => {
 	if (!Memory) {
-		Memory = await import("../memory.js")
+		Memory = await import("./memory.js")
 	}
 
 	let message = event.data

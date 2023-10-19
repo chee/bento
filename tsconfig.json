@@ -4,6 +4,9 @@
 		"allowJs": true,
 		"checkJs": true,
 		"module": "es2022",
-		"lib": ["es2022", "dom", "webworker"]
+		"lib": ["es2022", "dom", "webworker"],
+		"paths": {
+			"public/*": "./public/*"
+		}
 	}
 }

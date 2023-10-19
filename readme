@@ -7,11 +7,11 @@ check it out on-line: https://bento.party
 
 features:
 	• keeps perfect time!
-	• 4 separate single-voice channels, each with their own waveform
+	• 4 separate single-voice patterns, each with their own waveform
 	• record new audio from your microphone
 	• per-step sample trimming
 	• set the bpm
-	• per-channel bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
+	• per-pattern bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
 	• v cool
 
 todo:
@@ -19,7 +19,7 @@ todo:
 	• per-step AR envelope
 	• per-step volume control
 	• per-step reverse
-	• per-channel length (polyrhythms)
+	• per-pattern length (polyrhythms)
 	• better keyboard, touch, and mouse controls for multi-ops
 	  * snarf
 	  * xerox
@@ -27,10 +27,10 @@ todo:
 	  * shift
 	  * etc
 	• drag and drop one step to another
-	• per-channel base sample speed (fine tune between 50% + 200%)
+	• per-pattern base sample speed (fine tune between 50% + 200%)
 	• upload sample from disk
 	• load sample from URL
-	• drag and drop sample into channel
+	• drag and drop sample into pattern waveform
 	• saving
 	  * current pattern + sounds
 	  * many patterns + sounds

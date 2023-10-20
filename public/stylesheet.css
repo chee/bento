@@ -35,7 +35,11 @@
 	--bright-red: #ff275d;
 	--bright-yellow: #c9af13;
 	--bright-white: #e090ae;
+	--holy-light: #fff;
+	--holy-dark: #000;
 	--columns: repeat(4, 1fr);
+	--recording-background: var(--holy-dark);
+	--recording-line: var(--holy-light);
 	--font-family: qp, iosevka, monaco, monospace;
 	--pattern-name-style: lower-latin;
 	--step-size: 2em;
@@ -90,6 +94,7 @@ h1 {
 	margin: 0;
 	width: var(--total-width);
 	color: var(--line);
+	position: relative;
 }
 
 fieldset {
@@ -199,6 +204,7 @@ label.upload {
 label.recorder {
 	font-size: 0.8em;
 	line-height: 1rem;
+	cursor: pointer;
 }
 
 label.recorder:focus,
@@ -210,20 +216,25 @@ label:has([name="record"]:focus) {
  * allow selecting a screen by screen.scrollTo(screen.clientWidth * index, 0)
  */
 .screen {
+	width: var(--total-width);
+	overflow: hidden;
 	display: flex;
 	flex-direction: row;
-	overflow-x: hidden;
-	width: var(--total-width);
 	scroll-snap-type: x mandatory;
 	background: var(--line);
+	scrollbar-width: 0;
+}
+
+.screen.switching {
+	/* overflow-x: scroll; */
 }
 
 .screen figure {
 	width: var(--total-width);
 	margin: 0;
 	height: 4em;
-	contain: layout;
 	scroll-snap-align: center;
+	background: var(--line);
 }
 
 .screen figure canvas {
@@ -285,7 +296,7 @@ figure.waveform canvas {
 	height: var(--step-size);
 	width: var(--step-size);
 	border: 1px solid;
-	contain: layout;
+	position: relative;
 	background-size: 100% 100%;
 }
 
@@ -318,7 +329,7 @@ figure.waveform canvas {
 }
 
 .step:focus {
-	outline: 2px solid white;
+	outline: 2px solid var(--holy-light);
 	outline-offset: 0;
 }
 
@@ -342,6 +353,7 @@ body.chee .step:focus {
 	border: none;
 }
 .step[data-gain="1"] {
+	/* TODO color-mix */
 	opacity: 0.9583333333333334;
 }
 
@@ -393,26 +405,127 @@ body:not([chee]) [chee] {
 	display: none;
 }
 
-[recording],
-[unstarted] {
-	--line: color-mix(in srgb, var(--line-color) 50%, var(--background));
-}
-
 @keyframes blink {
-	0% {
-		opacity: 1;
-	}
-
-	100% {
-		opacity: 0.1;
+	50% {
+		opacity: 0.5;
 	}
 }
 
-[recording] label.recorder {
-	color: var(--bright-red);
-	animation: 0.5s infinite blink;
+[recording] .recorder {
+	animation: blink 1s steps(5, start) infinite;
+	cursor: unset;
 }
 
-[recording] .screen {
+@keyframes spinnygoweee {
+	from {
+		transform: rotate(360deg);
+	}
+	to {
+		transform: rotate(0deg);
+	}
+}
+
+.tape {
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	flex-direction: column;
+	max-width: 100%;
+	align-items: center;
+	justify-content: center;
 	background: var(--line-color);
 }
+
+.tape svg {
+	background: var(--line-color);
+}
+
+[recording] .tape {
+	display: flex;
+}
+
+.tape .message {
+	font-size: 0.8rem;
+	color: var(--background);
+	padding: 1em;
+	padding-top: 0;
+	margin: 0;
+	margin-top: -1em;
+}
+
+.tape .counter {
+	font-size: 0.8rem;
+	color: var(--background);
+	margin: 0;
+}
+
+.tape .tape-guide,
+.tape .reel {
+	animation: infinite spinnygoweee linear;
+	transform-origin: center;
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+.tape .take-up {
+	animation-duration: 1.5s;
+}
+
+.tape .supply {
+	animation-duration: 2.5s;
+}
+
+@keyframes wobble {
+	from {
+		transform: skew(-0.1deg, 0.05deg);
+	}
+	50% {
+		transform: skew(0.1deg, -0.05deg);
+	}
+}
+.tape .spool {
+	animation: infinite wobble linear 1.2s;
+}
+
+/* all of this is here as a backup plan if the svg fails to load */
+[recording] .pattern,
+[recording] input,
+[recording] label:not(.recorder),
+[recording] select,
+[recording] .screen .wav,
+[recording] .screen .env,
+[recording] .screen .mix,
+[recording] .screen .fx,
+[recording] .screen .wav {
+	visibility: hidden;
+}
+[recording] .pattern-controls select {
+	display: none;
+}
+[recording] .ui {
+	background: var(--line-color);
+}
+[recording] .master-controls {
+	border: none;
+	background: var(--line-color);
+}
+[recording] .pattern-controls,
+[recording] .pattern-selector {
+	background: var(--line-color);
+}
+
+[recording],
+[unstarted] {
+	--line: color-mix(in srgb, var(--background-color), 50% var(--line-color));
+	--background: var(--background-color);
+}
+
+[recording] .step {
+	background: none;
+	background-image: none;
+}
+/* </backup-plan> */

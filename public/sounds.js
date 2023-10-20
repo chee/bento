@@ -66,7 +66,7 @@ export async function recordSound() {
 		tape.start(MAX_RECORDING_LENGTH)
 		globalThis.postMessage({
 			type: "recording",
-			start: true,
+			recording: true,
 			length: MAX_RECORDING_LENGTH,
 		})
 		await new Promise(async yay => {
@@ -74,11 +74,15 @@ export async function recordSound() {
 			tape.onstop = event => yay(event)
 			tape.stop()
 		})
-		globalThis.postMessage({type: "recording", state: false})
+		globalThis.postMessage({type: "recording", recording: false})
 
 		return normalize(trim(await decode(new Blob(blobs, {type: blobs[0].type}))))
 	} catch (error) {
-		console.error(`Unable to record.`, error)
+		// TODO show error in UI
+		alert(
+			":( i failed. :< can you record in other apps? if it's just bento that is broken try restarting your browser or e-mail bento@chee.party"
+		)
+		console.error(`:( i failed.`, error)
 	}
 }
 
@@ -91,7 +95,7 @@ async function fetchSound(name, ext = "wav") {
 		let sound = await fetch(`./sounds/${name}.${ext}`)
 		return decode(sound)
 	} catch (error) {
-		console.error(`Unable to fetch the audio file: ${name}`, error)
+		console.error(`:< unable to fetch the audio file: ${name}`, error)
 	}
 }
 

@@ -287,6 +287,7 @@ patternSelectorLabels.forEach(label => {
 	})
 })
 
+let recordingCounterInterval
 /**
  * Handle messages from my friends
  * TODO window.dispatchEvent?
@@ -294,9 +295,26 @@ patternSelectorLabels.forEach(label => {
  */
 window.onmessage = function (event) {
 	let message = event.data
+	let messageElement = document.querySelector(".tape .message")
+	let counterElement = document.querySelector(".tape .counter")
 	if (message.type == "recording") {
-		recordButton.checked = event.data.start
-		document.body.toggleAttribute("recording", event.data.start)
+		let recording = event.data.recording
+		recordButton.checked = recording
+		document.body.toggleAttribute("recording", recording)
+		document.dispatchEvent(new CustomEvent("recording", {detail: message}))
+		let length = event.data.length / 1000
+		messageElement.textContent = recording
+			? `recording ${length | 0} seconds of sound`
+			: "recording sound"
+		if (recording) {
+			counterElement.textContent = "•".repeat(length)
+			recordingCounterInterval = setInterval(function () {
+				counterElement.textContent =
+					counterElement.textContent.slice(0, -1) || " "
+			}, 1000)
+		} else {
+			clearInterval(recordingCounterInterval)
+		}
 	}
 }
 

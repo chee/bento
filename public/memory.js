@@ -1,4 +1,4 @@
-// ~3 seconds at 44.1khz
+// ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
 export const NUMBER_OF_PATTERNS = 4
 export const NUMBER_OF_STEPS = 16

@@ -1,5 +1,20 @@
 import * as Memory from "./memory.js"
 
+/**
+ * @readonly
+ * @enum {keyof typeof Screen}
+ */
+export const Screen = {
+	/** @type {"wav"} */
+	wav: "wav",
+	/** @type {"env"} */
+	env: "env",
+	/** @type {"mix"} */
+	mix: "mix",
+	/** @type {"fx"} */
+	fx: "fx",
+}
+
 export const DPI = 3
 export const style = {
 	normal: {
@@ -125,6 +140,34 @@ export function fancy() {
 	return alreadyFancy
 }
 
+function recording(message) {
+	screenWorker.postMessage(message)
+}
+
+/**
+ * @param {Screen} mode
+ */
+export function switchScreen(mode) {
+	/** @type {HTMLElement} */
+	let screen = document.querySelector(".screen")
+	let currentMode = screen.dataset.mode
+	if (mode == currentMode) return
+	screen.dataset.mode = mode
+	let currentModeElement = screen.getElementsByClassName(currentMode)[0]
+	let modeElement = screen.getElementsByClassName(mode)[0]
+
+	if (modeElement) {
+		modeElement.removeAttribute("hidden")
+		screenWorker.postMessage({
+			type: "mode",
+			mode,
+		})
+		currentModeElement.setAttribute("hidden", "hidden")
+	} else {
+		console.error(`tried to switch to bad screen: ${mode}`)
+	}
+}
+
 let alreadyInit = false
 /**
  * @param {HTMLCanvasElement} c
@@ -142,6 +185,23 @@ export async function init(c) {
 
 	let offscreen = canvas.transferControlToOffscreen()
 	screenWorker.postMessage({type: "init", canvas: offscreen}, [offscreen])
+
+	document.addEventListener(
+		"recording",
+		/** @param {CustomEvent} event */
+		event => {
+			recording(event.detail)
+		}
+	)
+
+	let tapeElement = document.querySelector(".tape .svg")
+	try {
+		let svgresponse = await fetch("graphics/cassette.svg")
+		let svg = await svgresponse.text()
+		tapeElement.innerHTML = svg
+	} catch (error) {
+		console.error("didn't get svg, recording will be confusing :(", error)
+	}
 }
 
 /**

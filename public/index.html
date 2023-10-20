@@ -53,22 +53,22 @@
 				<fieldset class="pattern-selector">
 					<legend screenreader>Pattern</legend>
 
-					<label class="checked">
+					<label class="checked" draggable>
 						<span screenreader>pattern a</span>
 						<input type="radio" name="pattern" checked value="0">
 					</label>
 
-					<label>
+					<label draggable>
 						<span screenreader>pattern b</span>
 						<input type="radio" name="pattern" value="1">
 					</label>
 
-					<label>
+					<label draggable>
 						<span screenreader>pattern c</span>
 						<input type="radio" name="pattern" value="2">
 					</label>
 
-					<label>
+					<label draggable>
 						<span screenreader>pattern d</span>
 						<input type="radio" name="pattern" value="3">
 					</label>
@@ -168,8 +168,12 @@
 					</label>
 				</fieldset>
 			</header>
-			<article class="screen">
+			<article class="screen" data-mode="waveform">
 				<figure class="waveform">
+					<canvas alt=""></canvas>
+					<figcaption hidden>waveform</figcaption>
+				</figure>
+				<figure class="tape" hidden>
 					<canvas alt=""></canvas>
 					<figcaption hidden>waveform</figcaption>
 				</figure>

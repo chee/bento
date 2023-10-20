@@ -36,6 +36,9 @@
 	--columns: repeat(4, 1fr);
 	--font-family: qp, iosevka, monaco, monospace;
 	--pattern-name-style: lower-latin;
+	--step-size: 2em;
+	--step-gap: 0.25em;
+	--total-width: calc(((var(--step-size) * 4) + (var(--step-gap) * 8)));
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
@@ -55,7 +58,6 @@
 * {
 	overscroll-behavior: none;
 	scrollbar-color: var(--line) var(--background);
-	box-sizing: border-box;
 }
 
 body {
@@ -69,6 +71,9 @@ body {
 	justify-content: center;
 	flex-direction: column;
 	font-family: var(--font-family);
+	box-sizing: content-box;
+	margin-inline: auto;
+	max-inline-size: var(--total-width);
 }
 
 h1 {
@@ -81,8 +86,7 @@ h1 {
 	border: 1px solid;
 	touch-action: manipulation;
 	margin: 0;
-	contain: layout;
-	display: flow-root;
+	width: var(--total-width);
 }
 
 fieldset {
@@ -200,13 +204,32 @@ label:has([name="record"]:focus) {
 	outline: 2px solid cyan;
 }
 
-.screen figure {
-	background: var(--line);
-	width: 100%;
-	margin: 0;
+/**
+ * allow selecting a screen by screen.scrollTo(screen.clientWidth * index, 0)
+ */
+.screen {
+	display: flex;
+	flex-direction: row;
+	overflow-x: hidden;
+	width: var(--total-width);
+	scroll-snap-type: x mandatory;
 }
 
-.screen.dragz {
+.screen figure {
+	background: var(--line);
+	width: var(--total-width);
+	margin: 0;
+	height: 4em;
+	contain: layout;
+	scroll-snap-align: center;
+}
+
+.screen figure canvas {
+	width: var(--total-width);
+	height: 100%;
+}
+
+.droptarget {
 	outline: 4px solid var(--green);
 }
 
@@ -252,13 +275,13 @@ figure.waveform canvas {
 	grid-template-columns: repeat(4, 1fr);
 	background: var(--background);
 	justify-items: center;
-	gap: 0.25em;
-	margin: 0.25em;
+	gap: var(--step-gap);
+	margin: var(--step-gap);
 }
 
 .step {
-	height: 2em;
-	width: 2em;
+	height: var(--step-size);
+	width: var(--step-size);
 	border: 1px solid;
 	contain: layout;
 	background-size: 100% 100%;

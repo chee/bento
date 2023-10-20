@@ -9,6 +9,9 @@ let ui = document.querySelector(".ui")
 /** @type {NodeListOf<HTMLInputElement>} */
 let patternSelectors = ui.querySelectorAll(".pattern-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
+let patternSelectorLabels = ui.querySelectorAll(".pattern-selector label")
+
+/** @type {NodeListOf<HTMLInputElement>} */
 let stepInputs = ui.querySelectorAll(".pattern input")
 /** @type {HTMLSelectElement} */
 let speedSelector = ui.querySelector('[name="speed"]')
@@ -28,19 +31,24 @@ let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-let alreadyFancy = false
-let fancyListeners = ["mousedown", "touchstart", "keydown"]
+let fancyListeners = ["mousedown", "keydown", "click", "touchend"]
 
-async function getFancy(event) {
-	if (alreadyFancy) {
-		removeFancyEventListeners()
-		return
+async function getFancy() {
+	if (!sounds.fancy()) {
+		await sounds.start(buffer)
 	}
-	await sounds.start(buffer)
-	graphics.start(screenWaveformCanvas, buffer)
-	alreadyFancy = true
-	removeFancyEventListeners()
+	if (sounds.fancy() && !graphics.fancy()) {
+		graphics.start(screenWaveformCanvas, buffer)
+	}
+	if (sounds.fancy() && graphics.fancy()) {
+		removeFancyEventListeners()
+	}
 }
+
+fancyListeners.map(e => window.addEventListener(e, getFancy))
+fancyListeners.map(e =>
+	stepInputs.forEach(l => l.addEventListener(e, getFancy))
+)
 
 function removeFancyEventListeners() {
 	fancyListeners.map(e => window.removeEventListener(e, getFancy))
@@ -54,9 +62,9 @@ async function init() {
 	sounds.init()
 	// keeping this deactivated until i have time to do it right
 	// because broken service workers are a fucking nightmare
-	if (location.search == "?offline") {
-		await offline.init()
-	}
+	// if (location.search == "?offline") {
+	// 	await offline.init()
+	// }
 	Memory.bpm(memory, Number(bpmInput.value))
 	loop.patterns(pidx => {
 		Memory.patternSpeed(memory, pidx, 1)
@@ -65,11 +73,6 @@ async function init() {
 			Memory.selectedPattern(memory, pidx)
 		}
 	})
-
-	fancyListeners.map(e => window.addEventListener(e, getFancy))
-	fancyListeners.map(e =>
-		stepInputs.forEach(l => l.addEventListener(e, getFancy))
-	)
 
 	stepInputs.forEach((step, stepIndex) => {
 		let chanIndex = Memory.selectedPattern(memory)
@@ -215,7 +218,7 @@ recordButton.addEventListener("click", async () => {
 
 screen.addEventListener("dragenter", event => {
 	event.preventDefault()
-	screen.classList.add("dragz")
+	screen.classList.add("droptarget")
 	if (!alreadyFancy) {
 		getFancy()
 	}
@@ -223,7 +226,7 @@ screen.addEventListener("dragenter", event => {
 
 screen.addEventListener("dragover", event => {
 	event.preventDefault()
-	screen.classList.add("dragz")
+	screen.classList.add("droptarget")
 	if (!alreadyFancy) {
 		getFancy()
 	}
@@ -231,12 +234,12 @@ screen.addEventListener("dragover", event => {
 
 screen.addEventListener("dragleave", event => {
 	event.preventDefault()
-	screen.classList.remove("dragz")
+	screen.classList.remove("droptarget")
 })
 
 screen.addEventListener("dragend", event => {
 	event.preventDefault()
-	screen.classList.remove("dragz")
+	screen.classList.remove("droptarget")
 })
 
 screen.addEventListener("drop", async event => {
@@ -244,7 +247,7 @@ screen.addEventListener("drop", async event => {
 	if (!alreadyFancy) {
 		getFancy()
 	}
-	screen.classList.remove("dragz")
+	screen.classList.remove("droptarget")
 	if (event.dataTransfer.items) {
 		for (let item of Array.from(event.dataTransfer.items)) {
 			if (item.kind == "file") {
@@ -257,6 +260,13 @@ screen.addEventListener("drop", async event => {
 			}
 		}
 	}
+})
+
+patternSelectorLabels.forEach(label => {
+	label.addEventListener("drag", event => {
+		event.preventDefault()
+		console.log("stop bullying me")
+	})
 })
 
 /**

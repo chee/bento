@@ -1,3 +1,5 @@
+export const DPI = 3
+
 // TODO add another tiny translucent canvas for the region
 let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
 	typeof window != "undefined" && window.matchMedia("(pointer: coarse)").matches
@@ -9,7 +11,8 @@ let memory
 /** @type {HTMLCanvasElement} */
 let canvas
 
-let screenWorker = new Worker("/screen.worker.js")
+/** @type {Worker} */
+let screenWorker
 
 /**
  * @param {number} pageX
@@ -94,17 +97,26 @@ function startSelectingRegionWithFinger(event) {
 	)
 }
 
+export let alreadyFancy = false
+
+export function fancy() {
+	return alreadyFancy
+}
+
+let alreadyInit = false
 /**
  * @param {HTMLCanvasElement} c
  */
 export async function init(c) {
+	if (alreadyInit) return
+	alreadyInit = true
+	screenWorker = new Worker("/screen.worker.js", {type: "module"})
 	canvas = c
 	// starring lindsey lohan
 	let parentBox = canvas.parentElement.getBoundingClientRect()
-	canvas.height = parentBox.height * 3
-	canvas.width = parentBox.width * 3
-	canvas.style.height = parentBox.height + "px"
-	canvas.style.width = parentBox.width + "px"
+
+	canvas.height = parentBox.height * DPI
+	canvas.width = parentBox.width * DPI
 
 	let offscreen = canvas.transferControlToOffscreen()
 	screenWorker.postMessage({type: "init", canvas: offscreen}, [offscreen])
@@ -126,6 +138,7 @@ export function start(canvas, buffer) {
 	} else {
 		canvas.addEventListener("mousedown", startSelectingRegion)
 	}
+	alreadyFancy = true
 }
 
 /**

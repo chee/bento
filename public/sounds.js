@@ -110,23 +110,32 @@ export function setSound(memory, patternNumber, sound) {
 // 	await (await fetch("sounds/ps1s.flac")).arrayBuffer()
 // )
 
+let alreadyFancy = false
+export function fancy() {
+	return alreadyFancy
+}
+
 /**
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
  */
 export async function start(buffer) {
 	let ready = new Promise((yay, boo) => {
+		if (context.state == "running") {
+			yay(context.state)
+		}
 		context.onstatechange = function () {
 			if (context.state == "running") {
-				yay()
+				yay(context.state)
 			} else {
-				boo()
+				boo(context.state)
 			}
 		}
 	})
 	context.resume()
-	unmute(context, true)
 	await ready
+	alreadyFancy = true
+	unmute(context, true)
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)

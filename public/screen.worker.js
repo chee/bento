@@ -1,5 +1,5 @@
 // TODO share with graphics.js
-const DPI = 3
+import {DPI} from "./graphics.js"
 const style = {
 	normal: {
 		fill: "#00000000",

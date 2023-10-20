@@ -375,7 +375,7 @@ onmessage = async event => {
 		context.fillStyle = style.normal.text
 		context.textAlign = "center"
 		context.textBaseline = "bottom"
-		let text = `${action} to start`
+		let text = `${action} ▶ to start`
 
 		// TODO this is inaccessible. where should this go for a screenreader?
 		f.load().finally(() => {

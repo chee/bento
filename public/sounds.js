@@ -9,7 +9,6 @@ let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
  * normalize audio
  * @param {Float32Array} sound
  */
-
 function normalize(sound) {
 	let max = 0
 	for (let f32 of sound) {
@@ -20,6 +19,24 @@ function normalize(sound) {
 		loop.range(sound.length).forEach(index => {
 			sound[index] *= mult
 		})
+	}
+	return sound
+}
+
+/**
+ * trim zeros from the beginning of audio
+ * @param {Float32Array} sound
+ */
+
+function trim(sound) {
+	// i have NO IDEA what i'm doing.  what is -144dB in 32-bit float???????????
+	let noisefloor = 1e-30
+
+	for (let i = 0; i < sound.length; i++) {
+		let sample = sound[i]
+		if (Math.abs(sample) > noisefloor) {
+			return sound.subarray(i)
+		}
 	}
 	return sound
 }
@@ -46,12 +63,12 @@ export async function recordSound() {
 		let tape = new MediaRecorder(stream)
 		let blobs = []
 		tape.ondataavailable = event => blobs.push(event.data)
+		tape.start(MAX_RECORDING_LENGTH)
 		globalThis.postMessage({
 			type: "recording",
 			start: true,
 			length: MAX_RECORDING_LENGTH,
 		})
-		tape.start(MAX_RECORDING_LENGTH)
 		await new Promise(async yay => {
 			await wait(MAX_RECORDING_LENGTH)
 			tape.onstop = event => yay(event)
@@ -59,7 +76,7 @@ export async function recordSound() {
 		})
 		globalThis.postMessage({type: "recording", state: false})
 
-		return normalize(await decode(new Blob(blobs, {type: blobs[0].type})))
+		return normalize(trim(await decode(new Blob(blobs, {type: blobs[0].type}))))
 	} catch (error) {
 		console.error(`Unable to record.`, error)
 	}

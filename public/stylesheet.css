@@ -12,8 +12,10 @@
 }
 
 :root {
-	--background: #ffe9ed;
-	--line: #cc3366;
+	--background-color: #ffe9ed;
+	--line-color: #cc3366;
+	--background: var(--background-color);
+	--line: var(--line-color);
 	--intense: #cc1336;
 	--selection-background: "#ffee88";
 	--active: #ff2a50;
@@ -87,6 +89,7 @@ h1 {
 	touch-action: manipulation;
 	margin: 0;
 	width: var(--total-width);
+	color: var(--line);
 }
 
 fieldset {
@@ -189,14 +192,13 @@ label.upload {
 	line-height: 1rem;
 }
 
+/*
+ * the rest of the styles for label.recorder are with the [recording] styles
+ * further down
+*/
 label.recorder {
 	font-size: 0.8em;
 	line-height: 1rem;
-}
-
-label.recorder.recording,
-label:has([name="record"]:checked) {
-	color: var(--bright-red);
 }
 
 label.recorder:focus,
@@ -213,10 +215,10 @@ label:has([name="record"]:focus) {
 	overflow-x: hidden;
 	width: var(--total-width);
 	scroll-snap-type: x mandatory;
+	background: var(--line);
 }
 
 .screen figure {
-	background: var(--line);
 	width: var(--total-width);
 	margin: 0;
 	height: 4em;
@@ -389,4 +391,28 @@ body.chee .step:focus {
 
 body:not([chee]) [chee] {
 	display: none;
+}
+
+[recording],
+[unstarted] {
+	--line: color-mix(in srgb, var(--line-color) 50%, var(--background));
+}
+
+@keyframes blink {
+	0% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0.1;
+	}
+}
+
+[recording] label.recorder {
+	color: var(--bright-red);
+	animation: 0.5s infinite blink;
+}
+
+[recording] .screen {
+	background: var(--line-color);
 }

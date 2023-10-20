@@ -220,6 +220,9 @@ lengthSelector.addEventListener("change", () => {
 })
 
 recordButton.addEventListener("click", async () => {
+	if (document.body.hasAttribute("recording")) {
+		return
+	}
 	document.body.setAttribute("recording", "recording")
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)

@@ -1,10 +1,30 @@
+import * as Memory from "./memory.js"
+
 export const DPI = 3
+export const style = {
+	normal: {
+		fill: "#00000000",
+		line: "white",
+	},
+	step: {
+		fill: "#00000000",
+		line: "white",
+		lineWidth: 8,
+	},
+	region: {
+		fill: "#ffffffff",
+		line: "#333",
+	},
+	drawingRegion: {
+		fill: "#00ff99ee",
+		line: "#fff",
+	},
+}
 
 // TODO add another tiny translucent canvas for the region
 let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
 	typeof window != "undefined" && window.matchMedia("(pointer: coarse)").matches
 
-import * as Memory from "./memory.js"
 /** @type {Memory.MemoryMap} */
 let memory
 

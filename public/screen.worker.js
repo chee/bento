@@ -1,29 +1,7 @@
-// TODO share with graphics.js
-import {DPI} from "./graphics.js"
-const style = {
-	normal: {
-		fill: "#00000000",
-		line: "white",
-	},
-	step: {
-		fill: "#00000000",
-		line: "white",
-		lineWidth: 8,
-	},
-	region: {
-		fill: "#ffffffff",
-		line: "#333",
-	},
-	drawingRegion: {
-		fill: "#00ff99ee",
-		line: "#fff",
-	},
-}
+import {DPI, style} from "./graphics.js"
+import {range} from "./loop.js"
 
-/**
- *  @type {import("public/memory.js") | void}
- */
-let Memory
+import * as Memory from "./memory.js"
 
 /**
  * @type {OffscreenCanvasRenderingContext2D} context
@@ -31,7 +9,7 @@ let Memory
 let context
 
 /**
- * @type {import("public/memory.js").MemoryMap?} [memory]
+ * @type {Memory.MemoryMap} [memory]
  */
 let memory
 
@@ -45,8 +23,8 @@ function clear(context) {
 	let {width, height} = canvas
 	context.restore()
 	context.clearRect(0, 0, width, height)
-	context.fillStyle = "#00000000"
-	context.strokeStyle = "#00000000"
+	context.fillStyle = style.normal.fill
+	context.strokeStyle = style.normal.line
 	context.lineWidth = DPI
 }
 
@@ -90,8 +68,8 @@ function drawSampleLine({style, array, x, xm, height, skip = 16}) {
 }
 
 /**
- * @param {import("public/memory.js").StepDetails | import("public/memory.js").SoundDetails} one
- * @param {import("public/memory.js").StepDetails | import("public/memory.js").SoundDetails} two
+ * @param {Memory.StepDetails | Memory.SoundDetails} one
+ * @param {Memory.StepDetails | Memory.SoundDetails} two
  */
 function same(one, two) {
 	if (Object.is(one, two)) return true
@@ -119,9 +97,9 @@ function same(one, two) {
 }
 
 /**
- * @param {import("public/memory.js").Region} region
+ * @param {Memory.Region} region
  * @param {number} soundLength
- * @returns {import("public/memory.js").Region}
+ * @returns {Memory.Region}
  */
 function getReversedRegion(region, soundLength) {
 	return {
@@ -132,7 +110,7 @@ function getReversedRegion(region, soundLength) {
 /**
  * Get the visible portion of a sound, in the right direction.
  *
- * @param {import("public/memory.js").StepDetails} stepDetails
+ * @param {Memory.StepDetails} stepDetails
  */
 function getVisibleSound(stepDetails) {
 	let {sound, soundLength, reversed} = stepDetails
@@ -152,15 +130,12 @@ let bitmapCache = {}
 /**
  * Create and post the bitmap for a step
 
- * @param {import("public/memory.js").MemoryMap} memory
+ * @param {Memory.MemoryMap} memory
  * @param {OffscreenCanvasRenderingContext2D} context
  * @param {number} pattern
  * @param {number} step
  */
 function postBitmap(memory, context, pattern, step) {
-	if (!Memory) {
-		throw new Error("tried to post bitmap before init!")
-	}
 	clear(context)
 
 	let {height, width} = context.canvas
@@ -200,13 +175,10 @@ function postBitmap(memory, context, pattern, step) {
 /**
  * Create and post the bitmap for a step
 
- * @param {import("public/memory.js").MemoryMap} memory
+ * @param {Memory.MemoryMap} memory
  * @param {OffscreenCanvasRenderingContext2D} context
  */
 function postAllBitmaps(memory, context) {
-	if (!Memory) {
-		throw new Error("tried to post all bitmaps before init!")
-	}
 	let pidx = Memory.selectedPattern(memory)
 	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
 		if (Memory.stepOn(memory, pidx, sidx)) {
@@ -357,10 +329,6 @@ function update(_frame = 0, force = false) {
 }
 
 onmessage = async event => {
-	if (!Memory) {
-		Memory = await import("./memory.js")
-	}
-
 	let message = event.data
 
 	if (message.type == "init") {
@@ -371,16 +339,20 @@ onmessage = async event => {
 		context.fillRect(0, 0, canvas.width, canvas.height)
 		context.lineWidth = DPI
 		context.moveTo(0, canvas.height / 2)
-		for (let x of Array.from(
-			Array(canvas.width),
-			(_, i) => i + (Math.random() + 1) * 2
-		)) {
+		for (
+			let x = 0, i = 1;
+			x < canvas.width;
+			x += (Math.random() / 5) * canvas.width, i++
+		) {
+			console.log((canvas.height * 1) / i)
 			context.lineTo(
 				x,
 				(canvas.height / 2) *
-					(Math.random() + (Math.random() > 0.99 ? Math.random() : 0.5))
+					(Math.random() + (Math.random() > 0.99 ? Math.random() : 0.5)) -
+					(canvas.height / 2) * (1 / i)
 			)
 		}
+		context.lineTo(canvas.width, canvas.height)
 		context.strokeStyle = style.normal.line
 		context.stroke()
 	}

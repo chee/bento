@@ -30,7 +30,7 @@ function normalize(sound) {
 
 function trim(sound) {
 	// i have NO IDEA what i'm doing.  what is -144dB in 32-bit float???????????
-	let noisefloor = 1e-30
+	let noisefloor = 1e-33
 
 	for (let i = 0; i < sound.length; i++) {
 		let sample = sound[i]

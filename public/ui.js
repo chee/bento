@@ -228,7 +228,9 @@ recordButton.addEventListener("click", async () => {
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
 
+/* this runs once when drag enters the target's zone */
 screen.addEventListener("dragenter", async event => {
+	console.log(event.type)
 	if (!fancy()) {
 		return
 	}
@@ -236,15 +238,13 @@ screen.addEventListener("dragenter", async event => {
 	screen.classList.add("droptarget")
 })
 
-screen.addEventListener("dragover", async event => {
-	if (!fancy()) {
-		return
-	}
-	event.preventDefault()
-	screen.classList.add("droptarget")
-})
+let noop =
+	/* this runs a billion times a second while a drag is being held on top of the target */
+	screen.addEventListener("dragover", async event => {})
 
+/* this runs once when drag exits the target's zone */
 screen.addEventListener("dragleave", event => {
+	console.log(event.type)
 	if (!fancy()) {
 		return
 	}
@@ -252,13 +252,8 @@ screen.addEventListener("dragleave", event => {
 	screen.classList.remove("droptarget")
 })
 
-screen.addEventListener("dragend", event => {
-	if (!fancy()) {
-		return
-	}
-	event.preventDefault()
-	screen.classList.remove("droptarget")
-})
+/* i don't know when this runs. seems never */
+screen.addEventListener("dragend", () => {})
 
 screen.addEventListener("drop", async event => {
 	if (!fancy()) {
@@ -280,8 +275,16 @@ screen.addEventListener("drop", async event => {
 	}
 })
 
-patternSelectorLabels.forEach(label => {
-	label.addEventListener("drag", event => {
+patternSelectorLabels.forEach(pattern => {
+	pattern.addEventListener("")
+	pattern.addEventListener("dragstart", event => {
+		event.preventDefault()
+		console.log("stop bullying me", event)
+	})
+})
+
+stepInputs.forEach(stepInput => {
+	stepInput.addEventListener("dragstart", event => {
 		event.preventDefault()
 		console.log("stop bullying me")
 	})

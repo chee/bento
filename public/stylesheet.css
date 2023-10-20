@@ -14,6 +14,8 @@
 :root {
 	--background-color: #ffe9ed;
 	--line-color: #cc3366;
+	--recording-background: #cc3366;
+	--recording-line: #ffe9ed;
 	--background: var(--background-color);
 	--line: var(--line-color);
 	--intense: #cc1336;
@@ -38,8 +40,6 @@
 	--holy-light: #fff;
 	--holy-dark: #000;
 	--columns: repeat(4, 1fr);
-	--recording-background: var(--holy-dark);
-	--recording-line: var(--holy-light);
 	--font-family: qp, iosevka, monaco, monospace;
 	--pattern-name-style: lower-latin;
 	--step-size: 2em;
@@ -437,11 +437,16 @@ body:not([chee]) [chee] {
 	max-width: 100%;
 	align-items: center;
 	justify-content: center;
-	background: var(--line-color);
+	background: var(--recording-background);
 }
 
 .tape svg {
-	background: var(--line-color);
+	background: var(--recording-background);
+}
+
+[recording] {
+	background-color: var(--recording-background);
+	min-height: 100vh;
 }
 
 [recording] .tape {
@@ -450,7 +455,7 @@ body:not([chee]) [chee] {
 
 .tape .message {
 	font-size: 0.8rem;
-	color: var(--background);
+	color: var(--recording-line);
 	padding: 1em;
 	padding-top: 0;
 	margin: 0;
@@ -459,7 +464,7 @@ body:not([chee]) [chee] {
 
 .tape .counter {
 	font-size: 0.8rem;
-	color: var(--background);
+	color: var(--recording-line);
 	margin: 0;
 }
 
@@ -518,9 +523,8 @@ body:not([chee]) [chee] {
 	background: var(--line-color);
 }
 
-[recording],
-[unstarted] {
-	--line: color-mix(in srgb, var(--background-color), 50% var(--line-color));
+[recording] {
+	/* --line: color-mix(in srgb, var(--background-color), 50% var(--line-color)); */
 	--background: var(--background-color);
 }
 

@@ -45,6 +45,7 @@ async function getFancy() {
 		graphics.start(screenWaveformCanvas, buffer)
 	}
 	if (sounds.fancy() && graphics.fancy()) {
+		document.body.setAttribute("fancy", "fancy")
 		removeFancyEventListeners()
 	}
 }
@@ -276,15 +277,16 @@ screen.addEventListener("drop", async event => {
 })
 
 patternSelectorLabels.forEach(pattern => {
-	pattern.addEventListener("")
+	pattern.addEventListener("drop", event => {})
 	pattern.addEventListener("dragstart", event => {
 		event.preventDefault()
 		console.log("stop bullying me", event)
 	})
 })
 
-stepInputs.forEach(stepInput => {
-	stepInput.addEventListener("dragstart", event => {
+stepInputs.forEach(step => {
+	step.addEventListener("drop", event => {})
+	step.addEventListener("dragstart", event => {
 		event.preventDefault()
 		console.log("stop bullying me")
 	})

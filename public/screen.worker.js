@@ -1,7 +1,9 @@
-import {DPI, style} from "./graphics.js"
-import {range} from "./loop.js"
+import * as graphics from "./graphics.js"
+import Math from "./math.js"
 
 import * as Memory from "./memory.js"
+
+let {DPI, style} = graphics
 
 /**
  * @type {OffscreenCanvasRenderingContext2D} context
@@ -328,6 +330,9 @@ function update(_frame = 0, force = false) {
 	requestAnimationFrame(update)
 }
 
+let f = new FontFace("qp", 'url("/iosevka-qp-regular.ttf")')
+f.load()
+
 onmessage = async event => {
 	let message = event.data
 
@@ -340,21 +345,42 @@ onmessage = async event => {
 		context.lineWidth = DPI
 		context.moveTo(0, canvas.height / 2)
 		for (
-			let x = 0, i = 1;
+			let x = (Math.random() / 5) * canvas.width, i = 1;
 			x < canvas.width;
 			x += (Math.random() / 5) * canvas.width, i++
 		) {
-			console.log((canvas.height * 1) / i)
 			context.lineTo(
 				x,
-				(canvas.height / 2) *
-					(Math.random() + (Math.random() > 0.99 ? Math.random() : 0.5)) -
-					(canvas.height / 2) * (1 / i)
+				Math.clamp(
+					0,
+					(canvas.height / 2) *
+						(Math.random() + (Math.random() > 0.99 ? Math.random() : 0.5)) -
+						(canvas.height / 2) * (1 / i),
+					canvas.height
+				)
 			)
 		}
 		context.lineTo(canvas.width, canvas.height)
 		context.strokeStyle = style.normal.line
 		context.stroke()
+
+		let action = "click"
+		if (
+			graphics.IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
+		) {
+			action = "tap"
+		}
+
+		context.font = style.normal.font
+		context.fillStyle = style.normal.text
+		context.textAlign = "center"
+		context.textBaseline = "bottom"
+		let text = `${action} to start`
+
+		// TODO this is inaccessible. where should this go for a screenreader?
+		f.load().finally(() => {
+			context.fillText(text, canvas.width / 2, canvas.height - 5)
+		})
 	}
 
 	if (message.type == "start") {

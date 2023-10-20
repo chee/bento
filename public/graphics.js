@@ -5,6 +5,8 @@ export const style = {
 	normal: {
 		fill: "#00000000",
 		line: "white",
+		text: "white",
+		font: "69px qp, monospace",
 	},
 	step: {
 		fill: "#00000000",
@@ -22,7 +24,7 @@ export const style = {
 }
 
 // TODO add another tiny translucent canvas for the region
-let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
+export let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
 	typeof window != "undefined" && window.matchMedia("(pointer: coarse)").matches
 
 /** @type {Memory.MemoryMap} */

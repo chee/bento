@@ -81,10 +81,9 @@ async function fetchSound(name, ext = "wav") {
 await context.audioWorklet.addModule("./bako.worklet.js")
 await context.audioWorklet.addModule("./expression.worklet.js")
 
-let kick = await fetchSound("skk")
-let snar = await fetchSound("sks")
-let hhat = await fetchSound("skh")
-let open = await fetchSound("sko")
+let [kick, snar, hhat, open] = await Promise.all(
+	["skk", "sks", "skh", "sko"].map(s => fetchSound(s))
+)
 
 /**
  * set the sound in memory

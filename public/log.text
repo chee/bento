@@ -23,3 +23,14 @@ also this code:
 	let colorSpace = matchMedia("(color-gamut: p3)").matches
 		? "display-p3"
 		: "srgb"
+
+
+Fri 20 Oct 2023 06:54:39 BST
+i was reading the .wav and .aif specs last night, and i think it's possible to
+create a .wav file that contains an entire bento project, and can also be
+listened to on its own.
+
+Fri 20 Oct 2023 07:17:13 BST
+when you're making a worker you can pass `{type: "module"}' as its second arg,
+then you can use import/export. up until i learned this i was having a real hard
+time sharing code with the workers.

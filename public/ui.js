@@ -1,8 +1,8 @@
 import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
-import * as offline from "./offline.js"
 import * as loop from "./loop.js"
+import Math from "./math.js"
 
 // TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
@@ -32,6 +32,10 @@ let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
 let fancyListeners = ["mousedown", "keydown", "click", "touchstart"]
+
+function fancy() {
+	return sounds.fancy() && graphics.fancy()
+}
 
 async function getFancy() {
 	if (!sounds.fancy()) {
@@ -192,14 +196,11 @@ ui.querySelector('[name="stop"]').addEventListener("click", () => {
 	// TODO Memory.stop(memory)
 })
 
-/** @type {(min: number, number: number, max: number) => number} */
-let clamp = (min, num, max) => Math.min(max, Math.max(min, num))
-
 bpmInput.addEventListener("change", () => {
 	let num = Number(bpmInput.value)
 	let min = Number(bpmInput.min)
 	let max = Number(bpmInput.max)
-	Memory.bpm(memory, clamp(min, num, max))
+	Memory.bpm(memory, Math.clamp(min, num, max))
 })
 
 speedSelector.addEventListener("change", () => {
@@ -224,37 +225,43 @@ recordButton.addEventListener("click", async () => {
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
 
-screen.addEventListener("dragenter", event => {
+screen.addEventListener("dragenter", async event => {
+	if (!fancy()) {
+		return
+	}
 	event.preventDefault()
 	screen.classList.add("droptarget")
-	if (!alreadyFancy) {
-		getFancy()
-	}
 })
 
-screen.addEventListener("dragover", event => {
+screen.addEventListener("dragover", async event => {
+	if (!fancy()) {
+		return
+	}
 	event.preventDefault()
 	screen.classList.add("droptarget")
-	if (!alreadyFancy) {
-		getFancy()
-	}
 })
 
 screen.addEventListener("dragleave", event => {
+	if (!fancy()) {
+		return
+	}
 	event.preventDefault()
 	screen.classList.remove("droptarget")
 })
 
 screen.addEventListener("dragend", event => {
+	if (!fancy()) {
+		return
+	}
 	event.preventDefault()
 	screen.classList.remove("droptarget")
 })
 
 screen.addEventListener("drop", async event => {
-	event.preventDefault()
-	if (!alreadyFancy) {
-		getFancy()
+	if (!fancy()) {
+		return
 	}
+	event.preventDefault()
 	screen.classList.remove("droptarget")
 	if (event.dataTransfer.items) {
 		for (let item of Array.from(event.dataTransfer.items)) {

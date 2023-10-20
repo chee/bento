@@ -169,14 +169,13 @@
 					</label>
 				</fieldset>
 			</header>
-			<article class="screen" data-mode="waveform">
-				<figure class="waveform">
+			<article class="screen" data-mode="wav">
+				<figure class="waveform wav">
 					<canvas alt=""></canvas>
 					<figcaption hidden>waveform</figcaption>
 				</figure>
-				<figure class="tape" hidden>
-					<canvas alt=""></canvas>
-					<figcaption hidden>waveform</figcaption>
+				<figure class="tape">
+					<figcaption screenreader>recording</figcaption>
 				</figure>
 			</article>
 			<nav class="screen-selector" chee>
@@ -291,6 +290,7 @@
 					aria-selected="false">
 			</main>
 		</form>
-	</article>
 
-		<script type="module" src="ui.js"></script>
+
+	</article>
+	<script type="module" src="ui.js"></script>

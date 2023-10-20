@@ -134,7 +134,9 @@ export function start(canvas, buffer) {
 	if (
 		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
 	) {
-		canvas.addEventListener("touchstart", startSelectingRegionWithFinger)
+		canvas.addEventListener("touchstart", startSelectingRegionWithFinger, {
+			passive: true,
+		})
 	} else {
 		canvas.addEventListener("mousedown", startSelectingRegion)
 	}

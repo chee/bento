@@ -31,7 +31,7 @@ let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-let fancyListeners = ["mousedown", "keydown", "click", "touchend"]
+let fancyListeners = ["mousedown", "keydown", "click", "touchstart"]
 
 async function getFancy() {
 	if (!sounds.fancy()) {
@@ -45,15 +45,23 @@ async function getFancy() {
 	}
 }
 
-fancyListeners.map(e => window.addEventListener(e, getFancy))
-fancyListeners.map(e =>
-	stepInputs.forEach(l => l.addEventListener(e, getFancy))
+fancyListeners.map(eventName =>
+	window.addEventListener(eventName, getFancy, {
+		passive: eventName == "touchstart",
+	})
+)
+fancyListeners.map(eventName =>
+	stepInputs.forEach(stepInput =>
+		stepInput.addEventListener(eventName, getFancy, {
+			passive: eventName == "touchstart",
+		})
+	)
 )
 
 function removeFancyEventListeners() {
 	fancyListeners.map(e => window.removeEventListener(e, getFancy))
 	fancyListeners.map(e =>
-		stepInputs.forEach(l => l.addEventListener(e, getFancy))
+		stepInputs.forEach(l => l.removeEventListener(e, getFancy))
 	)
 }
 

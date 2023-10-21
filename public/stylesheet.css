@@ -319,10 +319,20 @@ bento-compartment {
 	width: var(--box-size);
 	border: 1px solid;
 	position: relative;
-	background-size: 100% 100%;
 	--compartment-color: var(--compartment-off);
 	background: var(--compartment-color);
 	color: var(--compartment-line);
+}
+
+bento-compartment .wav {
+	width: 100%;
+	height: 100%;
+	image-rendering: optimizeQuality;
+	display: none;
+}
+
+bento-compartment[on][with-wav] .wav {
+	display: block;
 }
 
 bento-compartment[selected] {

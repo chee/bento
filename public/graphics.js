@@ -25,8 +25,7 @@ export const style = {
 	},
 	step: {
 		fill: "#00000000",
-		line: "white",
-		lineWidth: 8
+		line: "white"
 	},
 	region: {
 		fill: "#ffffffff",

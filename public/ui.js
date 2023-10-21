@@ -2,7 +2,6 @@ import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
-import Math from "./math.js"
 import {BentoCompartment, BentoBox, BentoEvent} from "./custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
@@ -363,6 +362,8 @@ window.onmessage = function (event) {
 }
 
 let stepWaveformCanvas = document.createElement("canvas")
+// todo maybe keep this in the bento box?
+// maybe all this?
 let stepWaveformUrlCache = {}
 document.addEventListener(
 	"waveform",
@@ -384,7 +385,7 @@ document.addEventListener(
 				stepWaveformCanvas.toDataURL("image/webp")
 		}
 
-		compartment.style.backgroundImage = `url(${stepWaveformUrlCache[cachename]})`
+		compartment.wav = stepWaveformUrlCache[cachename]
 	}
 )
 

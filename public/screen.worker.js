@@ -1,6 +1,5 @@
+import "./extend-native-prototypes.js"
 import * as graphics from "./graphics.js"
-import Math from "./math.js"
-
 import * as Memory from "./memory.js"
 
 let {DPI, style} = graphics
@@ -44,11 +43,11 @@ function fillRegion(start, end, fill) {
 function drawSampleLine({style, array, x, xm, height}) {
 	context.beginPath()
 	context.strokeStyle = style.line
-	context.lineWidth = style.lineWidth || DPI
+	context.lineWidth = style.width || DPI
 	// trying to make it inversely correlated with the size input so smaller
 	// samples have more accuracy
-	let skip = 0.00025 * array.length
-
+	// cleverer than this would be to move in chunks of 10 and draw their average
+	let skip = 32
 	for (let index in array) {
 		let idx = Number(index)
 		let f32 = array.at(idx)
@@ -90,7 +89,7 @@ function same(one, two) {
 			}
 		}
 	}
-	if (one.region || two.region) {
+	if ("region" in one && "region" in two) {
 		if (
 			one.region.start != two.region.start ||
 			one.region.end != two.region.end
@@ -143,7 +142,6 @@ let bitmapCache = {}
 function postBitmap(memory, context, pattern, step) {
 	clear(context)
 
-	let {height, width} = context.canvas
 	let stepDetails = Memory.getStepDetails(memory, pattern, step)
 	let {region, reversed, soundLength, version} = stepDetails
 	let visibleSound = getVisibleSound(stepDetails)
@@ -158,6 +156,10 @@ function postBitmap(memory, context, pattern, step) {
 	let cachename = `s${start}e${end}r${reversed}v${version}p${pattern}`
 
 	if (!bitmapCache[cachename]) {
+		let beforeheight = context.canvas.height
+		let beforewidth = context.canvas.width
+		let height = (context.canvas.height = 256)
+		let width = (context.canvas.width = 256)
 		drawSampleLine({
 			style: style.step,
 			array,
@@ -167,6 +169,8 @@ function postBitmap(memory, context, pattern, step) {
 		})
 		let bmp = context.canvas.transferToImageBitmap()
 		bitmapCache[cachename] = bmp
+		context.canvas.height = beforeheight
+		context.canvas.width = beforewidth
 	}
 	globalThis.postMessage({
 		type: "waveform",
@@ -218,7 +222,6 @@ function getXMultiplier(context, soundLength) {
 let lastStepDetails
 let lastSoundDetails
 function update(_frame = 0, force = false) {
-	console.log({context, memory})
 	if (!context || !memory) return
 	let stepDetails = Memory.getSelectedStepDetails(memory)
 	let soundDetails = Memory.getSoundDetails(
@@ -232,6 +235,7 @@ function update(_frame = 0, force = false) {
 	if (!force && !regionIsBeingDrawn && same(stepDetails, lastStepDetails)) {
 		return requestAnimationFrame(update)
 	}
+
 	clear(context)
 
 	lastStepDetails = stepDetails
@@ -394,6 +398,7 @@ onmessage = async event => {
 	if (message.type == "start") {
 		let {buffer} = message
 		memory = Memory.map(buffer)
+
 		requestAnimationFrame(update)
 	}
 }

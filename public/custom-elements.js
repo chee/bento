@@ -1,5 +1,4 @@
 import * as loop from "./loop.js"
-import Math from "./math.js"
 // the components don't touch memory, they are outputs
 // they may however know how to serialize themselves?
 //
@@ -147,11 +146,11 @@ class Modmask {
 
 // BentoShikiri fufufu
 export class BentoCompartment extends BentoElement {
-	static observedAttributes = ["on", "selected", "playing"]
 	#playing = false
 	step = 0
 	#quiet = 0
 	#pan = 0
+	wavimg = document.createElement("img")
 
 	connectedCallback() {
 		this.setAttribute("draggable", "true")
@@ -160,6 +159,8 @@ export class BentoCompartment extends BentoElement {
 
 		this.addEventListener("click", this.#click)
 		this.addEventListener("keyup", this.#keyup)
+		this.wavimg.className = "wav"
+		this.appendChild(this.wavimg)
 
 		// this.addEventListener("drag", this.#drag)
 		// this.addEventListener("dragenter", this.#dragenter)
@@ -167,6 +168,12 @@ export class BentoCompartment extends BentoElement {
 		// this.addEventListener("dragleave", this.#dragleave)
 		// this.addEventListener("dragend", this.#dragend)
 		// this.addEventListener("drop", this.#drop)
+	}
+
+	attributeChangedCallback(name, _old, value) {
+		if (BentoCompartment.observedAttributes[name]) {
+			this[name] = value
+		}
 	}
 
 	/**
@@ -248,6 +255,18 @@ export class BentoCompartment extends BentoElement {
 	set pan(val) {
 		this.#pan = val
 		this.setAttribute("pan", this.#pan.toString())
+	}
+
+	/**
+	 * @param {string?} [val]
+	 */
+	set wav(val) {
+		this.toggleAttribute("with-wav", val != null)
+		this.wavimg.src = val
+	}
+
+	get wav() {
+		return this.wavimg.src
 	}
 }
 

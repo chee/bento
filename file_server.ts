@@ -42,7 +42,7 @@ import {contentType} from "https://deno.land/std/media_types/content_type.ts"
 import {calculate, ifNoneMatch} from "https://deno.land/std/http/etag.ts"
 import {
 	isRedirectStatus,
-	Status,
+	Status
 } from "https://deno.land/std/http/http_status.ts"
 import {ByteSliceStream} from "https://deno.land/std/streams/byte_slice_stream.ts"
 import {parse} from "https://deno.land/std/flags/mod.ts"
@@ -62,7 +62,9 @@ const ENV_PERM_STATUS =
 	Deno.permissions.querySync?.({name: "env", variable: "DENO_DEPLOYMENT_ID"})
 		.state ?? "granted" // for deno deploy
 const DENO_DEPLOYMENT_ID =
-	ENV_PERM_STATUS === "granted" ? Deno.env.get("DENO_DEPLOYMENT_ID") : undefined
+	ENV_PERM_STATUS === "granted"
+		? Deno.env.get("DENO_DEPLOYMENT_ID")
+		: undefined
 const HASHED_DENO_DEPLOYMENT_ID = DENO_DEPLOYMENT_ID
 	? calculate(DENO_DEPLOYMENT_ID, {weak: true})
 	: undefined
@@ -294,7 +296,7 @@ async function serveDirIndex(
 				mode: modeToString(true, fileInfo.mode),
 				size: "",
 				name: "../",
-				url: posixJoin(dirUrl, ".."),
+				url: posixJoin(dirUrl, "..")
 			})
 		)
 		listEntryPromise.push(entryInfo)
@@ -318,7 +320,7 @@ async function serveDirIndex(
 						mode: modeToString(entry.isDirectory, fileInfo.mode),
 						size: entry.isFile ? formatBytes(fileInfo.size ?? 0) : "",
 						name: `${entry.name}${entry.isDirectory ? "/" : ""}`,
-						url: `${fileUrl}${entry.isDirectory ? "/" : ""}`,
+						url: `${fileUrl}${entry.isDirectory ? "/" : ""}`
 					}
 				} catch (error) {
 					// Note: Deno.stat for windows system files may be rejected with os error 32.
@@ -327,7 +329,7 @@ async function serveDirIndex(
 						mode: "(unknown mode)",
 						size: "",
 						name: `${entry.name}${entry.isDirectory ? "/" : ""}`,
-						url: `${fileUrl}${entry.isDirectory ? "/" : ""}`,
+						url: `${fileUrl}${entry.isDirectory ? "/" : ""}`
 					}
 				}
 			})()
@@ -372,7 +374,7 @@ function createBaseHeaders(): Headers {
 	return new Headers({
 		server: "deno",
 		// Set "accept-ranges" so that the client knows it can make range requests on future requests
-		"accept-ranges": "bytes",
+		"accept-ranges": "bytes"
 	})
 }
 
@@ -665,7 +667,7 @@ async function createServeDirResponse(req: Request, opts: ServeDirOptions) {
 	if (!fileInfo.isDirectory) {
 		return serveFile(req, fsPath, {
 			etagAlgorithm,
-			fileInfo,
+			fileInfo
 		})
 	}
 
@@ -687,7 +689,7 @@ async function createServeDirResponse(req: Request, opts: ServeDirOptions) {
 		if (indexFileInfo?.isFile) {
 			return serveFile(req, indexPath, {
 				etagAlgorithm,
-				fileInfo: indexFileInfo,
+				fileInfo: indexFileInfo
 			})
 		}
 	}
@@ -707,7 +709,14 @@ function logError(error: unknown) {
 function main() {
 	const serverArgs = parse(Deno.args, {
 		string: ["port", "host", "cert", "key", "header"],
-		boolean: ["help", "dir-listing", "dotfiles", "cors", "verbose", "version"],
+		boolean: [
+			"help",
+			"dir-listing",
+			"dotfiles",
+			"cors",
+			"verbose",
+			"version"
+		],
 		negatable: ["dir-listing", "dotfiles", "cors"],
 		collect: ["header"],
 		default: {
@@ -719,7 +728,7 @@ function main() {
 			host: "0.0.0.0",
 			port: "4507",
 			cert: "",
-			key: "",
+			key: ""
 		},
 		alias: {
 			p: "port",
@@ -728,8 +737,8 @@ function main() {
 			h: "help",
 			v: "verbose",
 			V: "version",
-			H: "header",
-		},
+			H: "header"
+		}
 	})
 	const port = Number(serverArgs.port)
 	const headers = serverArgs.header || []
@@ -743,13 +752,13 @@ function main() {
 	}
 
 	if (serverArgs.version) {
-		console.log(`Deno File Server ${VERSION}`)
+		console.info(`Deno File Server ${VERSION}`)
 		Deno.exit()
 	}
 
 	if (keyFile || certFile) {
 		if (keyFile === "" || certFile === "") {
-			console.log("--key and --cert are required for TLS")
+			console.error("--key and --cert are required for TLS")
 			printUsage()
 			Deno.exit(1)
 		}
@@ -765,7 +774,7 @@ function main() {
 			showDotfiles: serverArgs.dotfiles,
 			enableCors: serverArgs.cors,
 			quiet: !serverArgs.verbose,
-			headers,
+			headers
 		})
 	}
 
@@ -777,7 +786,7 @@ function main() {
 				port,
 				hostname: host,
 				cert: Deno.readTextFileSync(certFile),
-				key: Deno.readTextFileSync(keyFile),
+				key: Deno.readTextFileSync(keyFile)
 			},
 			handler
 		)
@@ -785,7 +794,7 @@ function main() {
 		Deno.serve(
 			{
 				port,
-				hostname: host,
+				hostname: host
 			},
 			handler
 		)
@@ -793,7 +802,7 @@ function main() {
 }
 
 function printUsage() {
-	console.log(`Deno File Server ${VERSION}
+	console.info(`Deno File Server ${VERSION}
   Serves a local directory in HTTP.
 
 INSTALL:

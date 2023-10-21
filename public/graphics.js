@@ -12,7 +12,7 @@ export const Screen = {
 	/** @type {"mix"} */
 	mix: "mix",
 	/** @type {"fx"} */
-	fx: "fx",
+	fx: "fx"
 }
 
 export const DPI = 3
@@ -21,26 +21,27 @@ export const style = {
 		fill: "#00000000",
 		line: "white",
 		text: "white",
-		font: "69px qp, monospace",
+		font: "69px qp, monospace"
 	},
 	step: {
 		fill: "#00000000",
 		line: "white",
-		lineWidth: 8,
+		lineWidth: 8
 	},
 	region: {
 		fill: "#ffffffff",
-		line: "#333",
+		line: "#333"
 	},
 	drawingRegion: {
 		fill: "#00ff99ee",
-		line: "#fff",
-	},
+		line: "#fff"
+	}
 }
 
 // TODO add another tiny translucent canvas for the region
 export let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
-	typeof window != "undefined" && window.matchMedia("(pointer: coarse)").matches
+	typeof window != "undefined" &&
+	window.matchMedia("(pointer: coarse)").matches
 
 /** @type {Memory.MemoryMap} */
 let memory
@@ -160,7 +161,7 @@ export function switchScreen(mode) {
 		modeElement.removeAttribute("hidden")
 		screenWorker.postMessage({
 			type: "mode",
-			mode,
+			mode
 		})
 		currentModeElement.setAttribute("hidden", "hidden")
 	} else {
@@ -217,11 +218,14 @@ export function start(canvas, buffer) {
 		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
 	) {
 		canvas.addEventListener("touchstart", startSelectingRegionWithFinger, {
-			passive: true,
+			passive: true
 		})
 	} else {
-		canvas.addEventListener("mousedown", startSelectingRegion)
+		canvas.addEventListener("mousedown", startSelectingRegion, {
+			passive: true
+		})
 	}
+
 	alreadyFancy = true
 }
 
@@ -235,7 +239,7 @@ function onWorkerMessage(event) {
 	if (type == "waveform") {
 		document.dispatchEvent(
 			new CustomEvent("waveform", {
-				detail: message,
+				detail: message
 			})
 		)
 	}

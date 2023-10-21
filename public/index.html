@@ -15,6 +15,11 @@
 	<meta name="twitter:card" content="summary">
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png?0">
 
+	<script type="module">
+		import * as elements from "./custom-elements.js"
+		elements.init()
+	</script>
+
 	<h1 screenreader>bento</h1>
 
 	<article class="bento">
@@ -206,109 +211,8 @@
 					</label>
 				</fieldset>
 			</nav>
-			<main class="pattern">
-				<input
-					checked
-					draggable="true"
-					type="checkbox"
-					class="step playing"
-					aria-label="step 0"
-					aria-selected="true">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 1"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 2"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 3"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					checked
-					aria-label="step 4"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 5"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 6"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 7"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					checked
-					aria-label="step 8"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 9"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 10"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 11"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					checked
-					aria-label="step 12"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 13"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					aria-label="step 14"
-					aria-selected="false">
-				<input
-					draggable="true"
-					type="checkbox"
-					class="step"
-					checked
-					aria-label="step 15"
-					aria-selected="false">
-			</main>
+			<bento-box>
+			</bento-box>
 		</form>
 
 

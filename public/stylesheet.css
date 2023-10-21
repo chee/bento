@@ -36,15 +36,35 @@
 	--bright-magenta: #af40cb;
 	--bright-red: #ff275d;
 	--bright-yellow: #c9af13;
+	--snoot-yellow: #fe8;
 	--bright-white: #e090ae;
 	--holy-light: #fff;
 	--holy-dark: #000;
+	--holy-red: #f00;
+	--holy-blue: #00f;
+	/* :3d_glasses_emoji: */
+	--quiet-base: var(--holy-light);
+	--pan-left-base: #f00;
+	--pan-right-base: var(--holy-blue);
+	--compartment-on: var(--line-color);
+	--compartment-off: var(--background-color);
+	--compartment-line: var(--line-color);
+	--pan-left: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 50%
+	);
+	--pan-right: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 50%
+	);
 	--columns: repeat(4, 1fr);
 	--font-family: qp, iosevka, monaco, monospace;
 	--pattern-name-style: lower-latin;
-	--step-size: 2em;
-	--step-gap: 0.25em;
-	--total-width: calc(((var(--step-size) * 4) + (var(--step-gap) * 8)));
+	--box-size: 2em;
+	--box-gap: 0.25em;
+	--total-width: calc(((var(--box-size) * 4) + (var(--box-gap) * 8)));
 	background: var(--background);
 	color: var(--line);
 	font-family: var(--font-family);
@@ -87,10 +107,8 @@ h1 {
 }
 
 .ui {
-	user-select: none;
 	background: var(--background);
 	border: 1px solid;
-	touch-action: manipulation;
 	margin: 0;
 	width: var(--total-width);
 	color: var(--line);
@@ -212,7 +230,9 @@ label:has([name="record"]:focus) {
 	outline: 2px solid cyan;
 }
 
-/**
+/* todo consider <bento-screen> */
+
+/*
  * allow selecting a screen by screen.scrollTo(screen.clientWidth * index, 0)
  */
 .screen {
@@ -281,26 +301,31 @@ figure.waveform canvas {
 	height: 5px;
 }
 
-.pattern {
+/* todo consider moving these styles to their component */
+
+bento-box {
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
 	grid-template-columns: repeat(4, 1fr);
 	background: var(--background);
 	justify-items: center;
-	gap: var(--step-gap);
-	margin: var(--step-gap);
+	gap: var(--box-gap);
+	margin: var(--box-gap);
 }
 
-.step {
-	height: var(--step-size);
-	width: var(--step-size);
+bento-compartment {
+	height: var(--box-size);
+	width: var(--box-size);
 	border: 1px solid;
 	position: relative;
 	background-size: 100% 100%;
+	--compartment-color: var(--compartment-off);
+	background: var(--compartment-color);
+	color: var(--compartment-line);
 }
 
-.step[aria-selected="true"] {
+bento-compartment[selected] {
 	/* prettier-ignore */
 	box-shadow:
 		-2px -2px 0 0 var(--background),
@@ -318,27 +343,26 @@ figure.waveform canvas {
 	border-color: currentColor;
 }
 
-.step:checked {
-	color: var(--background);
-	background-color: var(--line);
-	border-color: var(--line);
+bento-compartment[on] {
+	color: var(--compartment-off);
+	--compartment-color: var(--compartment-on);
 }
 
-.step:not(:checked) {
+bento-compartment:not([on]) {
 	background-image: none !important;
 }
 
-.step:focus {
-	outline: 2px solid var(--holy-light);
+bento-compartment:focus:not([aria-selected="true"]) {
+	outline: 2px dashed currentColor;
 	outline-offset: 0;
 }
 
-body.chee .step:focus {
-	outline: 2px solid lime;
+bento-compartment:focus[aria-selected="true"] {
+	outline: 0;
 }
 
-.step.playing:after {
-	content: " ";
+bento-compartment[playing]:after {
+	content: "";
 	height: 15%;
 	width: 15%;
 	position: absolute;
@@ -349,56 +373,207 @@ body.chee .step:focus {
 	background: currentColor;
 }
 
-.step[disabled] {
+bento-compartment[disabled] {
 	border: none;
 }
-.step[data-gain="1"] {
-	/* TODO color-mix */
-	opacity: 0.9583333333333334;
+
+/*
+ * i will find god
+ *
+ * it possible to set --compartment-color in both pan and quiet? and do this
+ * all in CSS? let's find out!!!!!!
+ * todo adjust percentages when you've had a chance to play with it
+ */
+bento-compartment[pan="-6"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 100%
+	);
 }
 
-.step[data-gain="2"] {
-	opacity: 0.875;
+bento-compartment[pan="-5"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 90%
+	);
 }
 
-.step[data-gain="3"] {
-	opacity: 0.7916666666666666;
+bento-compartment[pan="-4"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 80%
+	);
 }
 
-.step[data-gain="4"] {
-	opacity: 0.7083333333333334;
+bento-compartment[pan="-3"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 70%
+	);
 }
 
-.step[data-gain="5"] {
-	opacity: 0.625;
+bento-compartment[pan="-2"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 60%
+	);
 }
 
-.step[data-gain="6"] {
-	opacity: 0.5416666666666666;
+bento-compartment[pan="-1"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-left-base) 50%
+	);
 }
 
-.step[data-gain="7"] {
-	opacity: 0.4583333333333333;
+bento-compartment[pan="6"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 100%
+	);
 }
 
-.step[data-gain="8"] {
-	opacity: 0.375;
+bento-compartment[pan="5"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 90%
+	);
 }
 
-.step[data-gain="9"] {
-	opacity: 0.2916666666666667;
+bento-compartment[pan="4"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 80%
+	);
 }
 
-.step[data-gain="10"] {
-	opacity: 0.20833333333333334;
+bento-compartment[pan="3"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 70%
+	);
 }
 
-.step[data-gain="11"] {
-	opacity: 0.125;
+bento-compartment[pan="2"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 60%
+	);
 }
 
-.step[data-gain="12"] {
-	opacity: 0.041666666666666664;
+bento-compartment[pan="1"] {
+	--compartment-color: color-mix(
+		in srgb,
+		var(--compartment-on),
+		var(--pan-right-base) 50%
+	);
+}
+
+bento-compartment[quiet="1"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 96%
+	);
+}
+
+bento-compartment[quiet="2"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 88%
+	);
+}
+
+bento-compartment[quiet="3"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 81%
+	);
+}
+
+bento-compartment[quiet="4"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 69%
+	);
+}
+
+bento-compartment[quiet="5"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 63%
+	);
+}
+
+bento-compartment[quiet="6"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 55%
+	);
+}
+
+bento-compartment[quiet="7"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 47%
+	);
+}
+
+bento-compartment[quiet="8"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 39%
+	);
+}
+
+bento-compartment[quiet="9"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 29%
+	);
+}
+
+bento-compartment[quiet="10"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 22%
+	);
+}
+
+bento-compartment[quiet="11"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 13%
+	);
+}
+
+bento-compartment[quiet="12"] {
+	background-color: color-mix(
+		in srgb,
+		var(--compartment-color),
+		var(--quiet-base) 5%
+	);
 }
 
 body:not([chee]) [chee] {
@@ -468,6 +643,23 @@ body:not([chee]) [chee] {
 	margin: 0;
 }
 
+@keyframes fadeaway {
+	to {
+		opacity: 0;
+	}
+}
+
+.tape .counter span:last-child {
+	animation: fadeaway infinite 1.75s alternate ease-in-out;
+}
+
+.tape .counter:empty:after {
+	content: " ";
+	display: block;
+
+	height: 1.15em;
+}
+
 .tape .tape-guide,
 .tape .reel {
 	animation: infinite spinnygoweee linear;
@@ -528,7 +720,7 @@ body:not([chee]) [chee] {
 	--background: var(--background-color);
 }
 
-[recording] .step {
+[recording] bento-compartment {
 	background: none;
 	background-image: none;
 }

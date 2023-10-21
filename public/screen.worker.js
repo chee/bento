@@ -41,10 +41,13 @@ function fillRegion(start, end, fill) {
 	context.fillRect(start, 0, end - start, context.canvas.height)
 }
 
-function drawSampleLine({style, array, x, xm, height, skip = 16}) {
+function drawSampleLine({style, array, x, xm, height}) {
 	context.beginPath()
 	context.strokeStyle = style.line
 	context.lineWidth = style.lineWidth || DPI
+	// trying to make it inversely correlated with the size input so smaller
+	// samples have more accuracy
+	let skip = 0.00025 * array.length
 
 	for (let index in array) {
 		let idx = Number(index)
@@ -106,7 +109,7 @@ function same(one, two) {
 function getReversedRegion(region, soundLength) {
 	return {
 		start: soundLength - region.end,
-		end: soundLength - region.start,
+		end: soundLength - region.start
 	}
 }
 /**
@@ -160,7 +163,7 @@ function postBitmap(memory, context, pattern, step) {
 			array,
 			x: 0,
 			xm: width / length,
-			height,
+			height
 		})
 		let bmp = context.canvas.transferToImageBitmap()
 		bitmapCache[cachename] = bmp
@@ -170,7 +173,7 @@ function postBitmap(memory, context, pattern, step) {
 		bmp: bitmapCache[cachename],
 		pattern,
 		step,
-		cachename,
+		cachename
 	})
 }
 
@@ -215,7 +218,8 @@ function getXMultiplier(context, soundLength) {
 let lastStepDetails
 let lastSoundDetails
 function update(_frame = 0, force = false) {
-	if (!context || !memory || !Memory) return
+	console.log({context, memory})
+	if (!context || !memory) return
 	let stepDetails = Memory.getSelectedStepDetails(memory)
 	let soundDetails = Memory.getSoundDetails(
 		memory,
@@ -260,19 +264,19 @@ function update(_frame = 0, force = false) {
 	let drawingRegion = {
 		start: Memory.drawingRegionStart(memory),
 		// regionX because end will be -1 while region is being drawn
-		end: Memory.drawingRegionX(memory),
+		end: Memory.drawingRegionX(memory)
 	}
 
 	if (drawingRegion.start > drawingRegion.end) {
 		;[drawingRegion.start, drawingRegion.end] = [
 			drawingRegion.end,
-			drawingRegion.start,
+			drawingRegion.start
 		]
 	}
 
 	let pixelRegion = {
 		start: region.start * xm,
-		end: region.end * xm,
+		end: region.end * xm
 	}
 	let hasRegion = pixelRegion.start || pixelRegion.end
 
@@ -287,7 +291,7 @@ function update(_frame = 0, force = false) {
 		array: visibleSound,
 		x: 0,
 		xm,
-		height,
+		height
 	})
 
 	if (hasRegion) {
@@ -305,12 +309,16 @@ function update(_frame = 0, force = false) {
 			array,
 			x: fillStart,
 			xm,
-			height,
+			height
 		})
 	}
 
 	if (regionIsBeingDrawn) {
-		fillRegion(drawingRegion.start, drawingRegion.end, style.drawingRegion.fill)
+		fillRegion(
+			drawingRegion.start,
+			drawingRegion.end,
+			style.drawingRegion.fill
+		)
 		let s = (drawingRegion.start / xm) | 0
 		let e = (drawingRegion.end / xm) | 0
 
@@ -321,7 +329,7 @@ function update(_frame = 0, force = false) {
 			array,
 			x: drawingRegion.start,
 			xm,
-			height,
+			height
 		})
 	}
 

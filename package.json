@@ -1,6 +1,5 @@
 {
 	"name": "bento",
-	"module": "serve.ts",
 	"type": "module",
 	"devDependencies": {
 		"bun-types": "latest",
@@ -15,5 +14,29 @@
 	"dependencies": {
 		"@bitarray/typedarray": "^1.1.1",
 		"@types/audioworklet": "^0.0.50"
+	},
+	"prettier": {
+		"printWidth": 77,
+		"trailingComma": "none",
+		"semi": false,
+		"singleQuote": false,
+		"useTabs": true,
+		"bracketSpacing": false,
+		"bracketSameLine": true,
+		"arrowParens": "avoid",
+		"overrides": [
+			{
+				"files": "*.js",
+				"options": {
+					"parser": "babel-ts"
+				}
+			},
+			{
+				"files": "package.json",
+				"options": {
+					"parser": "json-stringify"
+				}
+			}
+		]
 	}
 }

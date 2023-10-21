@@ -3,6 +3,7 @@ import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import Math from "./math.js"
+import {BentoCompartment, BentoBox, BentoEvent} from "./custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
@@ -11,8 +12,10 @@ let patternSelectors = ui.querySelectorAll(".pattern-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
 let patternSelectorLabels = ui.querySelectorAll(".pattern-selector label")
 
-/** @type {NodeListOf<HTMLInputElement>} */
-let stepInputs = ui.querySelectorAll(".pattern input")
+/** @type {BentoBox} */
+let box = ui.querySelector("bento-box")
+/** @type {Array<BentoCompartment>} */
+let compartments = Array.from(ui.querySelectorAll("bento-compartment"))
 /** @type {HTMLSelectElement} */
 let speedSelector = ui.querySelector('[name="speed"]')
 /** @type {HTMLSelectElement} */
@@ -52,22 +55,12 @@ async function getFancy() {
 
 fancyListeners.map(eventName =>
 	window.addEventListener(eventName, getFancy, {
-		passive: eventName == "touchstart",
+		passive: eventName == "touchstart"
 	})
-)
-fancyListeners.map(eventName =>
-	stepInputs.forEach(stepInput =>
-		stepInput.addEventListener(eventName, getFancy, {
-			passive: eventName == "touchstart",
-		})
-	)
 )
 
 function removeFancyEventListeners() {
 	fancyListeners.map(e => window.removeEventListener(e, getFancy))
-	fancyListeners.map(e =>
-		stepInputs.forEach(l => l.removeEventListener(e, getFancy))
-	)
 }
 
 async function init() {
@@ -87,10 +80,10 @@ async function init() {
 		}
 	})
 
-	stepInputs.forEach((step, stepIndex) => {
-		let chanIndex = Memory.selectedPattern(memory)
-		Memory.stepOn(memory, chanIndex, stepIndex, step.checked)
-	})
+	for (let compartment of compartments) {
+		let selectedPattern = Memory.selectedPattern(memory)
+		Memory.stepOn(memory, selectedPattern, compartment.step, compartment.on)
+	}
 }
 
 function update() {
@@ -106,7 +99,10 @@ function update() {
 		}
 	})
 
-	speedSelector.value = Memory.patternSpeed(memory, selectedPattern).toString()
+	speedSelector.value = Memory.patternSpeed(
+		memory,
+		selectedPattern
+	).toString()
 	let patternLength = Memory.patternLength(memory, selectedPattern)
 	lengthSelector.value = patternLength.toString()
 
@@ -125,23 +121,23 @@ function update() {
 	})
 
 	let selectedStep = Memory.selectedStep(memory)
-	stepInputs.forEach((stepElement, index) => {
-		stepElement.setAttribute(
-			"aria-selected",
-			(index == selectedStep).toString()
-		)
-
+	for (let compartment of compartments) {
+		compartment.selected = compartment.step == selectedStep
 		let currentStep = Memory.currentStep(memory, selectedPattern)
-		stepElement.classList.toggle("playing", index == currentStep)
-		stepElement.checked = Memory.stepOn(memory, selectedPattern, index)
-		stepElement.toggleAttribute("checked", stepElement.checked)
-		stepElement.dataset.gain = Memory.stepGain(
+		compartment.playing = compartment.step == currentStep
+		compartment.on = Memory.stepOn(memory, selectedPattern, compartment.step)
+		compartment.quiet = Memory.stepQuiet(
 			memory,
 			selectedPattern,
-			index
-		).toString()
-		stepElement.toggleAttribute("hidden", index >= patternLength)
-	})
+			compartment.step
+		)
+		compartment.pan = Memory.stepPan(
+			memory,
+			selectedPattern,
+			compartment.step
+		)
+		compartment.hidden = compartment.step >= patternLength
+	}
 
 	requestAnimationFrame(update)
 }
@@ -156,28 +152,6 @@ patternSelectors.forEach((patternSelector, index) => {
 	patternSelector.addEventListener("change", _event => {
 		if (patternSelector.checked) {
 			Memory.selectedPattern(memory, index)
-		}
-	})
-})
-
-stepInputs.forEach((step, index) => {
-	step.addEventListener("mousedown", event => {
-		event.stopImmediatePropagation()
-		event.preventDefault()
-	})
-
-	step.addEventListener("change", () => {
-		if (step.getAttribute("aria-selected") == "true") {
-			Memory.stepOn(memory, Memory.selectedPattern(memory), index, step.checked)
-		} else {
-			Memory.selectedStep(memory, index)
-			step.focus()
-		}
-	})
-
-	step.addEventListener("focus", () => {
-		if (step.getAttribute("aria-selected") != "true") {
-			Memory.selectedStep(memory, index)
 		}
 	})
 })
@@ -239,9 +213,10 @@ screen.addEventListener("dragenter", async event => {
 	screen.classList.add("droptarget")
 })
 
-let noop =
-	/* this runs a billion times a second while a drag is being held on top of the target */
-	screen.addEventListener("dragover", async event => {})
+/* this runs a billion times a second while a drag is being held on top of the target */
+screen.addEventListener("dragover", event => {
+	event.preventDefault()
+})
 
 /* this runs once when drag exits the target's zone */
 screen.addEventListener("dragleave", event => {
@@ -284,11 +259,76 @@ patternSelectorLabels.forEach(pattern => {
 	})
 })
 
-stepInputs.forEach(step => {
-	step.addEventListener("drop", event => {})
-	step.addEventListener("dragstart", event => {
+box.addEventListener(
+	"selected",
+	/** @param {BentoEvent} event */
+	function (event) {
+		console.debug("i won't look back anymore")
+		Memory.selectedStep(memory, event.detail.step)
+	}
+)
+
+box.addEventListener(
+	"on",
+	/** @param {BentoEvent} event */
+	function (event) {
+		let step = event.detail.step
+		Memory.stepOn(memory, Memory.selectedPattern(memory), step, true)
+	}
+)
+
+box.addEventListener(
+	"off",
+	/** @param {BentoEvent} event */
+	function (event) {
+		let step = event.detail.step
+		Memory.stepOn(memory, Memory.selectedPattern(memory), step, false)
+	}
+)
+
+// todo move to <bento-compartment>
+compartments.forEach((compartment, step) => {
+	compartment.addEventListener("drop", event => {
 		event.preventDefault()
-		console.log("stop bullying me")
+
+		if (event.dataTransfer.items) {
+			for (let item of Array.from(event.dataTransfer.items)) {
+				if (item.type == "application/bento.step") {
+					let pattern = Memory.selectedPattern(memory)
+					let to = event.dataTransfer.getData("application/bento.step")
+					Memory.copyStep(
+						memory,
+						{
+							pattern,
+							item
+						},
+						{
+							pattern,
+							item: Number(to)
+						}
+					)
+					console.log({pattern, item, compartment, to})
+				}
+			}
+		}
+	})
+	compartment.addEventListener("dragstart", event => {
+		console.log(step.toString())
+		event.dataTransfer.setData("text/plain", "step " + step.toString())
+		event.dataTransfer.setData("application/bento.step", step.toString())
+		console.log("oh my god why is everyone bullying me")
+	})
+	compartment.addEventListener("dragenter", event => {
+		compartment.classList.add("droptarget")
+		event.preventDefault()
+	})
+	compartment.addEventListener("dragover", event => {
+		compartment.classList.add("droptarget")
+		event.preventDefault()
+	})
+
+	compartment.addEventListener("dragleave", event => {
+		compartment.classList.remove("droptarget")
 	})
 })
 
@@ -312,10 +352,9 @@ window.onmessage = function (event) {
 			? `recording ${length | 0} seconds of sound`
 			: "recording sound"
 		if (recording) {
-			counterElement.textContent = "•".repeat(length)
+			counterElement.innerHTML = "<span>•</span>".repeat(length)
 			recordingCounterInterval = setInterval(function () {
-				counterElement.textContent =
-					counterElement.textContent.slice(0, -1) || " "
+				counterElement.removeChild(counterElement.lastElementChild)
 			}, 1000)
 		} else {
 			clearInterval(recordingCounterInterval)
@@ -337,7 +376,7 @@ document.addEventListener(
 		if (pattern != Memory.selectedPattern(memory)) return
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
-		let stepElement = stepInputs[step]
+		let compartment = compartments[step]
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)
@@ -345,7 +384,7 @@ document.addEventListener(
 				stepWaveformCanvas.toDataURL("image/webp")
 		}
 
-		stepElement.style.backgroundImage = `url(${stepWaveformUrlCache[cachename]})`
+		compartment.style.backgroundImage = `url(${stepWaveformUrlCache[cachename]})`
 	}
 )
 
@@ -354,11 +393,8 @@ for (let [flag, value] of featureflags.entries()) {
 	document.body.setAttribute(flag, value)
 }
 
-/*
- * =============================================================================
- * ================================== hotkeys ==================================
- * =============================================================================
- */
+// ================================= hotkeys ===============================
+// todo let the target element handle more of this
 globalThis.addEventListener(
 	"keydown",
 	/** @param {KeyboardEvent} event */ event => {
@@ -394,7 +430,7 @@ globalThis.addEventListener(
 				alt,
 				meta,
 				shift,
-				any: ctrl | alt | meta | shift,
+				any: ctrl | alt | meta | shift
 			}
 		}
 
@@ -402,6 +438,7 @@ globalThis.addEventListener(
 		let ops = []
 		let mod = modifiers(event)
 
+		// todo don't steal these from the radio selector
 		if (!mod.any && event.key == "ArrowLeft") {
 			ops.push("move")
 			next += leftColumn ? 3 : -1
@@ -423,13 +460,13 @@ globalThis.addEventListener(
 		} else if (mod.shift && boxIndex > -1 && boxIndex < 4) {
 			Memory.selectedPattern(memory, boxIndex)
 		} else if (mod.ctrl && event.key == "ArrowDown") {
-			let gain = Memory.stepGain(memory, chan, selected)
-			gain = clamp(0, gain + 1, 12)
-			Memory.stepGain(memory, chan, selected, gain)
+			let gain = Memory.stepQuiet(memory, chan, selected)
+			gain = Math.clamp(0, gain + 1, 12)
+			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "ArrowUp") {
-			let gain = Memory.stepGain(memory, chan, selected)
-			gain = clamp(0, gain - 1, 12)
-			Memory.stepGain(memory, chan, selected, gain)
+			let gain = Memory.stepQuiet(memory, chan, selected)
+			gain = Math.clamp(0, gain - 1, 12)
+			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "r") {
 			let reversed = Memory.stepReversed(memory, chan, selected)
 			Memory.stepReversed(memory, chan, selected, !reversed)
@@ -442,7 +479,7 @@ globalThis.addEventListener(
 			}
 		} else if (ops.includes("move")) {
 			Memory.selectedStep(memory, next)
-			stepInputs[next].focus()
+			compartments[next].focus()
 		}
 	}
 )

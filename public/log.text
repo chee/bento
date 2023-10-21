@@ -34,3 +34,17 @@ Fri 20 Oct 2023 07:17:13 BST
 when you're making a worker you can pass `{type: "module"}' as its second arg,
 then you can use import/export. up until i learned this i was having a real hard
 time sharing code with the workers.
+
+Sat 21 Oct 2023 06:19:33 BST
+looks like you can't make an input draggable? i was going to use a wrapper div
+for the step boxes, because i'd already ruled out web components due to my
+earlier failed experiment. but then i realized i could use the name "bento-box"
+for a web component so i'm going to do that. the bento box is really the
+.pattern conceptually, but lets not let that get in the way of:
+
+	<bento-box on></bento-box>
+   <bento-box></bento-box>
+	<bento-box></bento-box>
+	<bento-box></bento-box>
+
+or maybe it should just be <bento-box length="16"></bento-box>

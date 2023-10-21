@@ -11,6 +11,17 @@
 	display: swap;
 }
 
+/*
+ * todo
+ *
+ *  - make sure not to use any colours directly that aren't part of the
+ * public interface.
+ *
+ * - separate the colours that are (named by their purpose) from those that
+ * aren't (named by a colour or cute name).
+ *
+ * - enable theming
+ */
 :root {
 	--background-color: #ffe9ed;
 	--line-color: #cc3366;
@@ -21,6 +32,7 @@
 	--intense: #cc1336;
 	--selection-background: "#ffee88";
 	--active: #ff2a50;
+	--weird-green-sea: #4cac9d;
 	--black: #1e1316;
 	--blue: #407acd;
 	--cyan: #22a6cd;
@@ -31,6 +43,7 @@
 	--white: #b8768c;
 	--bright-black: #543641;
 	--bright-blue: #3388ff;
+	--orla-foster: #3399ff;
 	--bright-cyan: #2ec2ff;
 	--bright-green: #01b9a4;
 	--bright-magenta: #af40cb;
@@ -70,6 +83,10 @@
 	font-family: var(--font-family);
 	font-size: 2.2em;
 	line-height: 1.15;
+}
+
+::selection {
+	background: transparent;
 }
 
 [screenreader] {
@@ -113,6 +130,8 @@ h1 {
 	width: var(--total-width);
 	color: var(--line);
 	position: relative;
+	user-select: none;
+	--webkit-user-select: none;
 }
 
 fieldset {
@@ -262,8 +281,8 @@ label:has([name="record"]:focus) {
 	height: 100%;
 }
 
-.droptarget {
-	outline: 4px solid var(--green);
+[drop-target] {
+	outline: 4px solid var(--weird-green-sea);
 }
 
 figure.waveform canvas {
@@ -322,13 +341,20 @@ bento-compartment {
 	--compartment-color: var(--compartment-off);
 	background: var(--compartment-color);
 	color: var(--compartment-line);
+	user-select: none;
+	--webkit-user-select: none;
 }
 
 bento-compartment .wav {
 	width: 100%;
 	height: 100%;
 	image-rendering: optimizeQuality;
+	user-select: none;
+	pointer-events: none;
 	display: none;
+	user-select: none;
+	--webkit-user-select: none;
+	-webkit-user-drag: none;
 }
 
 bento-compartment[on][with-wav] .wav {

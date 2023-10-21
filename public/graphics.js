@@ -16,6 +16,8 @@ export const Screen = {
 }
 
 export const DPI = 3
+
+// todo style tokens?
 export const style = {
 	normal: {
 		fill: "#00000000",
@@ -25,7 +27,7 @@ export const style = {
 	},
 	step: {
 		fill: "#00000000",
-		line: "white"
+		line: "#fff"
 	},
 	region: {
 		fill: "#ffffffff",

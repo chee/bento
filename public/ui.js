@@ -202,40 +202,77 @@ recordButton.addEventListener("click", async () => {
 	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
 })
 
+// TODO move to <bento-screen/> (when that exists)
 /* this runs once when drag enters the target's zone */
 screen.addEventListener("dragenter", async event => {
-	console.log(event.type)
+	event.preventDefault()
 	if (!fancy()) {
-		return
+		await getFancy()
+	}
+
+	let {items} = event.dataTransfer
+
+	// todo allow dragging a clip to the screen to trim the sound to the length
+	// of its region
+	for (let item of Array.from(items)) {
+		// TODO restrict to supported formats by trying to decode a silent audio
+		// item of all the formats anyone supports?
+		if (item.kind == "file") {
+			if (item.type.startsWith("audio/")) {
+				screen.setAttribute("drop-target", "")
+			} else {
+				console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+			}
+		}
 	}
 	event.preventDefault()
-	screen.classList.add("droptarget")
 })
 
-/* this runs a billion times a second while a drag is being held on top of the target */
+/* this runs a billion times a second while a drag is being held on top of the
+   target */
 screen.addEventListener("dragover", event => {
 	event.preventDefault()
+
+	if (!fancy() || screen.hasAttribute("drop-target")) {
+		return
+	}
+
+	let {items} = event.dataTransfer
+
+	// todo allow dragging a clip to the screen to trim the sound to the length
+	// of its region
+	for (let item of Array.from(items)) {
+		// TODO restrict to supported formats by trying to decode a silent audio
+		// item of all the formats anyone supports?
+		if (item.kind == "file") {
+			if (item.type.startsWith("audio/")) {
+				screen.setAttribute("drop-target", "")
+			} else {
+				console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+			}
+		}
+	}
 })
 
 /* this runs once when drag exits the target's zone */
 screen.addEventListener("dragleave", event => {
+	event.preventDefault()
 	console.log(event.type)
 	if (!fancy()) {
 		return
 	}
-	event.preventDefault()
-	screen.classList.remove("droptarget")
+	screen.removeAttribute("drop-target")
 })
 
 /* i don't know when this runs. seems never */
 screen.addEventListener("dragend", () => {})
 
 screen.addEventListener("drop", async event => {
-	if (!fancy()) {
-		return
-	}
 	event.preventDefault()
-	screen.classList.remove("droptarget")
+	if (!fancy()) {
+		await getFancy()
+	}
+	screen.removeAttribute("drop-target")
 	if (event.dataTransfer.items) {
 		for (let item of Array.from(event.dataTransfer.items)) {
 			if (item.kind == "file") {
@@ -254,7 +291,6 @@ patternSelectorLabels.forEach(pattern => {
 	pattern.addEventListener("drop", event => {})
 	pattern.addEventListener("dragstart", event => {
 		event.preventDefault()
-		console.log("stop bullying me", event)
 	})
 })
 
@@ -285,51 +321,16 @@ box.addEventListener(
 	}
 )
 
-// todo move to <bento-compartment>
-compartments.forEach((compartment, step) => {
-	compartment.addEventListener("drop", event => {
-		event.preventDefault()
-
-		if (event.dataTransfer.items) {
-			for (let item of Array.from(event.dataTransfer.items)) {
-				if (item.type == "application/bento.step") {
-					let pattern = Memory.selectedPattern(memory)
-					let to = event.dataTransfer.getData("application/bento.step")
-					Memory.copyStep(
-						memory,
-						{
-							pattern,
-							item
-						},
-						{
-							pattern,
-							item: Number(to)
-						}
-					)
-					console.log({pattern, item, compartment, to})
-				}
-			}
-		}
-	})
-	compartment.addEventListener("dragstart", event => {
-		console.log(step.toString())
-		event.dataTransfer.setData("text/plain", "step " + step.toString())
-		event.dataTransfer.setData("application/bento.step", step.toString())
-		console.log("oh my god why is everyone bullying me")
-	})
-	compartment.addEventListener("dragenter", event => {
-		compartment.classList.add("droptarget")
-		event.preventDefault()
-	})
-	compartment.addEventListener("dragover", event => {
-		compartment.classList.add("droptarget")
-		event.preventDefault()
-	})
-
-	compartment.addEventListener("dragleave", event => {
-		compartment.classList.remove("droptarget")
-	})
-})
+box.addEventListener(
+	"copy",
+	/** @param {BentoEvent} event */
+	function (event) {
+		event.stopPropagation()
+		let {from, to} = event.detail
+		Memory.copyStepWithinSelectedPattern(memory, from, to)
+		Memory.selectedStep(memory, to)
+	}
+)
 
 let recordingCounterInterval
 /**

@@ -676,17 +676,25 @@ export function getSelectedStepDetails(memory) {
 	)
 }
 
-export function copyStep(memory, from, to) {
-	let fromDetails = getStepDetails(memory, from.pattern, from.step)
+/**
+ * copy one step's copyable details to another
+ * @param {MemoryMap} memory
+ * @param {number} from
+ * @param {number} to
+ */
+export function copyStepWithinSelectedPattern(memory, from, to) {
+	let pattern = selectedPattern(memory)
+	let fromDetails = getStepDetails(memory, pattern, from)
+	stepRegion(memory, pattern, to, fromDetails.region)
+	stepQuiet(memory, pattern, to, fromDetails.quiet)
+	stepPan(memory, pattern, to, fromDetails.pan)
+	stepOn(memory, pattern, to, fromDetails.on)
+	stepReversed(memory, pattern, to, fromDetails.reversed)
+
+	// let version = memory.soundVersions.at(pattern)
 	// let snd = sound(memory, pattern)
-	// soundLength(memory, pattern)
-	stepRegion(memory, to.pattern, to.step, fromDetails.region)
+	// let length = soundLength(memory, pattern)
 	// let attack = stepAttack(memory, pattern, step)
 	// let release = stepRelease(memory, pattern, step)
-	stepQuiet(memory, to.pattern, to.step, fromDetails.quiet)
-	stepPan(memory, to.pattern, to.step, fromDetails.pan)
 	// let pitch = stepPitch(memory, pattern, step)
-	stepOn(memory, to.pattern, to.step, fromDetails.on)
-	stepReversed(memory, to.pattern, to.step, fromDetails.reversed)
-	// memory.soundVersions.at(pattern)
 }

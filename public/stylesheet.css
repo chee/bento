@@ -366,6 +366,7 @@ bento-compartment {
 	color: var(--compartment-line);
 	user-select: none;
 	--webkit-user-select: none;
+	transition: background 0.022s ease-in-out;
 }
 
 bento-compartment .wav {

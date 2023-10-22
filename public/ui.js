@@ -48,6 +48,11 @@ async function getFancy() {
 		graphics.start(screenWaveformCanvas, buffer)
 	}
 	if (sounds.fancy() && graphics.fancy()) {
+		try {
+			await db.load()
+		} catch (error) {
+			console.error("couldnt load bento, oh well :(")
+		}
 		document.body.setAttribute("fancy", "fancy")
 		removeFancyEventListeners()
 	}
@@ -67,11 +72,7 @@ async function init() {
 	graphics.init(screenWaveformCanvas)
 	sounds.init()
 	await db.init(buffer)
-	// keeping this deactivated until i have time to do it right
-	// because broken service workers are a fucking nightmare
-	// if (location.search == "?offline") {
-	// 	await offline.init()
-	// }
+
 	Memory.bpm(memory, Number(bpmInput.value))
 	loop.patterns(pidx => {
 		Memory.patternSpeed(memory, pidx, 1)
@@ -85,6 +86,12 @@ async function init() {
 		let selectedPattern = Memory.selectedPattern(memory)
 		Memory.stepOn(memory, selectedPattern, compartment.step, compartment.on)
 	}
+
+	// keeping this deactivated until i have time to do it right
+	// because broken service workers are a fucking nightmare
+	// if (location.search == "?offline") {
+	// await offline.init()
+	// }
 }
 
 function update() {
@@ -144,6 +151,7 @@ function update() {
 }
 
 await init()
+getFancy()
 update()
 
 patternSelectors.forEach((patternSelector, index) => {
@@ -259,7 +267,6 @@ screen.addEventListener("dragover", event => {
 /* this runs once when drag exits the target's zone */
 screen.addEventListener("dragleave", event => {
 	event.preventDefault()
-	console.log(event.type)
 	if (!fancy()) {
 		return
 	}
@@ -487,3 +494,31 @@ globalThis.addEventListener(
 		}
 	}
 )
+
+let optionsButton = ui.querySelector("[name='options']")
+let optionsDialog = /** @type {HTMLDialogElement} */ (
+	ui.querySelector(".save-dialog")
+)
+let dialogCloseButton = ui.querySelector("dialog .close")
+
+optionsButton.addEventListener("click", () => {
+	optionsDialog.show()
+})
+
+dialogCloseButton.addEventListener("click", function () {
+	this.closest("dialog").close()
+})
+
+let saveButton = /** @type {HTMLInputElement} */ (
+	optionsDialog.querySelector("[name='save']")
+)
+
+saveButton.addEventListener("click", async function () {
+	await db.save()
+	this.value = "safe :>"
+	await new Promise(yay => {
+		setTimeout(yay, 500)
+	})
+	saveButton.closest("dialog").close()
+	this.value = "save bento for later"
+})

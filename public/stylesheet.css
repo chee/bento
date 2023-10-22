@@ -779,8 +779,76 @@ body:not([chee]) [chee] {
 	--background: var(--background-color);
 }
 
+[recording] bento-box {
+	visibility: hidden;
+}
+
 [recording] bento-compartment {
 	background: none;
 	background-image: none;
 }
 /* </backup-plan> */
+
+dialog {
+	box-sizing: border-box;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
+	height: 100%;
+	width: 100%;
+	color: var(--background);
+	padding: 1em;
+	background: var(--orla-foster);
+	color: var(--holy-light);
+}
+
+dialog * {
+	box-sizing: border-box;
+}
+
+dialog .close {
+	position: absolute;
+	top: 0.25em;
+	right: 0.25em;
+	background: transparent;
+	color: currentColor;
+	border: none;
+	appearance: none;
+	font-size: 1rem;
+	cursor: pointer;
+	overflow: hidden;
+	text-align: center;
+	width: 2em;
+}
+
+dialog .button {
+	border: 4px solid;
+	--other-edge: color-mix(in srgb, var(--orla-foster) 60%, var(--holy-dark));
+	border-bottom-color: var(--other-edge);
+	border-right-color: var(--other-edge);
+	background: color-mix(in srgb, var(--orla-foster) 90%, var(--holy-light));
+	color: color-mix(in srgb, var(--orla-foster) 15%, var(--holy-light));
+}
+
+dialog .content {
+	display: flex;
+	margin-top: 2em;
+	font-size: 0.8rem;
+}
+
+dialog .button:hover,
+dialog .button:focus {
+	color: var(--holy-light);
+}
+
+dialog .button:active {
+	border-color: var(--other-edge) currentColor currentColor var(--other-edge);
+}
+
+dialog .content .button {
+	max-width: unset;
+	white-space: break-spaces;
+	width: 100%;
+}

@@ -8,6 +8,14 @@ let memory
 /** @type {SharedArrayBuffer} */
 let buffer
 
+function getId() {
+	return (
+		(typeof window != "undefined" &&
+			window.location?.pathname.match(/\/box\/(.*)/)?.[0]) ||
+		"?"
+	)
+}
+
 /**
  * get started
  *
@@ -57,9 +65,7 @@ export async function init(sab) {
 	})
 }
 
-export async function load(
-	id = globalThis.location?.pathname?.slice(1) || "?"
-) {
+export async function load(id = getId(), now = true) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to load before init")
 	}
@@ -68,24 +74,21 @@ export async function load(
 		let store = trans.objectStore("box")
 		let object = await new Promise((yay, boo) => {
 			let get = store.get(id)
-			get.onsuccess = event => yay(get.result)
+			get.onsuccess = () => yay(get.result)
 			get.onerror = error => boo(error)
 		})
 
-		if (object) {
-			console.info("obje", object)
-			console.info("memmy", Memory.map(object))
+		if (object && now) {
 			Memory.map(buffer, object)
 		}
-		return object
+
+		return !!object
 	} catch (error) {
 		console.error("i'm so sorry", error)
 	}
 }
 
-export async function save(
-	id = globalThis.location?.pathname?.slice(1) || "?"
-) {
+export async function save(id = getId()) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to load before init")
 	}
@@ -97,6 +100,3 @@ export async function save(
 	// object.id = id
 	store.put(Memory.map(object, memory), id)
 }
-
-globalThis.save = save
-globalThis.load = load

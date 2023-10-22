@@ -3,7 +3,7 @@
 	<meta charset="utf-8">
 	<title>bento sampler + sequencer</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="stylesheet.css">
+	<link rel="stylesheet" href="/stylesheet.css">
 	<meta name="theme-color" content="#ffe9ed">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
@@ -14,9 +14,9 @@
 	<meta property="og:image" content="/apple-touch-icon.png?0">
 	<meta name="twitter:card" content="summary">
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png?0">
-	<script src="extend-native-prototypes.js"></script>
+	<script src="/extend-native-prototypes.js"></script>
 	<script type="module">
-		import * as elements from "./custom-elements.js"
+		import * as elements from "/custom-elements.js"
 		elements.init()
 	</script>
 
@@ -31,17 +31,17 @@
 						type="button"
 						name="play"
 						value="▶&#xfe0e;"
-						aria-label="stop">
+						aria-label="Start or restart the music">
 					<input
 						type="button"
 						name="pause"
 						value="⏸&#xfe0e;"
-						aria-label="stop">
+						aria-label="Pause the music">
 					<input
 						type="button"
 						name="stop"
 						value="⏹&#xfe0e;"
-						aria-label="stop"
+						aria-label="Stop the music"
 						hidden>
 					<input
 						name="bpm"
@@ -51,9 +51,12 @@
 						min="20"
 						value="120"
 						autocomplete="off"
-						id="bpm"
-						aria-label="bpm">
-
+						aria-label="Set the bpm">
+					<input
+						name="options"
+						type="button"
+						aria-label="Open the options"
+						value="•••">
 				</fieldset>
 
 				<fieldset class="pattern-selector">
@@ -185,7 +188,9 @@
 						<figcaption screenreader>recording</figcaption>
 					</figure>
 					<p class="counter">•</p>
-				</figure>
+				</div>
+			</article>
+			<article class="options">
 			</article>
 			<nav class="screen-selector" chee>
 				<fieldset>
@@ -213,8 +218,18 @@
 			</nav>
 			<bento-box>
 			</bento-box>
+			<dialog class="save-dialog">
+				<button class="close button" aria-label="close">✝</button>
+				<div class="content">
+					<input
+						class="button"
+						name="save"
+						type="button"
+						aria-label="Save your bento for later"
+						value="save bento for later">
+					</div>
+			</dialog>
 		</form>
 
-
 	</article>
-	<script type="module" src="ui.js"></script>
+	<script type="module" src="/ui.js"></script>

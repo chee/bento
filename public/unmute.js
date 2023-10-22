@@ -5,26 +5,35 @@
  * unmute is a disgusting hack that helps..
  * 	1) automatically resume web audio contexts on user interaction
  * 	2) automatically pause and resume web audio when the page is hidden.
- * 	3) ios only: web audio play on the media channel rather than the ringer channel
+ * 	3) ios only: web audio play on the media channel rather than the ringer
+         channel
  * 	4) ios only: disable the media playback widget and airplay when:
  *
- * WebAudio is automatically resumed by checking context state and resuming whenever possible.
+ * WebAudio is automatically resumed by checking context state and resuming
+   whenever possible.
  *
- * WebAudio pausing is accomplished by watching the page visilibility API. When on iOS, page focus
- * is also used to determine if the page is in the foreground because Apple's page vis api implementation is buggy.
+ * WebAudio pausing is accomplished by watching the page visilibility API. When
+ * on iOS, page focus is also used to determine if the page is in the foreground
+ * because Apple's page vis api implementation is buggy.
  *
- * iOS Only: Forcing WebAudio onto the media channel (instead of the ringer channel) works by playing
- * a short, high-quality, silent html audio track continuously when web audio is playing.
+ * iOS Only: Forcing WebAudio onto the media channel (instead of the ringer
+ * channel) works by playing a short, high-quality, silent html audio track
+ * continuously when web audio is playing.
  *
- * iOS Only: Hiding the media playback widgets on iOS is accomplished by completely nuking the silent
- * html audio track whenever the app isn't in the foreground.
+ * iOS Only: Hiding the media playback widgets on iOS is accomplished by
+ * completely nuking the silent html audio track whenever the app isn't in the
+ * foreground.
  *
- * iOS detection is done by looking at the user agent for iPhone, iPod, iPad. This detects the phones fine, but
- * apple likes to pretend their new iPads are computers (lol right..). Newer iPads are detected by finding
- * mac osx in the user agent and then checking for touch support by testing navigator.maxTouchPoints > 0.
+ * iOS detection is done by looking at the user agent for iPhone, iPod,
+ * iPad. This detects the phones fine, but apple likes to pretend their new
+ * iPads are computers (lol right..). Newer iPads are detected by finding mac
+ * osx in the user agent and then checking for touch support by testing
+ * navigator.maxTouchPoints > 0.
  *
+
  * This is all really gross and apple should really fix their janky browser.
- * This code isn't optimized in any fashion, it is just whipped up to help someone out on stack overflow, its just meant as an example.
+ * This code isn't optimized in any fashion, it is just whipped up to help
+ * someone out on stack overflow, its just meant as an example.
  */
 /**
  * Enables unmute.
@@ -48,35 +57,38 @@ export default function unmute(
 	// Determine the page visibility api
 	var pageVisibilityAPI
 	if (document.hidden !== undefined)
-		pageVisibilityAPI = {hidden: "hidden", visibilitychange: "visibilitychange"}
+		pageVisibilityAPI = {
+			hidden: "hidden",
+			visibilitychange: "visibilitychange"
+		}
 	else if (document.webkitHidden !== undefined)
 		pageVisibilityAPI = {
 			hidden: "webkitHidden",
-			visibilitychange: "webkitvisibilitychange",
+			visibilitychange: "webkitvisibilitychange"
 		}
 	else if (document.mozHidden !== undefined)
 		pageVisibilityAPI = {
 			hidden: "mozHidden",
-			visibilitychange: "mozvisibilitychange",
+			visibilitychange: "mozvisibilitychange"
 		}
 	else if (document.msHidden !== undefined)
 		pageVisibilityAPI = {
 			hidden: "msHidden",
-			visibilitychange: "msvisibilitychange",
+			visibilitychange: "msvisibilitychange"
 		}
 	// Helpers to add/remove a bunch of event listeners
 	function addEventListeners(target, events, handler, capture, passive) {
 		for (var i = 0; i < events.length; ++i)
 			target.addEventListener(events[i], handler, {
 				capture: capture,
-				passive: passive,
+				passive: passive
 			})
 	}
 	function removeEventListeners(target, events, handler, capture, passive) {
 		for (var i = 0; i < events.length; ++i)
 			target.removeEventListener(events[i], handler, {
 				capture: capture,
-				passive: passive,
+				passive: passive
 			})
 	}
 	/**
@@ -177,7 +189,13 @@ export default function unmute(
 			updateContextState()
 		}
 	}
-	addEventListeners(context, ["statechange"], context_statechange, true, true) // NOTE: IIRC some devices don't support the onstatechange event callback, so handle it both ways
+	addEventListeners(
+		context,
+		["statechange"],
+		context_statechange,
+		true,
+		true
+	) // NOTE: IIRC some devices don't support the onstatechange event callback, so handle it both ways
 	if (!context.onstatechange) context.onstatechange = context_statechange // NOTE: IIRC older androids don't support the statechange event via addeventlistener, so handle it both ways
 	//#endregion
 	//#region HTML Audio Channel State
@@ -272,7 +290,7 @@ export default function unmute(
 		"mouseup",
 		"touchend",
 		"keydown",
-		"keyup",
+		"keyup"
 	]
 	/** Tracks if a media playback event has occurred */
 	var hasMediaPlaybackEventOccurred = false
@@ -334,6 +352,6 @@ export default function unmute(
 			)
 			if (context.onstatechange === context_statechange)
 				context.onstatechange = null
-		},
+		}
 	}
 }

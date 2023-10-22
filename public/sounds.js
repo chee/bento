@@ -67,7 +67,7 @@ export async function recordSound() {
 		globalThis.postMessage({
 			type: "recording",
 			recording: true,
-			length: MAX_RECORDING_LENGTH,
+			length: MAX_RECORDING_LENGTH
 		})
 		await new Promise(async yay => {
 			await wait(MAX_RECORDING_LENGTH)
@@ -76,7 +76,9 @@ export async function recordSound() {
 		})
 		globalThis.postMessage({type: "recording", recording: false})
 
-		return normalize(trim(await decode(new Blob(blobs, {type: blobs[0].type}))))
+		return normalize(
+			trim(await decode(new Blob(blobs, {type: blobs[0].type})))
+		)
 	} catch (error) {
 		// TODO show error in UI
 		alert(
@@ -92,15 +94,15 @@ export async function recordSound() {
  */
 async function fetchSound(name, ext = "wav") {
 	try {
-		let sound = await fetch(`./sounds/${name}.${ext}`)
+		let sound = await fetch(`/sounds/${name}.${ext}`)
 		return decode(sound)
 	} catch (error) {
 		console.error(`:< unable to fetch the audio file: ${name}`, error)
 	}
 }
 
-await context.audioWorklet.addModule("./bako.worklet.js")
-await context.audioWorklet.addModule("./expression.worklet.js")
+await context.audioWorklet.addModule("/bako.worklet.js")
+await context.audioWorklet.addModule("/expression.worklet.js")
 
 let [kick, snar, hhat, open] = await Promise.all(
 	["skk", "sks", "skh", "sko"].map(s => fetchSound(s))
@@ -167,7 +169,7 @@ export async function start(buffer) {
 			new AudioWorkletNode(context, "bako", {
 				processorOptions: {buffer, patternNumber},
 				channelCount: 2,
-				outputChannelCount: [2],
+				outputChannelCount: [2]
 			})
 	)
 

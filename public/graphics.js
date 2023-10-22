@@ -40,7 +40,7 @@ export const style = {
 }
 
 // TODO add another tiny translucent canvas for the region
-export let IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN =
+export let IS_BASICALLY_A_PHONE =
 	typeof window != "undefined" &&
 	window.matchMedia("(pointer: coarse)").matches
 
@@ -215,9 +215,7 @@ export function start(canvas, buffer) {
 	screenWorker.onmessage = onWorkerMessage
 	memory = Memory.map(buffer)
 
-	if (
-		IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
-	) {
+	if (IS_BASICALLY_A_PHONE) {
 		canvas.addEventListener("touchstart", startSelectingRegionWithFinger, {
 			passive: true
 		})

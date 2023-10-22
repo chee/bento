@@ -377,9 +377,7 @@ onmessage = async event => {
 		context.stroke()
 
 		let action = "click"
-		if (
-			graphics.IS_PRIMARILY_A_TOUCH_DEVICE_LIKE_A_PHONE_NOT_A_LAPTOP_WITH_A_TOUCH_SCREEN
-		) {
+		if (graphics.IS_BASICALLY_A_PHONE) {
 			action = "tap"
 		}
 

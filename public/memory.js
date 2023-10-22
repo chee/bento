@@ -128,18 +128,25 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
 
  */
 /**
- * @param {SharedArrayBuffer} buffer
+ * @param {SharedArrayBuffer | ArrayBuffer} buffer
+ * @param {MemoryMap} [from]
  * @returns {MemoryMap}
  */
-export function map(buffer) {
+export function map(buffer, from) {
 	/** @type {MemoryMap}*/
 	// @ts-ignore: i know what i'm doing
 	let memory = {}
 	let offset = 0
-	for (let array of arrays) {
+	for (let arrayInfo of arrays) {
 		// TODO handle the offset needing to be a multiple of BYTES_PER_ELEMENT
-		memory[array.name] = new array.type(buffer, offset, array.size)
-		offset += array.size * array.type.BYTES_PER_ELEMENT
+		let array = (memory[arrayInfo.name] =
+			/** @type {typeof arrayInfo.type.prototype} */ (
+				new arrayInfo.type(buffer, offset, arrayInfo.size)
+			))
+		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
+		if (from) {
+			array.set(from[arrayInfo.name])
+		}
 	}
 	return memory
 }

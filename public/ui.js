@@ -2,6 +2,7 @@ import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
+import * as db from "./db.js"
 import {BentoCompartment, BentoBox, BentoEvent} from "./custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
@@ -65,6 +66,7 @@ function removeFancyEventListeners() {
 async function init() {
 	graphics.init(screenWaveformCanvas)
 	sounds.init()
+	await db.init(buffer)
 	// keeping this deactivated until i have time to do it right
 	// because broken service workers are a fucking nightmare
 	// if (location.search == "?offline") {

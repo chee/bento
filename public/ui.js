@@ -4,22 +4,22 @@ import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as db from "./db.js"
 import {
-	BentoCompartment,
 	BentoBox,
+	BentoGrid,
 	BentoEvent
 } from "./custom-elements/custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
 /** @type {NodeListOf<HTMLInputElement>} */
-let patternSelectors = ui.querySelectorAll(".pattern-selector input")
+let layerSelectors = ui.querySelectorAll(".layer-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
-let patternSelectorLabels = ui.querySelectorAll(".pattern-selector label")
+let layerSelectorLabels = ui.querySelectorAll(".layer-selector label")
 
-/** @type {BentoBox} */
-let box = ui.querySelector("bento-box")
-/** @type {Array<BentoCompartment>} */
-let compartments = Array.from(ui.querySelectorAll("bento-compartment"))
+/** @type {BentoGrid} */
+let grid = ui.querySelector("bento-grid")
+/** @type {Array<BentoBox>} */
+let boxes = Array.from(ui.querySelectorAll("bento-box"))
 /** @type {HTMLSelectElement} */
 let speedSelector = ui.querySelector('[name="speed"]')
 /** @type {HTMLSelectElement} */
@@ -77,17 +77,17 @@ async function init() {
 	await db.init(buffer)
 
 	Memory.bpm(memory, Number(bpmInput.value))
-	loop.patterns(pidx => {
-		Memory.patternSpeed(memory, pidx, 1)
-		Memory.patternLength(memory, pidx, 16)
-		if (patternSelectors[pidx].checked) {
-			Memory.selectedPattern(memory, pidx)
+	loop.layers(pidx => {
+		Memory.layerSpeed(memory, pidx, 1)
+		Memory.layerLength(memory, pidx, 16)
+		if (layerSelectors[pidx].checked) {
+			Memory.selectedLayer(memory, pidx)
 		}
 	})
 
-	for (let compartment of compartments) {
-		let selectedPattern = Memory.selectedPattern(memory)
-		Memory.stepOn(memory, selectedPattern, compartment.step, compartment.on)
+	for (let box of boxes) {
+		let selectedLayer = Memory.selectedLayer(memory)
+		Memory.stepOn(memory, selectedLayer, box.step, box.on)
 	}
 
 	// keeping this deactivated until i have time to do it right
@@ -98,7 +98,7 @@ async function init() {
 }
 
 function update(frame = 0) {
-	let selectedPattern = Memory.selectedPattern(memory)
+	let selectedLayer = Memory.selectedLayer(memory)
 	let bpm = Memory.bpm(memory).toString()
 	speedSelector.querySelectorAll("option").forEach(option => {
 		let label = option.dataset.label || option.value
@@ -110,37 +110,33 @@ function update(frame = 0) {
 		}
 	})
 
-	speedSelector.value = Memory.patternSpeed(memory, selectedPattern).toString()
-	let patternLength = Memory.patternLength(memory, selectedPattern)
-	lengthSelector.value = patternLength.toString()
+	speedSelector.value = Memory.layerSpeed(memory, selectedLayer).toString()
+	let layerLength = Memory.layerLength(memory, selectedLayer)
+	lengthSelector.value = layerLength.toString()
 
 	playButton.classList.toggle("playing", Memory.playing(memory))
 	if (bpmInput != document.activeElement) {
 		bpmInput.value = bpm
 	}
 
-	patternSelectors.forEach((patternSelector, index) => {
-		patternSelector.checked = index == selectedPattern
-		patternSelector.toggleAttribute("checked", index == selectedPattern)
-		patternSelector.parentElement.classList.toggle(
+	layerSelectors.forEach((layerSelector, index) => {
+		layerSelector.checked = index == selectedLayer
+		layerSelector.toggleAttribute("checked", index == selectedLayer)
+		layerSelector.parentElement.classList.toggle(
 			"checked",
-			index == selectedPattern
+			index == selectedLayer
 		)
 	})
 
 	let selectedStep = Memory.selectedStep(memory)
-	for (let compartment of compartments) {
-		compartment.selected = compartment.step == selectedStep
-		let currentStep = Memory.currentStep(memory, selectedPattern)
-		compartment.playing = compartment.step == currentStep
-		compartment.on = Memory.stepOn(memory, selectedPattern, compartment.step)
-		compartment.quiet = Memory.stepQuiet(
-			memory,
-			selectedPattern,
-			compartment.step
-		)
-		compartment.pan = Memory.stepPan(memory, selectedPattern, compartment.step)
-		compartment.hidden = compartment.step >= patternLength
+	for (let box of boxes) {
+		box.selected = box.step == selectedStep
+		let currentStep = Memory.currentStep(memory, selectedLayer)
+		box.playing = box.step == currentStep
+		box.on = Memory.stepOn(memory, selectedLayer, box.step)
+		box.quiet = Memory.stepQuiet(memory, selectedLayer, box.step)
+		box.pan = Memory.stepPan(memory, selectedLayer, box.step)
+		box.hidden = box.step >= layerLength
 	}
 
 	requestAnimationFrame(update)
@@ -150,13 +146,13 @@ await init()
 getFancy()
 update()
 
-patternSelectors.forEach((patternSelector, index) => {
+layerSelectors.forEach((layerSelector, index) => {
 	/**
 	 * @param {InputEvent} _event
 	 */
-	patternSelector.addEventListener("change", _event => {
-		if (patternSelector.checked) {
-			Memory.selectedPattern(memory, index)
+	layerSelector.addEventListener("change", _event => {
+		if (layerSelector.checked) {
+			Memory.selectedLayer(memory, index)
 		}
 		db.save()
 	})
@@ -182,17 +178,17 @@ bpmInput.addEventListener("change", () => {
 })
 
 speedSelector.addEventListener("change", () => {
-	Memory.patternSpeed(
+	Memory.layerSpeed(
 		memory,
-		Memory.selectedPattern(memory),
+		Memory.selectedLayer(memory),
 		Number(speedSelector.value)
 	)
 })
 
 lengthSelector.addEventListener("change", () => {
-	Memory.patternLength(
+	Memory.layerLength(
 		memory,
-		Memory.selectedPattern(memory),
+		Memory.selectedLayer(memory),
 		Number(lengthSelector.value)
 	)
 })
@@ -203,7 +199,7 @@ recordButton.addEventListener("click", async () => {
 	}
 	document.body.setAttribute("recording", "recording")
 	let audio = await sounds.recordSound()
-	sounds.setSound(memory, Memory.selectedPattern(memory), audio)
+	sounds.setSound(memory, Memory.selectedLayer(memory), audio)
 })
 
 // TODO move to <bento-screen/> (when that exists)
@@ -282,7 +278,7 @@ screen.addEventListener("drop", async event => {
 				let file = item.getAsFile()
 				sounds.setSound(
 					memory,
-					Memory.selectedPattern(memory),
+					Memory.selectedLayer(memory),
 					await sounds.decode(file)
 				)
 			}
@@ -290,14 +286,14 @@ screen.addEventListener("drop", async event => {
 	}
 })
 
-patternSelectorLabels.forEach(pattern => {
-	pattern.addEventListener("drop", event => {})
-	pattern.addEventListener("dragstart", event => {
+layerSelectorLabels.forEach(layer => {
+	layer.addEventListener("drop", event => {})
+	layer.addEventListener("dragstart", event => {
 		event.preventDefault()
 	})
 })
 
-box.addEventListener(
+grid.addEventListener(
 	"selected",
 	/** @param {BentoEvent} event */
 	function (event) {
@@ -306,33 +302,33 @@ box.addEventListener(
 	}
 )
 
-box.addEventListener(
+grid.addEventListener(
 	"on",
 	/** @param {BentoEvent} event */
 	function (event) {
 		let step = event.detail.step
-		Memory.stepOn(memory, Memory.selectedPattern(memory), step, true)
+		Memory.stepOn(memory, Memory.selectedLayer(memory), step, true)
 		db.save()
 	}
 )
 
-box.addEventListener(
+grid.addEventListener(
 	"off",
 	/** @param {BentoEvent} event */
 	function (event) {
 		let step = event.detail.step
-		Memory.stepOn(memory, Memory.selectedPattern(memory), step, false)
+		Memory.stepOn(memory, Memory.selectedLayer(memory), step, false)
 		db.save()
 	}
 )
 
-box.addEventListener(
+grid.addEventListener(
 	"copy",
 	/** @param {BentoEvent} event */
 	function (event) {
 		event.stopPropagation()
 		let {from, to} = event.detail
-		Memory.copyStepWithinSelectedPattern(memory, from, to)
+		Memory.copyStepWithinSelectedLayer(memory, from, to)
 		Memory.selectedStep(memory, to)
 		db.save()
 	}
@@ -369,7 +365,7 @@ window.onmessage = function (event) {
 }
 
 let stepWaveformCanvas = document.createElement("canvas")
-// todo maybe keep this in the bento box?
+// todo maybe keep this in the bento grid?
 // maybe all this?
 let stepWaveformUrlCache = {}
 document.addEventListener(
@@ -380,11 +376,11 @@ document.addEventListener(
 	async ({detail}) => {
 		/** @type {ImageBitmap} */
 		let bmp = detail.bmp
-		let {pattern, step, cachename} = detail
-		if (pattern != Memory.selectedPattern(memory)) return
+		let {layer, step, cachename} = detail
+		if (layer != Memory.selectedLayer(memory)) return
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
-		let compartment = compartments[step]
+		let box = boxes[step]
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)
@@ -392,7 +388,7 @@ document.addEventListener(
 				stepWaveformCanvas.toDataURL("image/webp")
 		}
 
-		compartment.wav = stepWaveformUrlCache[cachename]
+		box.wav = stepWaveformUrlCache[cachename]
 	}
 )
 
@@ -417,7 +413,7 @@ globalThis.addEventListener(
 				return
 			}
 		}
-		let chan = Memory.selectedPattern(memory)
+		let chan = Memory.selectedLayer(memory)
 		let selected = Memory.selectedStep(memory)
 		let leftColumn = !(selected % 4)
 		let topRow = selected < 4
@@ -471,31 +467,31 @@ globalThis.addEventListener(
 			ops.push("move")
 			next = boxIndex
 		} else if (mod.shift && boxIndex > -1 && boxIndex < 4) {
-			Memory.selectedPattern(memory, boxIndex)
+			Memory.selectedLayer(memory, boxIndex)
 		} else if (mod.ctrl && event.key == "ArrowDown") {
 			let gain = Memory.stepQuiet(memory, chan, selected)
 			gain = Math.clamp(0, gain + 1, 12)
-			// TODO fire event on compartment
+			// TODO fire event on box
 			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "ArrowUp") {
 			let gain = Memory.stepQuiet(memory, chan, selected)
 			gain = Math.clamp(0, gain - 1, 12)
-			// TODO fire event on compartment
+			// TODO fire event on box
 			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "r") {
 			let reversed = Memory.stepReversed(memory, chan, selected)
-			// TODO fire event on compartment
+			// TODO fire event on box
 			Memory.stepReversed(memory, chan, selected, !reversed)
 		} else {
 		}
 		// TODO ctrl+space + arrows for trim region??
 		if (next == selected) {
 			if (ops.includes("toggle")) {
-				Memory.toggleStep(memory, Memory.selectedPattern(memory), next)
+				Memory.toggleStep(memory, Memory.selectedLayer(memory), next)
 			}
 		} else if (ops.includes("move")) {
 			Memory.selectedStep(memory, next)
-			compartments[next].focus()
+			boxes[next].focus()
 		}
 	}
 )

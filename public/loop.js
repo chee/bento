@@ -1,4 +1,4 @@
-import {NUMBER_OF_PATTERNS, NUMBER_OF_STEPS} from "./memory.js"
+import {NUMBER_OF_LAYERS, NUMBER_OF_STEPS} from "./memory.js"
 
 /**
  * Create a range from `start` to `end` by `step`.
@@ -19,13 +19,13 @@ export function range(start, end, step = 1) {
 }
 
 /**
- * loop over the number of patterns
+ * loop over the number of layers
  * @template {any} T
- * @param {(patternIdx: number) => T} fn
+ * @param {(layerIdx: number) => T} fn
  * @returns {T[]}
  */
-export function patterns(fn) {
-	return range(NUMBER_OF_PATTERNS).map(index => fn(index))
+export function layers(fn) {
+	return range(NUMBER_OF_LAYERS).map(index => fn(index))
 }
 
 /**

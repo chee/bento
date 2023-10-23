@@ -14,6 +14,22 @@ listen [::]:443 ssl http2;
 add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;
-location /box {
-	try_files $uri $uri/ $uri.html /index.html;
+error_page 404 /404;
+absolute_redirect off;
+
+# this could be expressed better by somebody smarter than me
+location ~ /local/patterns(?<name>.*)/$ {
+	return 302 $scheme://$host/local/name;
+}
+
+location /local/patterns/ {
+	try_files $uri /index.html;
+}
+
+location /local {
+	return 302 $scheme://$host/;
+}
+
+location / {
+	try_files $uri $uri/ $uri.html $uri/index.html =404;
 }

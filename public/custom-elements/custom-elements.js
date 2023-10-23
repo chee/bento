@@ -6,13 +6,13 @@
 // ui state is strictly a representation of memory, and user interactions are
 // events handled in ui.js
 
+import BentoGrid from "./grid.js"
 import BentoBox from "./box.js"
-import BentoCompartment from "./compartment.js"
 import {BentoElement, BentoEvent} from "./base.js"
 
-export {BentoBox, BentoCompartment, BentoElement, BentoEvent}
+export {BentoGrid, BentoBox, BentoElement, BentoEvent}
 
 export function init() {
+	customElements.define("bento-grid", BentoGrid)
 	customElements.define("bento-box", BentoBox)
-	customElements.define("bento-compartment", BentoCompartment)
 }

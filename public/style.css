@@ -59,22 +59,14 @@
 	--quiet-base: var(--holy-light);
 	--pan-left-base: #f00;
 	--pan-right-base: var(--holy-blue);
-	--compartment-on: var(--line-color);
-	--compartment-off: var(--background-color);
-	--compartment-line: var(--line-color);
-	--pan-left: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 50%
-	);
-	--pan-right: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 50%
-	);
+	--box-on: var(--line-color);
+	--box-off: var(--background-color);
+	--box-line: var(--line-color);
+	--pan-left: color-mix(in srgb, var(--box-on), var(--pan-left-base) 50%);
+	--pan-right: color-mix(in srgb, var(--box-on), var(--pan-right-base) 50%);
 	--columns: repeat(4, 1fr);
 	--font-family: qp, iosevka, monaco, monospace;
-	--pattern-name-style: lower-latin;
+	--layer-name-style: lower-latin;
 	--box-size: 2em;
 	--box-gap: 0.25em;
 	--total-width: calc(((var(--box-size) * 4) + (var(--box-gap) * 8)));
@@ -173,8 +165,8 @@ fieldset {
 }
 
 .master-controls input,
-.pattern-selector input,
-.pattern-controls input,
+.layer-selector input,
+.layer-controls input,
 select,
 option,
 .master-controls button {
@@ -211,43 +203,43 @@ input[name="bpm"] {
 	max-width: 3ex;
 }
 
-.pattern-selector {
+.layer-selector {
 	display: flex;
 	justify-content: space-evenly;
 	background: var(--background);
-	counter-reset: pattern;
+	counter-reset: layer;
 }
 
-.pattern-selector label::before {
-	counter-increment: pattern;
-	content: counters(pattern, "", var(--pattern-name-style));
+.layer-selector label::before {
+	counter-increment: layer;
+	content: counters(layer, "", var(--layer-name-style));
 }
 
-.pattern-selector label {
+.layer-selector label {
 	width: 100%;
 	text-align: center;
 	cursor: pointer;
 }
 
 /* until the :has selector is real */
-.pattern-selector label.checked {
+.layer-selector label.checked {
 	background: var(--line);
 	color: var(--background);
 }
 
-.pattern-selector label:has(:checked) {
+.layer-selector label:has(:checked) {
 	background: var(--line);
 	color: var(--background);
 }
 
 /* to be clickable with voice */
-.pattern-selector label input {
+.layer-selector label input {
 	height: 5px;
 	width: 5px;
 	position: absolute;
 }
 
-.pattern-controls {
+.layer-controls {
 	display: flex;
 	justify-content: space-evenly;
 	text-align: center;
@@ -255,7 +247,7 @@ input[name="bpm"] {
 	color: var(--background);
 }
 
-.pattern-controls select {
+.layer-controls select {
 	font-size: 0.7rem;
 }
 
@@ -352,7 +344,7 @@ figure.waveform canvas {
 
 /* todo consider moving these styles to their component */
 
-bento-box {
+bento-grid {
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
@@ -363,20 +355,20 @@ bento-box {
 	margin: var(--box-gap);
 }
 
-bento-compartment {
+bento-box {
 	height: var(--box-size);
 	width: var(--box-size);
 	border: 1px solid;
 	position: relative;
-	--compartment-color: var(--compartment-off);
-	background: var(--compartment-color);
-	color: var(--compartment-line);
+	--box-color: var(--box-off);
+	background: var(--box-color);
+	color: var(--box-line);
 	user-select: none;
 	--webkit-user-select: none;
 	transition: background 0.022s ease-in-out;
 }
 
-bento-compartment .wav {
+bento-box .wav {
 	width: 100%;
 	height: 100%;
 	image-rendering: optimizeQuality;
@@ -388,11 +380,11 @@ bento-compartment .wav {
 	-webkit-user-drag: none;
 }
 
-bento-compartment[on][with-wav] .wav {
+bento-box[on][with-wav] .wav {
 	display: block;
 }
 
-bento-compartment[selected] {
+bento-box[selected] {
 	/* prettier-ignore */
 	box-shadow:
 		-2px -2px 0 0 var(--background),
@@ -410,25 +402,25 @@ bento-compartment[selected] {
 	border-color: currentColor;
 }
 
-bento-compartment[on] {
-	color: var(--compartment-off);
-	--compartment-color: var(--compartment-on);
+bento-box[on] {
+	color: var(--box-off);
+	--box-color: var(--box-on);
 }
 
-bento-compartment:not([on]) {
+bento-box:not([on]) {
 	background-image: none !important;
 }
 
-bento-compartment:focus:not([aria-selected="true"]) {
+bento-box:focus:not([aria-selected="true"]) {
 	outline: 2px dashed currentColor;
 	outline-offset: 0;
 }
 
-bento-compartment:focus[aria-selected="true"] {
+bento-box:focus[aria-selected="true"] {
 	outline: 0;
 }
 
-bento-compartment[playing]:after {
+bento-box[playing]:after {
 	content: "";
 	height: 15%;
 	width: 15%;
@@ -440,207 +432,155 @@ bento-compartment[playing]:after {
 	background: currentColor;
 }
 
-bento-compartment[disabled] {
+bento-box[disabled] {
 	border: none;
 }
 
 /*
  * i will find god
  *
- * it possible to set --compartment-color in both pan and quiet? and do this
+ * it possible to set --box-color in both pan and quiet? and do this
  * all in CSS? let's find out!!!!!!
  * todo adjust percentages when you've had a chance to play with it
  */
-bento-compartment[pan="-6"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 100%
-	);
+bento-box[pan="-6"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 100%);
 }
 
-bento-compartment[pan="-5"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 90%
-	);
+bento-box[pan="-5"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 90%);
 }
 
-bento-compartment[pan="-4"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 80%
-	);
+bento-box[pan="-4"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 80%);
 }
 
-bento-compartment[pan="-3"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 70%
-	);
+bento-box[pan="-3"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 70%);
 }
 
-bento-compartment[pan="-2"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 60%
-	);
+bento-box[pan="-2"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 60%);
 }
 
-bento-compartment[pan="-1"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-left-base) 50%
-	);
+bento-box[pan="-1"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 50%);
 }
 
-bento-compartment[pan="6"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 100%
-	);
+bento-box[pan="6"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 100%);
 }
 
-bento-compartment[pan="5"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 90%
-	);
+bento-box[pan="5"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 90%);
 }
 
-bento-compartment[pan="4"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 80%
-	);
+bento-box[pan="4"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 80%);
 }
 
-bento-compartment[pan="3"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 70%
-	);
+bento-box[pan="3"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 70%);
 }
 
-bento-compartment[pan="2"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 60%
-	);
+bento-box[pan="2"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 60%);
 }
 
-bento-compartment[pan="1"] {
-	--compartment-color: color-mix(
-		in srgb,
-		var(--compartment-on),
-		var(--pan-right-base) 50%
-	);
+bento-box[pan="1"] {
+	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 50%);
 }
 
-bento-compartment[quiet="1"] {
+bento-box[quiet="1"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 96%,
+		var(--box-color) 96%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="2"] {
+bento-box[quiet="2"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 88%,
+		var(--box-color) 88%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="3"] {
+bento-box[quiet="3"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 81%,
+		var(--box-color) 81%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="4"] {
+bento-box[quiet="4"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 69%,
+		var(--box-color) 69%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="5"] {
+bento-box[quiet="5"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 63%,
+		var(--box-color) 63%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="6"] {
+bento-box[quiet="6"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 55%,
+		var(--box-color) 55%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="7"] {
+bento-box[quiet="7"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 47%,
+		var(--box-color) 47%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="8"] {
+bento-box[quiet="8"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 39%,
+		var(--box-color) 39%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="9"] {
+bento-box[quiet="9"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 29%,
+		var(--box-color) 29%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="10"] {
+bento-box[quiet="10"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 22%,
+		var(--box-color) 22%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="11"] {
+bento-box[quiet="11"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color) 13%,
+		var(--box-color) 13%,
 		var(--quiet-base)
 	);
 }
 
-bento-compartment[quiet="12"] {
-	background-color: color-mix(
-		in srgb,
-		var(--compartment-color) 5%,
-		var(--quiet-base)
-	);
+bento-box[quiet="12"] {
+	background-color: color-mix(in srgb, var(--box-color) 5%, var(--quiet-base));
 }
 
 body:not([chee]) [chee] {
@@ -756,7 +696,7 @@ body:not([chee]) [chee] {
 }
 
 /* all of this is here as a backup plan if the svg fails to load */
-[recording] .pattern,
+[recording] .layer,
 [recording] input,
 [recording] label:not(.recorder),
 [recording] select,
@@ -767,7 +707,7 @@ body:not([chee]) [chee] {
 [recording] .screen .wav {
 	visibility: hidden;
 }
-[recording] .pattern-controls select {
+[recording] .layer-controls select {
 	display: none;
 }
 [recording] .ui {
@@ -777,8 +717,8 @@ body:not([chee]) [chee] {
 	border: none;
 	background: var(--line-color);
 }
-[recording] .pattern-controls,
-[recording] .pattern-selector {
+[recording] .layer-controls,
+[recording] .layer-selector {
 	background: var(--line-color);
 }
 
@@ -787,11 +727,11 @@ body:not([chee]) [chee] {
 	--background: var(--background-color);
 }
 
-[recording] bento-box {
+[recording] bento-grid {
 	visibility: hidden;
 }
 
-[recording] bento-compartment {
+[recording] bento-box {
 	background: none;
 	background-image: none;
 }

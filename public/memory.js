@@ -1,75 +1,74 @@
 // ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
-export const NUMBER_OF_PATTERNS = 4
+export const NUMBER_OF_LAYERS = 4
 export const NUMBER_OF_STEPS = 16
 export const QUANTUM = 128
 
 // TODO swing?
 export let arrays = [
 	{name: "master", type: Uint8Array, size: 16},
-	{name: "patternLengths", type: Uint8Array, size: NUMBER_OF_PATTERNS},
+	{name: "layerLengths", type: Uint8Array, size: NUMBER_OF_LAYERS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
-	{name: "soundLengths", type: Uint32Array, size: NUMBER_OF_PATTERNS},
+	{name: "soundLengths", type: Uint32Array, size: NUMBER_OF_LAYERS},
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
 	// 4294967295 times in one session
-	{name: "soundVersions", type: Uint32Array, size: NUMBER_OF_PATTERNS},
-	{name: "patternGains", type: Uint8Array, size: NUMBER_OF_PATTERNS},
-	{name: "patternSpeeds", type: Float32Array, size: NUMBER_OF_PATTERNS},
-	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_PATTERNS},
+	{name: "soundVersions", type: Uint32Array, size: NUMBER_OF_LAYERS},
+	{name: "layerSpeeds", type: Float32Array, size: NUMBER_OF_LAYERS},
+	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_LAYERS},
 	{
 		name: "stepOns",
 		type: Uint8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepReverseds",
 		type: Uint8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepPitches",
 		type: Int8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepQuiets",
 		type: Uint8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepPans",
 		type: Int8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepAttacks",
 		type: Uint8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepReleases",
 		type: Uint8Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepStarts",
 		type: Uint32Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS * 2
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS * 2
 	},
 	{
 		name: "stepEnds",
 		type: Uint32Array,
-		size: NUMBER_OF_PATTERNS * NUMBER_OF_STEPS
+		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
 	},
 	{name: "drawingRegion", type: Float32Array, size: 4},
 	{
-		name: "patternSounds",
+		name: "layerSounds",
 		type: Float32Array,
-		size: SOUND_SIZE * NUMBER_OF_PATTERNS
+		size: SOUND_SIZE * NUMBER_OF_LAYERS
 	}
 	// TODO what size is this? is it the same on every platform? hahaha
-	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_PATTERNS *},
+	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},
 ]
 
 /**
@@ -79,7 +78,7 @@ export let arrays = [
  */
 const Master = {
 	bpm: 0,
-	selectedPattern: 1,
+	selectedLayer: 1,
 	selectedStep: 2,
 	playing: 3,
 	paused: 4
@@ -107,12 +106,11 @@ for (let arrays of (await import("./public/memory.js")).arrays)
 console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
  * @property {Uint8Array} MemoryMap.master
- * @property {Uint8Array} MemoryMap.patternLengths
+ * @property {Uint8Array} MemoryMap.layerLengths
  * @property {Float32Array} MemoryMap.frame
  * @property {Uint32Array} MemoryMap.soundLengths
  * @property {Uint32Array} MemoryMap.soundVersions
- * @property {Uint8Array} MemoryMap.patternGains
- * @property {Float32Array} MemoryMap.patternSpeeds
+ * @property {Float32Array} MemoryMap.layerSpeeds
  * @property {Uint8Array} MemoryMap.currentSteps
  * @property {Uint8Array} MemoryMap.stepOns
  * @property {Uint8Array} MemoryMap.stepReverseds
@@ -124,7 +122,7 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Uint32Array} MemoryMap.stepStarts
  * @property {Uint32Array} MemoryMap.stepEnds
  * @property {Float32Array} MemoryMap.drawingRegion
- * @property {Float32Array} MemoryMap.patternSounds
+ * @property {Float32Array} MemoryMap.layerSounds
  */
 
 /**
@@ -146,10 +144,7 @@ export function map(buffer, from) {
 			if (arrayInfo.name == "master") {
 				array.set([from.master.at(Master.bpm)], Master.bpm)
 				// not playing or paused
-				array.set(
-					[from.master.at(Master.selectedPattern)],
-					Master.selectedPattern
-				)
+				array.set([from.master.at(Master.selectedLayer)], Master.selectedLayer)
 				array.set([from.master.at(Master.selectedStep)], Master.selectedStep)
 			} else {
 				array.set(from[arrayInfo.name])
@@ -164,62 +159,62 @@ export function map(buffer, from) {
  * @param {number} [val]
  * @returns {number}
  */
-export function selectedPattern(memory, val) {
+export function selectedLayer(memory, val) {
 	if (typeof val == "number") {
-		memory.master.set([val], Master.selectedPattern)
+		memory.master.set([val], Master.selectedLayer)
 	}
-	return memory.master.at(Master.selectedPattern)
+	return memory.master.at(Master.selectedLayer)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} [val]
  * @returns {number}
  */
-export function currentStep(memory, pattern, val) {
+export function currentStep(memory, layer, val) {
 	if (typeof val == "number") {
-		memory.currentSteps.set([val], pattern)
+		memory.currentSteps.set([val], layer)
 	}
-	return memory.currentSteps.at(pattern)
+	return memory.currentSteps.at(layer)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} [val]
  * @returns {number}
  */
-export function patternLength(memory, pattern, val) {
+export function layerLength(memory, layer, val) {
 	if (typeof val == "number") {
-		memory.patternLengths.set([val], pattern)
+		memory.layerLengths.set([val], layer)
 	}
-	return memory.patternLengths.at(pattern)
+	return memory.layerLengths.at(layer)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} [val]
  * @returns {number}
  */
-export function patternSpeed(memory, pattern, val) {
+export function layerSpeed(memory, layer, val) {
 	if (typeof val == "number") {
-		memory.patternSpeeds.set([val], pattern)
+		memory.layerSpeeds.set([val], layer)
 	}
-	return memory.patternSpeeds.at(pattern)
+	return memory.layerSpeeds.at(layer)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {boolean} [val]
  * @returns {boolean}
  */
-export function stepOn(memory, pattern, step, val) {
+export function stepOn(memory, layer, step, val) {
 	let {stepOns} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
@@ -230,14 +225,14 @@ export function stepOn(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {boolean} [val]
  * @returns {boolean}
  */
-export function stepReversed(memory, pattern, step, val) {
+export function stepReversed(memory, layer, step, val) {
 	let {stepReverseds} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "boolean") {
 		stepReverseds.set([Number(val)], at)
@@ -248,14 +243,14 @@ export function stepReversed(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepAttack(memory, pattern, step, val) {
+export function stepAttack(memory, layer, step, val) {
 	let {stepAttacks} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepAttacks.set([val], at)
@@ -266,14 +261,14 @@ export function stepAttack(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepRelease(memory, pattern, step, val) {
+export function stepRelease(memory, layer, step, val) {
 	let {stepReleases} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepReleases.set([val], at)
@@ -284,14 +279,14 @@ export function stepRelease(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
-export function stepPitch(memory, pattern, step, val) {
+export function stepPitch(memory, layer, step, val) {
 	let {stepPitches} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepPitches.set([val], at)
@@ -306,14 +301,14 @@ export function stepPitch(memory, pattern, step, val) {
  * 12 should be enough dynamic range for anyone
  *
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {number} [val] between 0 and 12
  * @returns {number} between 0 and 12
  */
-export function stepQuiet(memory, pattern, step, val) {
+export function stepQuiet(memory, layer, step, val) {
 	let {stepQuiets} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepQuiets.set([val], at)
@@ -324,14 +319,14 @@ export function stepQuiet(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {number} [val] between -12 and 12
  * @returns {number} between -12 and 12
  */
-export function stepPan(memory, pattern, step, val) {
+export function stepPan(memory, layer, step, val) {
 	let {stepPans} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
 		stepPans.set([val], at)
@@ -342,12 +337,12 @@ export function stepPan(memory, pattern, step, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  */
-export function toggleStep(memory, pattern, step) {
+export function toggleStep(memory, layer, step) {
 	let {stepOns} = memory
-	let at = pattern * NUMBER_OF_STEPS + step
+	let at = layer * NUMBER_OF_STEPS + step
 	stepOns.set([stepOns.at(at) ^ 1], at)
 }
 
@@ -394,7 +389,7 @@ export function pause(memory) {
 export function stop(memory) {
 	memory.master.set([0], Master.playing)
 	memory.master.set([0], Master.paused)
-	memory.currentSteps.set(Array(NUMBER_OF_PATTERNS).fill(0))
+	memory.currentSteps.set(Array(NUMBER_OF_LAYERS).fill(0))
 }
 
 /**
@@ -416,8 +411,8 @@ export function paused(memory, val) {
  */
 export function togglePlaying(memory, pause = false) {
 	if (!pause) {
-		for (let pattern of [0, 1, 2, 3]) {
-			currentStep(memory, pattern, 0)
+		for (let layer of [0, 1, 2, 3]) {
+			currentStep(memory, layer, 0)
 		}
 	}
 	return playing(memory, !playing(memory))
@@ -450,34 +445,34 @@ export function bpm(memory, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {Float32Array} [sound]
  * @returns {Float32Array}
  */
-export function sound(memory, pattern, sound) {
-	let start = pattern * SOUND_SIZE
+export function sound(memory, layer, sound) {
+	let start = layer * SOUND_SIZE
 	// todo instanceof
 	if (typeof sound != "undefined") {
-		memory.patternSounds.set(sound, start)
-		fixRegions(memory, pattern)
-		memory.soundLengths.set([sound.length], pattern)
-		memory.soundVersions.set([memory.soundVersions.at(pattern) + 1], pattern)
+		memory.layerSounds.set(sound, start)
+		fixRegions(memory, layer)
+		memory.soundLengths.set([sound.length], layer)
+		memory.soundVersions.set([memory.soundVersions.at(layer) + 1], layer)
 	}
 
-	return memory.patternSounds.subarray(start, start + SOUND_SIZE)
+	return memory.layerSounds.subarray(start, start + SOUND_SIZE)
 }
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} [length]
  * @returns {number}
  */
-export function soundLength(memory, pattern, length) {
+export function soundLength(memory, layer, length) {
 	if (typeof length == "number") {
-		memory.soundLengths.set([length], pattern)
+		memory.soundLengths.set([length], layer)
 	}
-	return memory.soundLengths.at(pattern)
+	return memory.soundLengths.at(layer)
 }
 
 /**
@@ -568,13 +563,13 @@ export function regionIsBeingDrawn(memory) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @param {Region} [region]
  * @returns {Region}
  */
-export function stepRegion(memory, pattern, step, region) {
-	let offset = pattern * NUMBER_OF_STEPS + step
+export function stepRegion(memory, layer, step, region) {
+	let offset = layer * NUMBER_OF_STEPS + step
 	if (typeof region !== "undefined") {
 		let {start, end} = region
 		memory.stepStarts.set([start], offset)
@@ -588,20 +583,20 @@ export function stepRegion(memory, pattern, step, region) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  */
-export function clearRegions(memory, pattern) {
-	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), pattern)
-	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), pattern)
+export function clearRegions(memory, layer) {
+	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
+	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
 }
 
 /**
  * todo maybe only clear the regions if they are beyond the bounds?
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  */
-export function fixRegions(memory, pattern) {
-	clearRegions(memory, pattern)
+export function fixRegions(memory, layer) {
+	clearRegions(memory, layer)
 }
 
 /**
@@ -610,9 +605,9 @@ export function fixRegions(memory, pattern) {
  * @returns {Region}
  */
 export function selectedStepDrawingRegion(memory, region) {
-	let pattern = selectedPattern(memory)
+	let layer = selectedLayer(memory)
 	let step = selectedStep(memory)
-	return stepRegion(memory, pattern, step, region)
+	return stepRegion(memory, layer, step, region)
 }
 
 /**
@@ -620,9 +615,9 @@ export function selectedStepDrawingRegion(memory, region) {
  * @param {Float32Array} [val]
  * @returns {Float32Array}
  */
-export function selectedPatternSound(memory, val) {
-	let pattern = selectedPattern(memory)
-	return sound(memory, pattern, val)
+export function selectedLayerSound(memory, val) {
+	let layer = selectedLayer(memory)
+	return sound(memory, layer, val)
 }
 
 /*
@@ -632,29 +627,29 @@ export function selectedPatternSound(memory, val) {
 /**
  * @typedef {Object} SoundDetails
  * @property {Float32Array} SoundDetails.sound
- * @property {number} SoundDetails.soundLength the pattern's soundLength
- * @property {number} SoundDetails.pattern
+ * @property {number} SoundDetails.soundLength the layer's soundLength
+ * @property {number} SoundDetails.layer
  * @property {number} SoundDetails.version
  */
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @returns {SoundDetails}
  */
-export function getSoundDetails(memory, pattern) {
+export function getSoundDetails(memory, layer) {
 	return {
-		pattern,
-		sound: sound(memory, pattern),
-		soundLength: soundLength(memory, pattern),
-		version: memory.soundVersions.at(pattern)
+		layer,
+		sound: sound(memory, layer),
+		soundLength: soundLength(memory, layer),
+		version: memory.soundVersions.at(layer)
 	}
 }
 
 // i cannot get @extends or @augments or &intersection to work
 /**
  * @typedef {SoundDetails & {
- pattern: number
+ layer: number
  version: number
  region: Region
  step: number
@@ -667,8 +662,8 @@ export function getSoundDetails(memory, pattern) {
  reversed: boolean
 }} StepDetails
 
- * @property {number} StepDetails.soundLength the pattern's sound's length
- * @property {number} StepDetails.pattern
+ * @property {number} StepDetails.soundLength the layer's sound's length
+ * @property {number} StepDetails.layer
  * @property {number} StepDetails.version
  * @property {Region} StepDetails.region
  * @property {number} StepDetails.step
@@ -683,28 +678,28 @@ export function getSoundDetails(memory, pattern) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  * @returns {StepDetails}
  */
-export function getStepDetails(memory, pattern, step) {
-	let snd = sound(memory, pattern)
-	let length = soundLength(memory, pattern)
-	let region = stepRegion(memory, pattern, step)
-	let attack = stepAttack(memory, pattern, step)
-	let release = stepRelease(memory, pattern, step)
-	let quiet = stepQuiet(memory, pattern, step)
-	let pan = stepQuiet(memory, pattern, step)
-	let pitch = stepPitch(memory, pattern, step)
-	let on = stepOn(memory, pattern, step)
-	let reversed = stepReversed(memory, pattern, step)
-	let version = memory.soundVersions.at(pattern)
+export function getStepDetails(memory, layer, step) {
+	let snd = sound(memory, layer)
+	let length = soundLength(memory, layer)
+	let region = stepRegion(memory, layer, step)
+	let attack = stepAttack(memory, layer, step)
+	let release = stepRelease(memory, layer, step)
+	let quiet = stepQuiet(memory, layer, step)
+	let pan = stepQuiet(memory, layer, step)
+	let pitch = stepPitch(memory, layer, step)
+	let on = stepOn(memory, layer, step)
+	let reversed = stepReversed(memory, layer, step)
+	let version = memory.soundVersions.at(layer)
 
 	return {
 		sound: snd,
 		soundLength: length,
 		region,
-		pattern,
+		layer,
 		attack,
 		release,
 		quiet,
@@ -722,7 +717,7 @@ export function getStepDetails(memory, pattern, step) {
  * @returns {StepDetails}
  */
 export function getSelectedStepDetails(memory) {
-	return getStepDetails(memory, selectedPattern(memory), selectedStep(memory))
+	return getStepDetails(memory, selectedLayer(memory), selectedStep(memory))
 }
 
 /**
@@ -731,19 +726,19 @@ export function getSelectedStepDetails(memory) {
  * @param {number} from
  * @param {number} to
  */
-export function copyStepWithinSelectedPattern(memory, from, to) {
-	let pattern = selectedPattern(memory)
-	let fromDetails = getStepDetails(memory, pattern, from)
-	stepRegion(memory, pattern, to, fromDetails.region)
-	stepQuiet(memory, pattern, to, fromDetails.quiet)
-	stepPan(memory, pattern, to, fromDetails.pan)
-	stepOn(memory, pattern, to, fromDetails.on)
-	stepReversed(memory, pattern, to, fromDetails.reversed)
+export function copyStepWithinSelectedLayer(memory, from, to) {
+	let layer = selectedLayer(memory)
+	let fromDetails = getStepDetails(memory, layer, from)
+	stepRegion(memory, layer, to, fromDetails.region)
+	stepQuiet(memory, layer, to, fromDetails.quiet)
+	stepPan(memory, layer, to, fromDetails.pan)
+	stepOn(memory, layer, to, fromDetails.on)
+	stepReversed(memory, layer, to, fromDetails.reversed)
 
-	// let version = memory.soundVersions.at(pattern)
-	// let snd = sound(memory, pattern)
-	// let length = soundLength(memory, pattern)
-	// let attack = stepAttack(memory, pattern, step)
-	// let release = stepRelease(memory, pattern, step)
-	// let pitch = stepPitch(memory, pattern, step)
+	// let version = memory.soundVersions.at(layer)
+	// let snd = sound(memory, layer)
+	// let length = soundLength(memory, layer)
+	// let attack = stepAttack(memory, layer, step)
+	// let release = stepRelease(memory, layer, step)
+	// let pitch = stepPitch(memory, layer, step)
 }

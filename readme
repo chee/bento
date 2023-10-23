@@ -7,18 +7,18 @@ check it out on-line: https://bento.party
 
 features:
 	• keeps perfect time!
-	• 4 separate single-voice patterns, each with their own waveform
+	• 4 separate single-voice layers, each with their own waveform
 	• record new audio from your microphone
 	• per-step sample trimming
 	• set the bpm
-	• per-pattern bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
+	• per-layer bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
 	• v cool
 
 todo:
 	• per-step AR envelope
 	• per-step volume control
 	• per-step reverse
-	• per-pattern length (polyrhythms)
+	• per-layer length (polyrhythms)
 	• better keyboard, touch, and mouse controls for multi-ops
 	  * snarf
 	  * xerox
@@ -26,13 +26,13 @@ todo:
 	  * shift
 	  * etc
 	• drag and drop one step to another
-	• per-pattern base sample speed (fine tune between 50% + 200%)
+	• per-layer base sample speed (fine tune between 50% + 200%)
 	• upload sample from disk
 	• load sample from URL
-	• drag and drop sample into pattern waveform
+	• drag and drop sample into layer waveform
 	• saving
-	  * current pattern + sounds
-	  * many patterns + sounds
+	  * current layer + sounds
+	  * many layers + sounds
 	• sharing
 	  * consider webrtc datachannels for this rather than a db
 	• desktop keybindings for quick ops

@@ -110,11 +110,11 @@ let [kick, snar, hhat, open] = await Promise.all(
 /**
  * set the sound in memory
  * @param {import("./memory.js").MemoryMap} memory
- * @param {number} patternNumber
+ * @param {number} layerNumber
  * @param {Float32Array} sound
  */
-export function setSound(memory, patternNumber, sound) {
-	Memory.sound(memory, patternNumber, sound)
+export function setSound(memory, layerNumber, sound) {
+	Memory.sound(memory, layerNumber, sound)
 }
 
 /**
@@ -166,37 +166,37 @@ export async function start(buffer) {
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
 
-	let boxes = loop.patterns(
-		patternNumber =>
+	let boxes = loop.layers(
+		layerNumber =>
 			new AudioWorkletNode(context, "bako", {
-				processorOptions: {buffer, patternNumber},
+				processorOptions: {buffer, layerNumber},
 				channelCount: 2,
 				outputChannelCount: [2]
 			})
 	)
 
-	// let delays = loop.patterns(() => context.createDelay())
-	// let feedbacks = loop.patterns(() => createGain())
-	// let reverbs = loop.patterns(() => createReverb(ps1s))
-	let filters = loop.patterns(() => context.createBiquadFilter())
-	let pans = loop.patterns(() => context.createPanner())
+	// let delays = loop.layers(() => context.createDelay())
+	// let feedbacks = loop.layers(() => createGain())
+	// let reverbs = loop.layers(() => createReverb(ps1s))
+	let filters = loop.layers(() => context.createBiquadFilter())
+	let pans = loop.layers(() => context.createPanner())
 	let analyzer = context.createAnalyser()
 
-	loop.patterns(patternIdx => {
-		boxes[patternIdx].connect(context.destination)
-		// let filter = filters[patternIdx]
+	loop.layers(layerIdx => {
+		boxes[layerIdx].connect(context.destination)
+		// let filter = filters[layerIdx]
 		// filter.type = "allpass"
-		// boxes[patternIdx].connect(filters[patternIdx])
-		// filter.connect(pans[patternIdx])
+		// boxes[layerIdx].connect(filters[layerIdx])
+		// filter.connect(pans[layerIdx])
 		// filter.connect(analyzer)
-		// pans[patternIdx].connect(context.destination)
-		// reverbs[patternIdx].connect(context.destination)
+		// pans[layerIdx].connect(context.destination)
+		// reverbs[layerIdx].connect(context.destination)
 
-		// delays[patternIdx].connect(feedbacks[patternIdx])
-		// delays[patternIdx].delayTime.value = 0.3
-		// feedbacks[patternIdx].gain.value = 0.5
-		// feedbacks[patternIdx].connect(delays[patternIdx])
-		// feedbacks[patternIdx].connect(context.destination)
+		// delays[layerIdx].connect(feedbacks[layerIdx])
+		// delays[layerIdx].delayTime.value = 0.3
+		// feedbacks[layerIdx].gain.value = 0.5
+		// feedbacks[layerIdx].connect(delays[layerIdx])
+		// feedbacks[layerIdx].connect(context.destination)
 	})
 }
 

@@ -2,7 +2,9 @@
 <html lang="en-ca">
 	<meta charset="utf-8">
 	<title>bento sampler + sequencer</title>
-	<meta name="description" content="a little box with several layers of compartments full of tasty treats">
+	<meta
+		name="description"
+		content="a little box with several layers of compartments full of tasty treats">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="/style.css">
 	<meta name="apple-mobile-web-app-capable" content="yes">
@@ -55,37 +57,39 @@
 					<button aria-label="Open the options dialog" name="options" hidden>
 						•••
 					</button>
-
 				</fieldset>
 
-				<fieldset class="pattern-selector">
-					<legend screenreader>Pattern</legend>
+				<fieldset class="layer-selector">
+					<legend screenreader>Selected layer</legend>
 
 					<label class="checked" draggable="true">
-						<span screenreader>pattern a</span>
-						<input type="radio" name="pattern" checked value="0">
+						<span screenreader>layer a</span>
+						<input type="radio" name="layer" checked value="0">
 					</label>
 
 					<label draggable="true">
-						<span screenreader>pattern b</span>
-						<input type="radio" name="pattern" value="1">
+						<span screenreader>layer b</span>
+						<input type="radio" name="layer" value="1">
 					</label>
 
 					<label draggable="true">
-						<span screenreader>pattern c</span>
-						<input type="radio" name="pattern" value="2">
+						<span screenreader>layer c</span>
+						<input type="radio" name="layer" value="2">
 					</label>
 
 					<label draggable="true">
-						<span screenreader>pattern d</span>
-						<input type="radio" name="pattern" value="3">
+						<span screenreader>layer d</span>
+						<input type="radio" name="layer" value="3">
 					</label>
 
 				</fieldset>
 
-				<fieldset class="pattern-controls">
-					<legend screenreader>Pattern Controls</legend>
-					<select autocomplete="off" name="speed" aria-label="fractional speed of pattern calculated from bpm">
+				<fieldset class="layer-controls">
+					<legend screenreader>Layer Controls</legend>
+					<select
+						autocomplete="off"
+						name="speed"
+						aria-label="fractional speed of layer calculated from bpm">
 						<option value="0.25" data-label="¼">
 							120×¼
 						</option>
@@ -112,7 +116,7 @@
 					</select>
 
 					<select
-						aria-label="Length of pattern"
+						aria-label="Length of layer"
 						autocomplete="off"
 						name="length">
 						<option value="16" selected>
@@ -161,7 +165,10 @@
 							2
 						</option>
 					</select>
-					<label aria-label="Upload a sound from your computer" class="upload" chee>
+					<label
+						aria-label="Upload a sound from your computer"
+						class="upload"
+						chee>
 						↥
 						<input
 							type="file"
@@ -176,6 +183,7 @@
 					</label>
 				</fieldset>
 			</header>
+
 			<article class="screen" data-mode="wav">
 				<figure class="waveform wav">
 					<canvas alt=""></canvas>
@@ -189,11 +197,10 @@
 					<p class="counter">•</p>
 				</div>
 			</article>
-			<article class="options">
-			</article>
+
 			<nav class="screen-selector" chee>
 				<fieldset>
-					<legend screenreader>Pattern</legend>
+					<legend screenreader>Screen</legend>
 					<label class="checked">
 						wav
 						<input type="radio" name="screen" checked value="wav">
@@ -215,10 +222,13 @@
 					</label>
 				</fieldset>
 			</nav>
-			<bento-box>
-			</bento-box>
+
+			<bento-grid></bento-grid>
+
 			<dialog class="save-dialog">
-				<button class="close button" aria-label="close">✝</button>
+				<button class="close button" aria-label="close">
+					✝
+				</button>
 				<div class="content">
 					<input
 						class="button"
@@ -226,9 +236,8 @@
 						type="button"
 						aria-label="Save your bento for later"
 						value="save bento for later">
-					</div>
+				</div>
 			</dialog>
-		</form>
 
 	</article>
 	<script type="module" src="/ui.js"></script>

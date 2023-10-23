@@ -2,7 +2,6 @@
 	"name": "bento",
 	"type": "module",
 	"devDependencies": {
-		"bun-types": "latest",
 		"prettier": "^3.0.3"
 	},
 	"peerDependencies": {
@@ -12,11 +11,10 @@
 		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321 --cors"
 	},
 	"dependencies": {
-		"@bitarray/typedarray": "^1.1.1",
 		"@types/audioworklet": "^0.0.50"
 	},
 	"prettier": {
-		"printWidth": 77,
+		"printWidth": 79,
 		"trailingComma": "none",
 		"semi": false,
 		"singleQuote": false,

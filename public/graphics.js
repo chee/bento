@@ -180,10 +180,10 @@ export async function init(c) {
 	screenWorker = new Worker("/screen.work.js", {type: "module"})
 	canvas = c
 	// starring lindsey lohan
-	let parentBox = canvas.parentElement.getBoundingClientRect()
+	let parentBounds = canvas.parentElement.getBoundingClientRect()
 
-	canvas.height = parentBox.height * DPI
-	canvas.width = parentBox.width * DPI
+	canvas.height = parentBounds.height * DPI
+	canvas.width = parentBounds.width * DPI
 
 	let offscreen = canvas.transferControlToOffscreen()
 	screenWorker.postMessage({type: "init", canvas: offscreen}, [offscreen])

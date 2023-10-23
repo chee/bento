@@ -15,7 +15,9 @@ export let loaded = false
 function getId() {
 	return (
 		(typeof window != "undefined" &&
-			window.location?.pathname.match(RegExp("local/boxes/([^/]+)"))?.[1]) ||
+			window.location?.pathname.match(
+				RegExp("local/patterns/([^/]+)")
+			)?.[1]) ||
 		"?"
 	)
 }
@@ -32,7 +34,7 @@ export async function init(sab) {
 	return new Promise((yay, _boo) => {
 		try {
 			// indexedDB.deleteDatabase("bento")
-			let open = indexedDB.open("bento", 1)
+			let open = indexedDB.open("bento", 2)
 			open.onerror = _event => {
 				// we don't mind, you just get the old no-save experience
 				console.error("🮲🮳")
@@ -42,7 +44,7 @@ export async function init(sab) {
 			open.onupgradeneeded = _event => {
 				db = open.result
 				try {
-					let store = db.createObjectStore("box", {
+					let store = db.createObjectStore("pattern", {
 						// keyPath: location.pathname.slice(1) ?? "?",
 						autoIncrement: false
 					})
@@ -74,8 +76,8 @@ export async function load(id = getId(), now = true) {
 		throw new Error("hey now! tried to load before init")
 	}
 	try {
-		let trans = db.transaction("box", "readonly")
-		let store = trans.objectStore("box")
+		let trans = db.transaction("pattern", "readonly")
+		let store = trans.objectStore("pattern")
 		let object = await new Promise((yay, boo) => {
 			let get = store.get(id)
 			get.onsuccess = () => yay(get.result)
@@ -99,10 +101,10 @@ export async function save(id = getId()) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to load before init")
 	}
-	let trans = db.transaction("box", "readwrite", {
+	let trans = db.transaction("pattern", "readwrite", {
 		// durability: "strict"
 	})
-	let store = trans.objectStore("box")
+	let store = trans.objectStore("pattern")
 	let object = new ArrayBuffer(Memory.size)
 	// object.id = id
 	store.put(Memory.map(object, memory), id)

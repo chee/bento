@@ -136,13 +136,13 @@ let bitmapCache = {}
 
  * @param {Memory.MemoryMap} memory
  * @param {OffscreenCanvasRenderingContext2D} context
- * @param {number} pattern
+ * @param {number} layer
  * @param {number} step
  */
-function postBitmap(memory, context, pattern, step) {
+function postBitmap(memory, context, layer, step) {
 	clear(context)
 
-	let stepDetails = Memory.getStepDetails(memory, pattern, step)
+	let stepDetails = Memory.getStepDetails(memory, layer, step)
 	let {region, reversed, soundLength, version} = stepDetails
 	let visibleSound = getVisibleSound(stepDetails)
 	let hasRegion = region.start || region.end
@@ -153,7 +153,7 @@ function postBitmap(memory, context, pattern, step) {
 	let start = hasRegion ? r.start : 0
 	let end = hasRegion ? r.end : soundLength
 	let array = visibleSound.subarray(start, end)
-	let cachename = `s${start}e${end}r${reversed}v${version}p${pattern}`
+	let cachename = `s${start}e${end}r${reversed}v${version}p${layer}`
 
 	if (!bitmapCache[cachename]) {
 		let beforeheight = context.canvas.height
@@ -175,7 +175,7 @@ function postBitmap(memory, context, pattern, step) {
 	globalThis.postMessage({
 		type: "waveform",
 		bmp: bitmapCache[cachename],
-		pattern,
+		layer,
 		step,
 		cachename
 	})
@@ -188,7 +188,7 @@ function postBitmap(memory, context, pattern, step) {
  * @param {OffscreenCanvasRenderingContext2D} context
  */
 function postAllBitmaps(memory, context) {
-	let pidx = Memory.selectedPattern(memory)
+	let pidx = Memory.selectedLayer(memory)
 	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
 		if (Memory.stepOn(memory, pidx, sidx)) {
 			postBitmap(memory, context, pidx, sidx)
@@ -226,7 +226,7 @@ function update(_frame = 0, force = false) {
 	let stepDetails = Memory.getSelectedStepDetails(memory)
 	let soundDetails = Memory.getSoundDetails(
 		memory,
-		Memory.selectedPattern(memory)
+		Memory.selectedLayer(memory)
 	)
 
 	let {canvas} = context
@@ -251,7 +251,7 @@ function update(_frame = 0, force = false) {
 		}
 	}
 	if (!regionIsBeingDrawn) {
-		postBitmap(memory, context, stepDetails.pattern, stepDetails.step)
+		postBitmap(memory, context, stepDetails.layer, stepDetails.step)
 	}
 	lastSoundDetails = soundDetails
 

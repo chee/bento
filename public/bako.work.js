@@ -37,7 +37,7 @@ class Bako extends AudioWorkletProcessor {
 		super()
 		let memory = Memory.map(options.processorOptions.buffer)
 		this.memory = memory
-		this.patternNumber = options.processorOptions.patternNumber
+		this.layerNumber = options.processorOptions.layerNumber
 		this.point = 0
 		this.lastStep = -1
 		/** @type {import("./memory.js").StepDetails} */
@@ -66,19 +66,15 @@ class Bako extends AudioWorkletProcessor {
 		let bpm = Memory.bpm(memory)
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		// TODO do i need to use `this'? or can i let above the class
-		let patternNumber = this.patternNumber
-		let speed = Memory.patternSpeed(memory, patternNumber)
-		let length = Memory.patternLength(memory, patternNumber)
+		let layerNumber = this.layerNumber
+		let speed = Memory.layerSpeed(memory, layerNumber)
+		let length = Memory.layerLength(memory, layerNumber)
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		let currentStep = ((this.tick / samplesPerStep) | 0) % length
 
 		if (currentStep != this.lastStep) {
-			Memory.currentStep(memory, patternNumber, currentStep)
-			let stepDetails = Memory.getStepDetails(
-				memory,
-				patternNumber,
-				currentStep
-			)
+			Memory.currentStep(memory, layerNumber, currentStep)
+			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
 			if (stepDetails.on) {
 				this.point = 0
 				this.alteredSound = alter(stepDetails)

@@ -19,7 +19,7 @@ absolute_redirect off;
 
 # this could be expressed better by somebody smarter than me
 location ~ /patterns(?<name>.*)/$ {
-	return 302 $scheme://$host/local/name;
+	return 302 $scheme://$host/patterns/$name;
 }
 
 location /patterns/ {

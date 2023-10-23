@@ -57,7 +57,6 @@ async function getFancy() {
 		document.body.setAttribute("fancy", "fancy")
 		if (db.loaded) {
 			// lmao imagine if i saved on every click
-			// await db.save()
 		} else {
 			try {
 				await db.load()
@@ -157,7 +156,6 @@ layerSelectors.forEach((layerSelector, index) => {
 		if (layerSelector.checked) {
 			Memory.selectedLayer(memory, index)
 		}
-		db.save()
 	})
 })
 
@@ -301,7 +299,6 @@ grid.addEventListener(
 	/** @param {BentoEvent} event */
 	function (event) {
 		Memory.selectedStep(memory, event.detail.step)
-		db.save()
 	}
 )
 
@@ -311,7 +308,6 @@ grid.addEventListener(
 	function (event) {
 		let step = event.detail.step
 		Memory.stepOn(memory, Memory.selectedLayer(memory), step, true)
-		db.save()
 	}
 )
 
@@ -321,7 +317,6 @@ grid.addEventListener(
 	function (event) {
 		let step = event.detail.step
 		Memory.stepOn(memory, Memory.selectedLayer(memory), step, false)
-		db.save()
 	}
 )
 
@@ -333,7 +328,6 @@ grid.addEventListener(
 		let {from, to} = event.detail
 		Memory.copyStepWithinSelectedLayer(memory, from, to)
 		Memory.selectedStep(memory, to)
-		db.save()
 	}
 )
 
@@ -499,30 +493,20 @@ globalThis.addEventListener(
 	}
 )
 
-let optionsButton = ui.querySelector("[name='options']")
-let optionsDialog = /** @type {HTMLDialogElement} */ (
-	ui.querySelector(".save-dialog")
-)
-let dialogCloseButton = ui.querySelector("dialog .close")
+// let optionsButton = ui.querySelector("[name='options']")
+// let optionsDialog = /** @type {HTMLDialogElement} */ (
+// 	ui.querySelector(".save-dialog")
+// )
+// let dialogCloseButton = ui.querySelector("dialog .close")
 
-optionsButton.addEventListener("click", () => {
-	optionsDialog.show()
-})
+// optionsButton.addEventListener("click", () => {
+// 	optionsDialog.show()
+// })
 
-dialogCloseButton.addEventListener("click", function () {
-	this.closest("dialog").close()
-})
+// dialogCloseButton.addEventListener("click", function () {
+// 	this.closest("dialog").close()
+// })
 
-let saveButton = /** @type {HTMLInputElement} */ (
-	optionsDialog.querySelector("[name='save']")
-)
-
-saveButton.addEventListener("click", async function () {
-	await db.save()
-	this.value = "safe :>"
-	await new Promise(yay => {
-		setTimeout(yay, 500)
-	})
-	saveButton.closest("dialog").close()
-	this.value = "save bento for later"
-})
+// let saveButton = /** @type {HTMLInputElement} */ (
+// 	optionsDialog.querySelector("[name='save']")
+// )

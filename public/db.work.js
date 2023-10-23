@@ -10,8 +10,6 @@ let memory
 /** @type {SharedArrayBuffer} */
 let buffer
 
-let loaded = false
-
 async function init(sab) {
 	buffer = sab
 	memory = Memory.map(buffer)

@@ -1,4 +1,3 @@
-import * as Memory from "./memory.js"
 // TODO put this in a worker and use Atomics.notify in memory to indicate that a
 // change has occured
 

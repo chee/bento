@@ -6,6 +6,7 @@ export const QUANTUM = 128
 
 // TODO swing?
 export let arrays = [
+	{name: "notify", type: Int32Array, size: 1},
 	{name: "master", type: Uint8Array, size: 16},
 	{name: "layerLengths", type: Uint8Array, size: NUMBER_OF_LAYERS},
 	{name: "frame", type: Float32Array, size: QUANTUM},
@@ -103,26 +104,27 @@ export let size = arrays.reduce(
 
 /**
 for (let arrays of (await import("./public/memory.js")).arrays)
-console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
+console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
- * @property {Uint8Array} MemoryMap.master
- * @property {Uint8Array} MemoryMap.layerLengths
- * @property {Float32Array} MemoryMap.frame
- * @property {Uint32Array} MemoryMap.soundLengths
- * @property {Uint32Array} MemoryMap.soundVersions
- * @property {Float32Array} MemoryMap.layerSpeeds
- * @property {Uint8Array} MemoryMap.currentSteps
- * @property {Uint8Array} MemoryMap.stepOns
- * @property {Uint8Array} MemoryMap.stepReverseds
- * @property {Int8Array} MemoryMap.stepPitches
- * @property {Uint8Array} MemoryMap.stepQuiets
- * @property {Uint8Array} MemoryMap.stepPans
- * @property {Uint8Array} MemoryMap.stepAttacks
- * @property {Uint8Array} MemoryMap.stepReleases
- * @property {Uint32Array} MemoryMap.stepStarts
- * @property {Uint32Array} MemoryMap.stepEnds
- * @property {Float32Array} MemoryMap.drawingRegion
- * @property {Float32Array} MemoryMap.layerSounds
+ * @prop {Int32Array} MemoryMap.notify
+ * @prop {Uint8Array} MemoryMap.master
+ * @prop {Uint8Array} MemoryMap.layerLengths
+ * @prop {Float32Array} MemoryMap.frame
+ * @prop {Uint32Array} MemoryMap.soundLengths
+ * @prop {Uint32Array} MemoryMap.soundVersions
+ * @prop {Float32Array} MemoryMap.layerSpeeds
+ * @prop {Uint8Array} MemoryMap.currentSteps
+ * @prop {Uint8Array} MemoryMap.stepOns
+ * @prop {Uint8Array} MemoryMap.stepReverseds
+ * @prop {Int8Array} MemoryMap.stepPitches
+ * @prop {Uint8Array} MemoryMap.stepQuiets
+ * @prop {Uint8Array} MemoryMap.stepPans
+ * @prop {Uint8Array} MemoryMap.stepAttacks
+ * @prop {Uint8Array} MemoryMap.stepReleases
+ * @prop {Uint32Array} MemoryMap.stepStarts
+ * @prop {Uint32Array} MemoryMap.stepEnds
+ * @prop {Float32Array} MemoryMap.drawingRegion
+ * @prop {Float32Array} MemoryMap.layerSounds
  */
 
 /**
@@ -154,6 +156,11 @@ export function map(buffer, from) {
 	return memory
 }
 
+/** @param {MemoryMap} memory */
+function notify(memory) {
+	Atomics.notify(memory.notify, 0)
+}
+
 /**
  * @param {MemoryMap} memory
  * @param {number} [val]
@@ -162,6 +169,7 @@ export function map(buffer, from) {
 export function selectedLayer(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.selectedLayer)
+		notify(memory)
 	}
 	return memory.master.at(Master.selectedLayer)
 }
@@ -175,6 +183,7 @@ export function selectedLayer(memory, val) {
 export function currentStep(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.currentSteps.set([val], layer)
+		notify(memory)
 	}
 	return memory.currentSteps.at(layer)
 }
@@ -188,6 +197,7 @@ export function currentStep(memory, layer, val) {
 export function layerLength(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.layerLengths.set([val], layer)
+		notify(memory)
 	}
 	return memory.layerLengths.at(layer)
 }
@@ -201,6 +211,7 @@ export function layerLength(memory, layer, val) {
 export function layerSpeed(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.layerSpeeds.set([val], layer)
+		notify(memory)
 	}
 	return memory.layerSpeeds.at(layer)
 }
@@ -218,7 +229,10 @@ export function stepOn(memory, layer, step, val) {
 
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
+		notify(memory)
 	}
+
+	Atomics.notify(memory.notify, 0)
 
 	return Boolean(stepOns.at(at))
 }
@@ -236,6 +250,7 @@ export function stepReversed(memory, layer, step, val) {
 
 	if (typeof val == "boolean") {
 		stepReverseds.set([Number(val)], at)
+		notify(memory)
 	}
 
 	return Boolean(stepReverseds.at(at))
@@ -254,6 +269,7 @@ export function stepAttack(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepAttacks.set([val], at)
+		notify(memory)
 	}
 
 	return Number(stepAttacks.at(at))
@@ -272,6 +288,7 @@ export function stepRelease(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepReleases.set([val], at)
+		notify(memory)
 	}
 
 	return Number(stepReleases.at(at))
@@ -290,6 +307,7 @@ export function stepPitch(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepPitches.set([val], at)
+		notify(memory)
 	}
 
 	return Number(stepPitches.at(at))
@@ -312,6 +330,7 @@ export function stepQuiet(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepQuiets.set([val], at)
+		notify(memory)
 	}
 
 	return Number(stepQuiets.at(at))
@@ -330,6 +349,7 @@ export function stepPan(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepPans.set([val], at)
+		notify(memory)
 	}
 
 	return Number(stepPans.at(at))
@@ -354,6 +374,7 @@ export function toggleStep(memory, layer, step) {
 export function selectedStep(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.selectedStep)
+		notify(memory)
 	}
 	return memory.master.at(Master.selectedStep)
 }
@@ -366,6 +387,7 @@ export function selectedStep(memory, val) {
 export function playing(memory, val) {
 	if (typeof val == "boolean") {
 		memory.master.set([Number(val)], Master.playing)
+		notify(memory)
 	}
 	return Boolean(memory.master.at(Master.playing))
 }
@@ -400,6 +422,7 @@ export function stop(memory) {
 export function paused(memory, val) {
 	if (typeof val == "boolean") {
 		memory.master.set([Number(val)], Master.paused)
+		notify(memory)
 	}
 	return Boolean(memory.master.at(Master.paused))
 }
@@ -426,6 +449,7 @@ export function togglePlaying(memory, pause = false) {
 export function bpm(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.bpm)
+		notify(memory)
 	}
 	return memory.master.at(Master.bpm)
 }
@@ -574,6 +598,7 @@ export function stepRegion(memory, layer, step, region) {
 		let {start, end} = region
 		memory.stepStarts.set([start], offset)
 		memory.stepEnds.set([end], offset)
+		notify(memory)
 	}
 	return {
 		start: memory.stepStarts.at(offset),
@@ -588,6 +613,7 @@ export function stepRegion(memory, layer, step, region) {
 export function clearRegions(memory, layer) {
 	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
 	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
+	notify(memory)
 }
 
 /**

@@ -18,16 +18,12 @@ error_page 404 /404;
 absolute_redirect off;
 
 # this could be expressed better by somebody smarter than me
-location ~ /local/patterns(?<name>.*)/$ {
+location ~ /patterns(?<name>.*)/$ {
 	return 302 $scheme://$host/local/name;
 }
 
-location /local/patterns/ {
+location /patterns/ {
 	try_files $uri /index.html;
-}
-
-location /local {
-	return 302 $scheme://$host/;
 }
 
 location / {

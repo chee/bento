@@ -55,7 +55,10 @@ async function getFancy() {
 	}
 	if (sounds.fancy() && graphics.fancy()) {
 		document.body.setAttribute("fancy", "fancy")
-		if (!db.loaded) {
+		if (db.loaded) {
+			// lmao imagine if i saved on every click
+			// await db.save()
+		} else {
 			try {
 				await db.load()
 			} catch (error) {

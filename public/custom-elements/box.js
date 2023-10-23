@@ -1,7 +1,7 @@
 import {BentoElement} from "./base.js"
 import Modmask from "../modmask.js"
 
-// BentoShikiri fufufu
+// fufufu
 export default class BentoBox extends BentoElement {
 	// public api
 	step = 0

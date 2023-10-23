@@ -101,10 +101,7 @@ function save(id = "?") {
 }
 
 onmessage = async event => {
-	console.log("event")
-	console.log({...event})
 	let message = event.data
-	console.log(message)
 	if (message.type == "init") {
 		await init(message.buffer)
 	}

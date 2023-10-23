@@ -112,6 +112,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @prop {Float32Array} MemoryMap.frame
  * @prop {Uint32Array} MemoryMap.soundLengths
  * @prop {Uint32Array} MemoryMap.soundVersions
+ * @prop {Float32Array} MemoryMap.layerSounds
  * @prop {Float32Array} MemoryMap.layerSpeeds
  * @prop {Uint8Array} MemoryMap.currentSteps
  * @prop {Uint8Array} MemoryMap.stepOns
@@ -124,7 +125,6 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @prop {Uint32Array} MemoryMap.stepStarts
  * @prop {Uint32Array} MemoryMap.stepEnds
  * @prop {Float32Array} MemoryMap.drawingRegion
- * @prop {Float32Array} MemoryMap.layerSounds
  */
 
 /**
@@ -143,6 +143,8 @@ export function map(buffer, from) {
 			))
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 		if (from) {
+			if (arrayInfo.name == "currentSteps") continue
+			if (arrayInfo.name == "drawingRegion") continue
 			if (arrayInfo.name == "master") {
 				array.set([from.master.at(Master.bpm)], Master.bpm)
 				// not playing or paused
@@ -449,7 +451,6 @@ export function togglePlaying(memory, pause = false) {
 export function bpm(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.bpm)
-		notify(memory)
 	}
 	return memory.master.at(Master.bpm)
 }

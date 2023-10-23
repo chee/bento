@@ -3,7 +3,11 @@ import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as db from "./db.js"
-import {BentoCompartment, BentoBox, BentoEvent} from "./custom-elements.js"
+import {
+	BentoCompartment,
+	BentoBox,
+	BentoEvent
+} from "./custom-elements/custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
 let ui = document.querySelector(".ui")
@@ -34,7 +38,7 @@ let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
-let fancyListeners = ["mousedown", "keydown", "click", "touchstart"]
+let fancyListeners = ["keydown", "click", "touchstart"]
 
 function fancy() {
 	return sounds.fancy() && graphics.fancy()
@@ -43,30 +47,29 @@ function fancy() {
 async function getFancy() {
 	if (!sounds.fancy()) {
 		await sounds.start(buffer)
+		document.body.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && !graphics.fancy()) {
 		graphics.start(screenWaveformCanvas, buffer)
+		document.body.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && graphics.fancy()) {
-		try {
-			await db.load()
-		} catch (error) {
-			console.error("couldnt load bento, oh well :(")
-		}
 		document.body.setAttribute("fancy", "fancy")
-		removeFancyEventListeners()
+		if (!db.loaded) {
+			try {
+				await db.load()
+			} catch (error) {
+				console.error("couldnt load bento, oh well :(")
+			}
+		}
 	}
 }
 
-fancyListeners.map(eventName =>
+fancyListeners.map(async eventName =>
 	window.addEventListener(eventName, getFancy, {
-		passive: eventName == "touchstart"
+		passive: true
 	})
 )
-
-function removeFancyEventListeners() {
-	fancyListeners.map(e => window.removeEventListener(e, getFancy))
-}
 
 async function init() {
 	graphics.init(screenWaveformCanvas)
@@ -94,7 +97,7 @@ async function init() {
 	// }
 }
 
-function update() {
+function update(frame = 0) {
 	let selectedPattern = Memory.selectedPattern(memory)
 	let bpm = Memory.bpm(memory).toString()
 	speedSelector.querySelectorAll("option").forEach(option => {
@@ -107,10 +110,7 @@ function update() {
 		}
 	})
 
-	speedSelector.value = Memory.patternSpeed(
-		memory,
-		selectedPattern
-	).toString()
+	speedSelector.value = Memory.patternSpeed(memory, selectedPattern).toString()
 	let patternLength = Memory.patternLength(memory, selectedPattern)
 	lengthSelector.value = patternLength.toString()
 
@@ -139,11 +139,7 @@ function update() {
 			selectedPattern,
 			compartment.step
 		)
-		compartment.pan = Memory.stepPan(
-			memory,
-			selectedPattern,
-			compartment.step
-		)
+		compartment.pan = Memory.stepPan(memory, selectedPattern, compartment.step)
 		compartment.hidden = compartment.step >= patternLength
 	}
 
@@ -162,22 +158,20 @@ patternSelectors.forEach((patternSelector, index) => {
 		if (patternSelector.checked) {
 			Memory.selectedPattern(memory, index)
 		}
+		db.save()
 	})
 })
 
 playButton.addEventListener("click", () => {
-	Memory.playing(memory, true)
-	// TODO Memory.play(memory)
+	Memory.play(memory)
 })
 
 ui.querySelector('[name="pause"]').addEventListener("click", () => {
-	Memory.playing(memory, false)
-	// TODO Memory.pause(memory)
+	Memory.pause(memory)
 })
 
 ui.querySelector('[name="stop"]').addEventListener("click", () => {
-	Memory.playing(memory, false)
-	// TODO Memory.stop(memory)
+	Memory.stop(memory)
 })
 
 bpmInput.addEventListener("change", () => {
@@ -307,8 +301,8 @@ box.addEventListener(
 	"selected",
 	/** @param {BentoEvent} event */
 	function (event) {
-		console.debug("i won't look back anymore")
 		Memory.selectedStep(memory, event.detail.step)
+		db.save()
 	}
 )
 
@@ -318,6 +312,7 @@ box.addEventListener(
 	function (event) {
 		let step = event.detail.step
 		Memory.stepOn(memory, Memory.selectedPattern(memory), step, true)
+		db.save()
 	}
 )
 
@@ -327,6 +322,7 @@ box.addEventListener(
 	function (event) {
 		let step = event.detail.step
 		Memory.stepOn(memory, Memory.selectedPattern(memory), step, false)
+		db.save()
 	}
 )
 
@@ -338,6 +334,7 @@ box.addEventListener(
 		let {from, to} = event.detail
 		Memory.copyStepWithinSelectedPattern(memory, from, to)
 		Memory.selectedStep(memory, to)
+		db.save()
 	}
 )
 
@@ -406,13 +403,16 @@ for (let [flag, value] of featureflags.entries()) {
 
 // ================================= hotkeys ===============================
 // todo let the target element handle more of this
+// todo use Modmask
 globalThis.addEventListener(
 	"keydown",
 	/** @param {KeyboardEvent} event */ event => {
 		if (document.activeElement.tagName == "INPUT") {
 			// why does ^ that guard not work, typescript?
 			// you KNOW this mfer is an input element
-			let activeElement = document.activeElement
+			let activeElement = /** @type {HTMLInputElement} */ (
+				document.activeElement
+			)
 			if (activeElement?.type == "number" || activeElement?.type == "text") {
 				return
 			}
@@ -431,6 +431,7 @@ globalThis.addEventListener(
 			(event.code.startsWith("Key") || event.code.startsWith("Digit")) &&
 			event.code.toLowerCase()[event.code.length - 1]
 
+		/** @param {KeyboardEvent} event */
 		let modifiers = event => {
 			let ctrl = event.ctrlKey
 			let alt = event.altKey
@@ -441,7 +442,7 @@ globalThis.addEventListener(
 				alt,
 				meta,
 				shift,
-				any: ctrl | alt | meta | shift
+				any: ctrl || alt || meta || shift
 			}
 		}
 
@@ -463,6 +464,7 @@ globalThis.addEventListener(
 			ops.push("move")
 			next += bottomRow ? -12 : 4
 		} else if (!mod.any && event.key == "Enter") {
+			// TODO fire event on button
 			Memory.togglePlaying(memory)
 		} else if (!mod.any && boxIndex != -1) {
 			ops.push("toggle")
@@ -473,13 +475,16 @@ globalThis.addEventListener(
 		} else if (mod.ctrl && event.key == "ArrowDown") {
 			let gain = Memory.stepQuiet(memory, chan, selected)
 			gain = Math.clamp(0, gain + 1, 12)
+			// TODO fire event on compartment
 			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "ArrowUp") {
 			let gain = Memory.stepQuiet(memory, chan, selected)
 			gain = Math.clamp(0, gain - 1, 12)
+			// TODO fire event on compartment
 			Memory.stepQuiet(memory, chan, selected, gain)
 		} else if (mod.ctrl && event.key == "r") {
 			let reversed = Memory.stepReversed(memory, chan, selected)
+			// TODO fire event on compartment
 			Memory.stepReversed(memory, chan, selected, !reversed)
 		} else {
 		}

@@ -1,12 +1,12 @@
 @font-face {
 	font-family: qp;
-	src: url("/iosevka-qp-regular.ttf");
+	src: url("/fonts/iosevka-qp-regular.ttf");
 	display: swap;
 }
 
 @font-face {
 	font-family: qp;
-	src: url("/iosevka-qp-light.ttf");
+	src: url("/fonts/iosevka-qp-light.ttf");
 	font-weight: light;
 	display: swap;
 }
@@ -172,9 +172,12 @@ fieldset {
 	line-height: 1em;
 }
 
-input,
+.master-controls input,
+.pattern-selector input,
+.pattern-controls input,
 select,
-option {
+option,
+.master-controls button {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -182,11 +185,11 @@ option {
 	background: none;
 	font-family: var(--font-family);
 	font-size: 1em;
-	max-width: 3rem;
 	color: currentColor;
 	text-align: center;
 }
 
+button,
 input[type="button"] {
 	cursor: pointer;
 }
@@ -202,6 +205,10 @@ input::-webkit-inner-spin-button {
 }
 input[type="number"] {
 	appearance: textfield;
+}
+
+input[name="bpm"] {
+	max-width: 3ex;
 }
 
 .pattern-selector {
@@ -543,96 +550,96 @@ bento-compartment[pan="1"] {
 bento-compartment[quiet="1"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 96%
+		var(--compartment-color) 96%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="2"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 88%
+		var(--compartment-color) 88%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="3"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 81%
+		var(--compartment-color) 81%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="4"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 69%
+		var(--compartment-color) 69%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="5"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 63%
+		var(--compartment-color) 63%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="6"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 55%
+		var(--compartment-color) 55%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="7"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 47%
+		var(--compartment-color) 47%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="8"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 39%
+		var(--compartment-color) 39%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="9"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 29%
+		var(--compartment-color) 29%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="10"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 22%
+		var(--compartment-color) 22%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="11"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 13%
+		var(--compartment-color) 13%,
+		var(--quiet-base)
 	);
 }
 
 bento-compartment[quiet="12"] {
 	background-color: color-mix(
 		in srgb,
-		var(--compartment-color),
-		var(--quiet-base) 5%
+		var(--compartment-color) 5%,
+		var(--quiet-base)
 	);
 }
 

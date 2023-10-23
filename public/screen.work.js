@@ -342,7 +342,7 @@ function update(_frame = 0, force = false) {
 	requestAnimationFrame(update)
 }
 
-let f = new FontFace("qp", 'url("/iosevka-qp-regular.ttf")')
+let f = new FontFace("qp", 'url("/fonts/iosevka-qp-regular.ttf")')
 f.load()
 
 onmessage = async event => {

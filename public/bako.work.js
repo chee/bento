@@ -10,18 +10,18 @@ function alter(stepDetails) {
 		region,
 		soundLength,
 		reversed,
-		gain,
+		quiet,
 		attack,
-		release,
+		release
 	} = stepDetails
 
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
-	if (gain || attack || release || reversed) {
+	if (quiet || attack || release || reversed) {
 		let output = new Float32Array(sound.length)
-		// gain is a number from 0-12
+		// quiet is a number from 0-12
 		// TODO make this non-linear using some kind of math
-		let gm = 1 * ((13 - gain) / 12)
+		let gm = 1 * ((13 - quiet) / 12)
 		for (let i = 0; i < sound.length; i++) {
 			let targetIndex = reversed ? sound.length - i : i
 			output[targetIndex] = sound[i] * gm
@@ -55,7 +55,11 @@ class Bako extends AudioWorkletProcessor {
 		let [output] = outputs
 		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
-		if (!Memory.playing(memory) /*|| Memory.paused(memory)*/) {
+		if (Memory.playing(memory) && Memory.paused(memory)) {
+			return true
+		} else if (!Memory.playing(memory)) {
+			this.lastStep = -1
+			this.tick = 0
 			return true
 		}
 		this.tick += 128

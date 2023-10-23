@@ -125,27 +125,35 @@ console.log(`* @property {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @property {Uint32Array} MemoryMap.stepEnds
  * @property {Float32Array} MemoryMap.drawingRegion
  * @property {Float32Array} MemoryMap.patternSounds
-
  */
+
 /**
  * @param {SharedArrayBuffer | ArrayBuffer} buffer
  * @param {MemoryMap} [from]
  * @returns {MemoryMap}
  */
 export function map(buffer, from) {
-	/** @type {MemoryMap}*/
-	// @ts-ignore: i know what i'm doing
-	let memory = {}
+	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 	for (let arrayInfo of arrays) {
-		// TODO handle the offset needing to be a multiple of BYTES_PER_ELEMENT
+		// todo handle the offset needing to be a multiple of BYTES_PER_ELEMENT
 		let array = (memory[arrayInfo.name] =
 			/** @type {typeof arrayInfo.type.prototype} */ (
 				new arrayInfo.type(buffer, offset, arrayInfo.size)
 			))
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 		if (from) {
-			array.set(from[arrayInfo.name])
+			if (arrayInfo.name == "master") {
+				array.set([from.master.at(Master.bpm)], Master.bpm)
+				// not playing or paused
+				array.set(
+					[from.master.at(Master.selectedPattern)],
+					Master.selectedPattern
+				)
+				array.set([from.master.at(Master.selectedStep)], Master.selectedStep)
+			} else {
+				array.set(from[arrayInfo.name])
+			}
 		}
 	}
 	return memory
@@ -369,6 +377,28 @@ export function playing(memory, val) {
 
 /**
  * @param {MemoryMap} memory
+ */
+export function play(memory) {
+	memory.master.set([0], Master.paused)
+	memory.master.set([1], Master.playing)
+}
+/**
+ * @param {MemoryMap} memory
+ */
+export function pause(memory) {
+	memory.master.set([1], Master.paused)
+}
+/**
+ * @param {MemoryMap} memory
+ */
+export function stop(memory) {
+	memory.master.set([0], Master.playing)
+	memory.master.set([0], Master.paused)
+	memory.currentSteps.set(Array(NUMBER_OF_PATTERNS).fill(0))
+}
+
+/**
+ * @param {MemoryMap} memory
  * @param {boolean} [val]
  * @returns {boolean}
  */
@@ -426,9 +456,10 @@ export function bpm(memory, val) {
  */
 export function sound(memory, pattern, sound) {
 	let start = pattern * SOUND_SIZE
-	// TODO instanceof
+	// todo instanceof
 	if (typeof sound != "undefined") {
 		memory.patternSounds.set(sound, start)
+		fixRegions(memory, pattern)
 		memory.soundLengths.set([sound.length], pattern)
 		memory.soundVersions.set([memory.soundVersions.at(pattern) + 1], pattern)
 	}
@@ -492,10 +523,7 @@ export function drawingRegionEnd(memory, x) {
 			;[start, end] = [end, start]
 		}
 		if (details.reversed) {
-			;[start, end] = [
-				details.soundLength - end,
-				details.soundLength - start
-			]
+			;[start, end] = [details.soundLength - end, details.soundLength - start]
 		}
 		if ((start | 0) == (end | 0)) {
 			;[start, end] = [0, 0]
@@ -556,6 +584,24 @@ export function stepRegion(memory, pattern, step, region) {
 		start: memory.stepStarts.at(offset),
 		end: memory.stepEnds.at(offset)
 	}
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} pattern
+ */
+export function clearRegions(memory, pattern) {
+	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), pattern)
+	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), pattern)
+}
+
+/**
+ * todo maybe only clear the regions if they are beyond the bounds?
+ * @param {MemoryMap} memory
+ * @param {number} pattern
+ */
+export function fixRegions(memory, pattern) {
+	clearRegions(memory, pattern)
 }
 
 /**
@@ -676,11 +722,7 @@ export function getStepDetails(memory, pattern, step) {
  * @returns {StepDetails}
  */
 export function getSelectedStepDetails(memory) {
-	return getStepDetails(
-		memory,
-		selectedPattern(memory),
-		selectedStep(memory)
-	)
+	return getStepDetails(memory, selectedPattern(memory), selectedStep(memory))
 }
 
 /**

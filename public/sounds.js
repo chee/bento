@@ -1,4 +1,3 @@
-import unmute from "./unmute.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 let context = new AudioContext()
@@ -101,8 +100,8 @@ async function fetchSound(name, ext = "wav") {
 	}
 }
 
-await context.audioWorklet.addModule("/bako.worklet.js")
-await context.audioWorklet.addModule("/expression.worklet.js")
+await context.audioWorklet.addModule("/bako.work.js")
+await context.audioWorklet.addModule("/expr.work.js")
 
 let [kick, snar, hhat, open] = await Promise.all(
 	["skk", "sks", "skh", "sko"].map(s => fetchSound(s))
@@ -142,22 +141,25 @@ export function fancy() {
  * @return {Promise}
  */
 export async function start(buffer) {
-	let ready = new Promise((yay, boo) => {
-		if (context.state == "running") {
-			yay(context.state)
+	context.onstatechange = function () {
+		if (
+			// @ts-ignore-line listen this is a thing on ios, typescript. reality
+			// matters
+			context.state == "interrupted"
+		) {
+			alreadyFancy = false
+			context.resume().then(() => {
+				alreadyFancy = true
+			})
 		}
-		context.onstatechange = function () {
-			if (context.state == "running") {
-				yay(context.state)
-			} else {
-				boo(context.state)
-			}
-		}
-	})
-	context.resume()
-	await ready
+	}
+
+	await context.resume()
+	if (alreadyFancy) {
+		return
+	}
 	alreadyFancy = true
-	unmute(context, true)
+
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)

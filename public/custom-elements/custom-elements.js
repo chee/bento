@@ -6,9 +6,9 @@
 // ui state is strictly a representation of memory, and user interactions are
 // events handled in ui.js
 
-import BentoBox from "./elements/box.js"
-import BentoCompartment from "./elements/compartment.js"
-import {BentoElement, BentoEvent} from "./elements/base.js"
+import BentoBox from "./box.js"
+import BentoCompartment from "./compartment.js"
+import {BentoElement, BentoEvent} from "./base.js"
 
 export {BentoBox, BentoCompartment, BentoElement, BentoEvent}
 

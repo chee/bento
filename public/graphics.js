@@ -177,7 +177,7 @@ let alreadyInit = false
 export async function init(c) {
 	if (alreadyInit) return
 	alreadyInit = true
-	screenWorker = new Worker("/screen.worker.js", {type: "module"})
+	screenWorker = new Worker("/screen.work.js", {type: "module"})
 	canvas = c
 	// starring lindsey lohan
 	let parentBox = canvas.parentElement.getBoundingClientRect()

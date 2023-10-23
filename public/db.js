@@ -1,4 +1,6 @@
 import * as Memory from "./memory.js"
+// TODO put this in a worker and use Atomics.notify in memory to indicate that a
+// change has occured
 
 /** @type {IDBDatabase} */
 let db
@@ -8,10 +10,12 @@ let memory
 /** @type {SharedArrayBuffer} */
 let buffer
 
+export let loaded = false
+
 function getId() {
 	return (
 		(typeof window != "undefined" &&
-			window.location?.pathname.match(/\/box\/(.*)/)?.[0]) ||
+			window.location?.pathname.match(RegExp("local/boxes/([^/]+)"))?.[1]) ||
 		"?"
 	)
 }
@@ -85,6 +89,9 @@ export async function load(id = getId(), now = true) {
 		return !!object
 	} catch (error) {
 		console.error("i'm so sorry", error)
+	} finally {
+		/** um */
+		loaded = true
 	}
 }
 

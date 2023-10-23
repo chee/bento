@@ -160,7 +160,10 @@ export function map(buffer, from) {
 
 /** @param {MemoryMap} memory */
 function notify(memory) {
-	Atomics.notify(memory.notify, 0)
+	if (typeof window != "undefined") {
+		Atomics.notify(memory.notify, 0)
+		globalThis.postMessage({type: "save"})
+	}
 }
 
 /**

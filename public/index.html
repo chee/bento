@@ -26,9 +26,9 @@
 	<h1 screenreader>bento</h1>
 
 	<section class="bento">
-		<article class="ui"  autocomplete="off" onsubmit="event.preventDefault()">
+		<article class="ui"  onsubmit="event.preventDefault()">
 			<header>
-				<fieldset class="master-controls">
+				<fieldset class="master-controls" >
 					<legend screenreader>Master Controls</legend>
 					<input
 						type="button"
@@ -59,27 +59,27 @@
 					</button>
 				</fieldset>
 
-				<fieldset class="layer-selector">
+				<fieldset class="layer-selector" autocomplete="off" >
 					<legend screenreader>Selected layer</legend>
 
 					<label class="checked" draggable="true">
 						<span screenreader>layer a</span>
-						<input type="radio" name="layer" checked value="0">
+						<input type="radio" name="layer" checked value="0" autocomplete="off" >
 					</label>
 
 					<label draggable="true">
 						<span screenreader>layer b</span>
-						<input type="radio" name="layer" value="1">
+						<input type="radio" name="layer" value="1" autocomplete="off" >
 					</label>
 
 					<label draggable="true">
 						<span screenreader>layer c</span>
-						<input type="radio" name="layer" value="2">
+						<input type="radio" name="layer" value="2" autocomplete="off" >
 					</label>
 
 					<label draggable="true">
 						<span screenreader>layer d</span>
-						<input type="radio" name="layer" value="3">
+						<input type="radio" name="layer" value="3" autocomplete="off" >
 					</label>
 
 				</fieldset>

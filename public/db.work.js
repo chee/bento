@@ -10,6 +10,8 @@ let memory
 /** @type {SharedArrayBuffer} */
 let buffer
 
+let loaded = false
+
 async function init(sab) {
 	buffer = sab
 	memory = Memory.map(buffer)
@@ -78,16 +80,16 @@ async function load(id = "?", now = true) {
 		loaded = true
 	}
 
-	while (true) {
-		Atomics.wait(memory.notify, 1, 0)
-		save(id)
-		memory.notify.set([0], 0)
-	}
+	// while (true) {
+	// 	Atomics.wait(memory.notify, 1, 0)
+	// 	save(id)
+	// 	memory.notify.set([0], 0)
+	// }
 }
 
 function save(id = "?") {
-	if (!db || !memory) {
-		throw new Error("hey now! tried to load before init")
+	if (!db || !memory || !loaded) {
+		throw new Error("hey now! tried to save before init")
 	}
 	let trans = db.transaction("pattern", "readwrite", {
 		// durability: "strict"

@@ -40,3 +40,10 @@ export async function save(id = getId()) {
 		id
 	})
 }
+
+globalThis.addEventListener("message", event => {
+	if (event.data.type == "save") {
+		console.info("got the message")
+		save()
+	}
+})

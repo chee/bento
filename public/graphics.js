@@ -69,7 +69,7 @@ function getX(pageX, bounds) {
 }
 
 // why is this in this file
-// TODO make this work for both TouchEvent and MouseEvent
+// todo make this work for both TouchEvent and MouseEvent
 /** @param {MouseEvent} event */
 function startSelectingRegion(event) {
 	// assumes nothing ever changes size while you're trying to trim a sample
@@ -140,10 +140,6 @@ export let alreadyFancy = false
 
 export function fancy() {
 	return alreadyFancy
-}
-
-function recording(message) {
-	screenWorker.postMessage(message)
 }
 
 /**

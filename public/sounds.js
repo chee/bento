@@ -3,6 +3,9 @@ import * as loop from "./loop.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
+let iphoneSilenceElement = document.querySelector("audio")
+/** @type {AudioWorkletNode[]} */
+let boxes
 
 /**
  * normalize audio
@@ -136,11 +139,14 @@ export function fancy() {
 	return alreadyFancy
 }
 
-/**
- * @param {SharedArrayBuffer} buffer
- * @return {Promise}
- */
-export async function start(buffer) {
+export async function pause() {
+	context.suspend()
+	iphoneSilenceElement.pause()
+	alreadyFancy = false
+}
+
+export async function play() {
+	iphoneSilenceElement.play()
 	context.onstatechange = function () {
 		if (
 			// @ts-ignore-line listen this is a thing on ios, typescript. reality
@@ -155,18 +161,29 @@ export async function start(buffer) {
 	}
 
 	await context.resume()
+	alreadyFancy = true
+}
+
+/**
+ * @param {SharedArrayBuffer} buffer
+ * @return {Promise}
+ */
+export async function start(buffer) {
+	await play()
 	if (alreadyFancy) {
 		return
 	}
 	alreadyFancy = true
+}
 
+export function init(buffer) {
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
 
-	let boxes = loop.layers(
+	boxes = loop.layers(
 		layerNumber =>
 			new AudioWorkletNode(context, "bako", {
 				processorOptions: {buffer, layerNumber},
@@ -175,13 +192,13 @@ export async function start(buffer) {
 			})
 	)
 
-	// let delays = loop.layers(() => context.createDelay())
-	// let feedbacks = loop.layers(() => createGain())
-	// let reverbs = loop.layers(() => createReverb(ps1s))
 	let filters = loop.layers(() => context.createBiquadFilter())
 	let pans = loop.layers(() => context.createPanner())
 	let analyzer = context.createAnalyser()
 
+	// let delays = loop.layers(() => context.createDelay())
+	// let feedbacks = loop.layers(() => createGain())
+	// let reverbs = loop.layers(() => createReverb(ps1s))
 	loop.layers(layerIdx => {
 		boxes[layerIdx].connect(context.destination)
 		// let filter = filters[layerIdx]
@@ -199,5 +216,3 @@ export async function start(buffer) {
 		// feedbacks[layerIdx].connect(context.destination)
 	})
 }
-
-export function init() {}

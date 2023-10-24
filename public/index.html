@@ -26,6 +26,13 @@
 	<h1 screenreader>bento</h1>
 
 	<section class="bento">
+		<audio
+			class="iphone-silence"
+			src="/sounds/iphone-silence.flac"
+			loop
+			autoplay
+			preload="auto">
+		</audio>
 		<article class="ui"  onsubmit="event.preventDefault()">
 			<header>
 				<fieldset class="master-controls" >
@@ -167,14 +174,12 @@
 					</select>
 					<label
 						aria-label="Upload a sound from your computer"
-						class="upload"
-						chee>
+						class="upload">
 						↥
 						<input
 							type="file"
 							accept="audio/*"
 							name="upload"
-							aria-label="upload sound from disk"
 							screenreader>
 					</label>
 					<label aria-label="Record a sound" class="recorder">
@@ -206,7 +211,7 @@
 						<input type="radio" name="screen" checked value="wav">
 					</label>
 
-					<label>
+					<label hidden>
 						env
 						<input type="radio" name="screen" value="env">
 					</label>
@@ -216,7 +221,7 @@
 						<input type="radio" name="screen" value="mix">
 					</label>
 
-					<label>
+					<label hidden>
 						fx
 						<input type="radio" name="screen" value="fx">
 					</label>

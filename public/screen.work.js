@@ -190,9 +190,9 @@ function postBitmap(memory, context, layer, step) {
 function postAllBitmaps(memory, context) {
 	let pidx = Memory.selectedLayer(memory)
 	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
-		if (Memory.stepOn(memory, pidx, sidx)) {
-			postBitmap(memory, context, pidx, sidx)
-		}
+		// if (Memory.stepOn(memory, pidx, sidx)) {
+		postBitmap(memory, context, pidx, sidx)
+		// }
 	}
 }
 
@@ -396,7 +396,6 @@ onmessage = async event => {
 	if (message.type == "start") {
 		let {buffer} = message
 		memory = Memory.map(buffer)
-
 		requestAnimationFrame(update)
 	}
 }

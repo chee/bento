@@ -14,7 +14,7 @@ export let arrays = [
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
 	// 4294967295 times in one session
-	{name: "soundVersions", type: Uint32Array, size: NUMBER_OF_LAYERS},
+	{name: "soundVersions", type: Int32Array, size: NUMBER_OF_LAYERS},
 	{name: "layerSpeeds", type: Float32Array, size: NUMBER_OF_LAYERS},
 	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_LAYERS},
 	{
@@ -158,14 +158,6 @@ export function map(buffer, from) {
 	return memory
 }
 
-/** @param {MemoryMap} memory */
-function notify(memory) {
-	if (typeof window != "undefined") {
-		Atomics.notify(memory.notify, 0)
-		globalThis.postMessage({type: "save"})
-	}
-}
-
 /**
  * @param {MemoryMap} memory
  * @param {number} [val]
@@ -174,7 +166,6 @@ function notify(memory) {
 export function selectedLayer(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.selectedLayer)
-		notify(memory)
 	}
 	return memory.master.at(Master.selectedLayer)
 }
@@ -188,7 +179,6 @@ export function selectedLayer(memory, val) {
 export function currentStep(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.currentSteps.set([val], layer)
-		notify(memory)
 	}
 	return memory.currentSteps.at(layer)
 }
@@ -202,7 +192,6 @@ export function currentStep(memory, layer, val) {
 export function layerLength(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.layerLengths.set([val], layer)
-		notify(memory)
 	}
 	return memory.layerLengths.at(layer)
 }
@@ -216,7 +205,6 @@ export function layerLength(memory, layer, val) {
 export function layerSpeed(memory, layer, val) {
 	if (typeof val == "number") {
 		memory.layerSpeeds.set([val], layer)
-		notify(memory)
 	}
 	return memory.layerSpeeds.at(layer)
 }
@@ -234,7 +222,6 @@ export function stepOn(memory, layer, step, val) {
 
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
-		notify(memory)
 	}
 
 	Atomics.notify(memory.notify, 0)
@@ -255,7 +242,6 @@ export function stepReversed(memory, layer, step, val) {
 
 	if (typeof val == "boolean") {
 		stepReverseds.set([Number(val)], at)
-		notify(memory)
 	}
 
 	return Boolean(stepReverseds.at(at))
@@ -274,7 +260,6 @@ export function stepAttack(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepAttacks.set([val], at)
-		notify(memory)
 	}
 
 	return Number(stepAttacks.at(at))
@@ -293,7 +278,6 @@ export function stepRelease(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepReleases.set([val], at)
-		notify(memory)
 	}
 
 	return Number(stepReleases.at(at))
@@ -312,7 +296,6 @@ export function stepPitch(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepPitches.set([val], at)
-		notify(memory)
 	}
 
 	return Number(stepPitches.at(at))
@@ -335,7 +318,6 @@ export function stepQuiet(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepQuiets.set([val], at)
-		notify(memory)
 	}
 
 	return Number(stepQuiets.at(at))
@@ -354,7 +336,6 @@ export function stepPan(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepPans.set([val], at)
-		notify(memory)
 	}
 
 	return Number(stepPans.at(at))
@@ -379,7 +360,6 @@ export function toggleStep(memory, layer, step) {
 export function selectedStep(memory, val) {
 	if (typeof val == "number") {
 		memory.master.set([val], Master.selectedStep)
-		notify(memory)
 	}
 	return memory.master.at(Master.selectedStep)
 }
@@ -392,7 +372,6 @@ export function selectedStep(memory, val) {
 export function playing(memory, val) {
 	if (typeof val == "boolean") {
 		memory.master.set([Number(val)], Master.playing)
-		notify(memory)
 	}
 	return Boolean(memory.master.at(Master.playing))
 }
@@ -427,7 +406,6 @@ export function stop(memory) {
 export function paused(memory, val) {
 	if (typeof val == "boolean") {
 		memory.master.set([Number(val)], Master.paused)
-		notify(memory)
 	}
 	return Boolean(memory.master.at(Master.paused))
 }
@@ -602,7 +580,6 @@ export function stepRegion(memory, layer, step, region) {
 		let {start, end} = region
 		memory.stepStarts.set([start], offset)
 		memory.stepEnds.set([end], offset)
-		notify(memory)
 	}
 	return {
 		start: memory.stepStarts.at(offset),
@@ -617,7 +594,6 @@ export function stepRegion(memory, layer, step, region) {
 export function clearRegions(memory, layer) {
 	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
 	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
-	notify(memory)
 }
 
 /**

@@ -79,12 +79,6 @@ async function load(id = "?", now = true) {
 		/** um */
 		loaded = true
 	}
-
-	// while (true) {
-	// 	Atomics.wait(memory.notify, 1, 0)
-	// 	save(id)
-	// 	memory.notify.set([0], 0)
-	// }
 }
 
 function save(id = "?") {

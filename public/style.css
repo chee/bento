@@ -1,12 +1,12 @@
 @font-face {
 	font-family: qp;
-	src: url("/fonts/iosevka-qp-regular.ttf");
+	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
 	display: swap;
 }
 
 @font-face {
 	font-family: qp;
-	src: url("/fonts/iosevka-qp-light.ttf");
+	src: url("/fonts/iosevka-qp-light.ttf") format("truetype");
 	font-weight: light;
 	display: swap;
 }
@@ -181,7 +181,12 @@ option,
 	text-align: center;
 }
 
+.upload {
+	font-weight: bold;
+}
+
 button,
+.upload,
 input[type="button"] {
 	cursor: pointer;
 }

@@ -57,6 +57,7 @@ async function getFancy() {
 		document.body.setAttribute("fancy", "fancy")
 		if (db.loaded) {
 			// lmao imagine if i saved on every click
+			db.save()
 		} else {
 			try {
 				await db.load()
@@ -75,7 +76,7 @@ fancyListeners.map(async eventName =>
 
 async function init() {
 	graphics.init(screenWaveformCanvas)
-	sounds.init()
+	sounds.init(buffer)
 	await db.init(buffer)
 
 	Memory.bpm(memory, Number(bpmInput.value))
@@ -161,14 +162,17 @@ layerSelectors.forEach((layerSelector, index) => {
 
 playButton.addEventListener("click", () => {
 	Memory.play(memory)
+	sounds.play()
 })
 
 ui.querySelector('[name="pause"]').addEventListener("click", () => {
 	Memory.pause(memory)
+	sounds.pause()
 })
 
 ui.querySelector('[name="stop"]').addEventListener("click", () => {
 	Memory.stop(memory)
+	sounds.pause()
 })
 
 bpmInput.addEventListener("change", () => {

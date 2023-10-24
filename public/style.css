@@ -11,6 +11,10 @@
 	display: swap;
 }
 
+::selection {
+	background: transparent;
+}
+
 /*
  * todo
  *
@@ -23,62 +27,105 @@
  * - enable theming
  */
 :root {
-	--background-color: #ffe9ed;
-	--line-color: #cc3366;
-	--recording-background: #cc3366;
-	--recording-line: #ffe9ed;
-	--background: var(--background-color);
-	--line: var(--line-color);
-	--intense: #cc1336;
-	--selection-background: "#ffee88";
-	--active: #ff2a50;
-	--weird-green-sea: #4cac9d;
-	--black: #1e1316;
-	--blue: #407acd;
-	--cyan: #22a6cd;
-	--green: #00aba5;
-	--magenta: #6d1699;
-	--red: #ed2b3c;
-	--yellow: #e59101;
-	--white: #b8768c;
-	--bright-black: #543641;
-	--bright-blue: #3388ff;
-	--orla-foster: #3399ff;
-	--bright-cyan: #2ec2ff;
-	--bright-green: #01b9a4;
-	--bright-magenta: #af40cb;
-	--bright-red: #ff275d;
-	--bright-yellow: #c9af13;
-	--snoot-yellow: #fe8;
-	--bright-white: #e090ae;
-	--holy-light: #fff;
-	--holy-dark: #000;
-	--holy-red: #f00;
-	--holy-blue: #00f;
+	/*=START-OF-PUBLIC-API*/
+	/* =page= */
+	--fill: white;
+	--line: black;
+	--font-family: monospace;
+	--page-fill: var(--fill);
+	--page-line: var(--line);
+	--scrollbar-bg: var(--fill);
+	--scrollbar-fg: var(--fill);
+	--focus-outline: var(--page-line);
+	--drop-target-outline: var(--focus-outline);
+
+	/* =machine= */
+	--machine-fill: var(--page-fill);
+	--machine-line: var(--page-line);
+	--machine-shadow-color: var(--machine-line);
+	--prominent-fill: var(--machine-line);
+	--prominent-line: var(--machine-fill);
+	--recording-fill: var(--prominent-fill);
+	--recording-line: var(--prominent-line);
+
+	/* =controls= */
+	--controls-fill: var(--machine-fill);
+	--controls-line: var(--machine-line);
+	--master-controls-fill: var(--controls-fill);
+	--master-controls-line: var(--controls-line);
+	--layer-selector-name-style: lower-latin;
+	--layer-selector-fill: var(--controls-fill);
+	--layer-selector-line: var(--controls-line);
+	--selected-layer-selector-fill: var(--prominent-fill);
+	--selected-layer-selector-line: var(--prominent-line);
+	--layer-options-fill: var(--selected-layer-selector-fill);
+	--layer-options-line: var(--selected-layer-selector-line);
+
+	/* =screen= */
+	--screen-fill: var(--prominent-fill);
+	--screen-line: var(--prominent-line);
+	--region-fill: var(--machine-fill);
+	--region-line: var(--machine-line);
+	--drawing-region-fill: var(--region-fill);
+	--drawing-region-line: var(--region-line);
+	--screen-selector-fill: var(--screen-fill);
+	--screen-selector-line: var(--screen-line);
+
+	/* =grid= */
+	--grid-fill: var(--machine-fill);
+	--grid-line: var(--machine-line);
+
+	/* =box= */
+	--box-on-fill: var(--prominent-fill);
+	--box-on-line: var(--prominent-line);
+	--box-off-fill: var(--grid-fill);
+	--box-off-line: var(--grid-line);
+	--selected-box-outline: var(--focus-outline);
 	/* :3d_glasses_emoji: */
-	--quiet-base: var(--holy-light);
-	--pan-left-base: #f00;
-	--pan-right-base: var(--holy-blue);
-	--box-on: var(--line-color);
-	--box-off: var(--background-color);
-	--box-line: var(--line-color);
-	--pan-left: color-mix(in srgb, var(--box-on), var(--pan-left-base) 50%);
-	--pan-right: color-mix(in srgb, var(--box-on), var(--pan-right-base) 50%);
-	--columns: repeat(4, 1fr);
-	--font-family: qp, iosevka, monaco, monospace;
-	--layer-name-style: lower-latin;
-	--box-size: 2em;
-	--box-gap: 0.25em;
-	--total-width: calc(((var(--box-size) * 4) + (var(--box-gap) * 8)));
-	background: var(--background);
-	color: var(--line);
+	--box-fill-mix-pan-left: red;
+	--box-fill-mix-pan-right: blue;
+	--box-fill-mix-quiet: var(--box-off-fill);
+	/* *END-OF-PUBLIC-API* */
+
+	background: var(--page-fill);
 	font-family: var(--font-family);
 	font-size: 2.2em;
 	line-height: 1.15;
 }
 
-::selection {
-	background: transparent;
+[theme="cherries"] {
+	--cherries-light: #ffe9ed;
+	--cherries-dark: #cc3366;
+	--holy-light: white;
+	--holy-dark: black;
+	--cherries-yellow: #ffd807;
+	--2013-body-grey: #333;
+
+	/* =FEATURES= */
+	/* =page= */
+	--font-family: qp, iosevka, monaco, monospace;
+	--fill: var(--cherries-light);
+	--line: var(--cherries-dark);
+	--page-fill: color-mix(
+		in srgb,
+		var(--cherries-light) 80%,
+		var(--holy-light)
+	);
+	--machine-shadow-color: color-mix(
+		in srgb,
+		var(--cherries-light) 90%,
+		var(--holy-dark)
+	);
+	--machine-fill: var(--cherries-light);
+	--region-fill: var(--cherries-yellow);
+	--region-line: var(--2013-body-grey);
+	--drawing-region-fill: #00ff99ee;
+	/* --box-off-fill: color-mix( */
+	/* 	in srgb, */
+	/* 	var(--machine-fill) 20%, */
+	/* 	var(--holy-light) */
+	/* ); */
+	/* --box-on-fill: color-mix(in srgb, var(--box-fill) 20%, var(--holy-dark)); */
 }
 
 [screenreader] {
@@ -91,15 +138,25 @@
 }
 
 * {
+	/* disable bouncing */
 	overscroll-behavior: none;
-	scrollbar-color: var(--line) var(--background);
+	scrollbar-color: var(--scrollbar-bg) var(--scrollbar-fg);
 }
 
 body {
+	/* remove margin from mosaic or whatever */
 	margin: 0;
 }
 
 .bento {
+	--number-of-boxes: 4;
+	--box-size: 2em;
+	--box-gap: 0.25em;
+	--total-width: calc(
+		(var(--box-size) * var(--number-of-boxes)) +
+			(var(--box-gap) * (var(--number-of-boxes) * 2))
+	);
+
 	min-height: 95vh;
 	display: flex;
 	align-items: center;
@@ -111,37 +168,27 @@ body {
 	max-inline-size: var(--total-width);
 }
 
-h1 {
-	text-align: center;
+/* completely disable highlighting stuff everywhere */
+.machine,
+.machine * {
+	--webkit-user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-.ui {
-	background: var(--background);
-	border: 1px solid;
+.machine {
+	background: var(--machine-fill);
+	color: var(--machine-line);
+	border: 1px solid currentColor;
 	margin: 0;
 	width: var(--total-width);
-	color: var(--line);
 	position: relative;
-	user-select: none;
-	--webkit-user-select: none;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
-.ui * {
-	--webkit-user-select: none;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	box-shadow: 0px 0px 50px 0px var(--machine-shadow-color);
 }
 
 fieldset {
@@ -150,26 +197,15 @@ fieldset {
 	padding: 0;
 }
 
-.master-controls {
-	display: flex;
-	justify-content: space-evenly;
-	text-align: center;
-	align-items: center;
-	background: var(--background);
-	border-bottom: 1px solid;
+.machine-controls :focus {
+	outline: 2px dashed var(--focus-outline);
+	outline-offset: 5px;
 }
 
-.master-controls input {
-	font-size: 1em;
-	line-height: 1em;
-}
-
-.master-controls input,
-.layer-selector input,
-.layer-controls input,
-select,
-option,
-.master-controls button {
+.machine-controls input,
+.machine-controls select,
+.machine-controls option,
+.machine-controls .master-controls {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -181,82 +217,92 @@ option,
 	text-align: center;
 }
 
-.upload {
-	font-weight: bold;
-}
-
-button,
-.upload,
-input[type="button"] {
+.machine-controls button,
+.machine-controls input[type="file"],
+.machine-controls input[type="button"] {
 	cursor: pointer;
 }
 
-input[type="button"]:hover {
-	color: var(--intense);
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+/* to make the number selector go away on safari */
+.master-controls input::-webkit-outer-spin-button,
+.master-controls input::-webkit-inner-spin-button {
 	-webkit-appearance: none;
 	margin: 0;
 }
-input[type="number"] {
+
+.master-controls input[type="number"] {
 	appearance: textfield;
 }
 
-input[name="bpm"] {
+.master-controls input[name="bpm"] {
 	max-width: 3ex;
+}
+
+.master-controls {
+	display: flex;
+	justify-content: space-evenly;
+	text-align: center;
+	align-items: center;
+	background: var(--controls-fill);
+	color: var(--controls-line);
+	border-bottom: 1px solid var(--machine-line);
+}
+
+.master-controls input {
+	font-size: 1em;
+	line-height: 1em;
 }
 
 .layer-selector {
 	display: flex;
 	justify-content: space-evenly;
-	background: var(--background);
+	background: var(--layer-selector-fill);
+	color: var(--layer-selector-line);
 	counter-reset: layer;
 }
 
 .layer-selector label::before {
 	counter-increment: layer;
-	content: counters(layer, "", var(--layer-name-style));
+	content: counters(layer, "", var(--layer-selector-name-style));
 }
 
 .layer-selector label {
 	width: 100%;
 	text-align: center;
 	cursor: pointer;
+	position: relative;
 }
 
 /* until the :has selector is real */
+/* .layer-selector label:has(:checked)  */
 .layer-selector label.checked {
-	background: var(--line);
-	color: var(--background);
-}
-
-.layer-selector label:has(:checked) {
-	background: var(--line);
-	color: var(--background);
+	background: var(--selected-layer-selector-fill);
+	color: var(--selected-layer-selector-line);
 }
 
 /* to be clickable with voice */
 .layer-selector label input {
-	height: 5px;
-	width: 5px;
 	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
 }
 
-.layer-controls {
+.layer-options {
 	display: flex;
 	justify-content: space-evenly;
 	text-align: center;
-	background: var(--line);
-	color: var(--background);
+	background: var(--layer-options-fill);
+	color: var(--layer-options-line);
 }
 
-.layer-controls select {
+.layer-options select {
 	font-size: 0.7rem;
 }
 
-label.upload {
+.layer-options .upload {
+	font-weight: bold;
 	font-size: 0.5em;
 	line-height: 1rem;
 }
@@ -265,15 +311,14 @@ label.upload {
  * the rest of the styles for label.recorder are with the [recording] styles
  * further down
 */
-label.recorder {
+.layer-options .recorder {
+	background: var(--layer-options-fill);
+	color: var(--layer-options-line);
+	border: none;
+	appearance: none;
 	font-size: 0.8em;
 	line-height: 1rem;
 	cursor: pointer;
-}
-
-label.recorder:focus,
-label:has([name="record"]:focus) {
-	outline: 2px solid cyan;
 }
 
 /* todo consider <bento-screen> */
@@ -287,7 +332,8 @@ label:has([name="record"]:focus) {
 	display: flex;
 	flex-direction: row;
 	scroll-snap-type: x mandatory;
-	background: var(--line);
+	background: var(--screen-fill);
+	color: var(--screen-line);
 	scrollbar-width: 0;
 }
 
@@ -300,7 +346,8 @@ label:has([name="record"]:focus) {
 	margin: 0;
 	height: 4em;
 	scroll-snap-align: center;
-	background: var(--line);
+	background: var(--screen-fill);
+	color: var(--screen-line);
 }
 
 .screen figure canvas {
@@ -309,18 +356,19 @@ label:has([name="record"]:focus) {
 }
 
 [drop-target] {
-	outline: 4px solid var(--weird-green-sea);
+	outline: 4px solid var(--drop-target-outline);
+	border: 2px solid var(--drop-target-outline);
+	outline-offset: 2px;
 }
 
 figure.waveform canvas {
-	/* touch-action: manipulation; */
-	/* this should disable scrolling, but keep regions working */
+	/* this disabled scrolling so selecting a region doesn't move you around */
 	touch-action: none;
 }
 
 .screen-selector fieldset {
-	display: grid;
 	text-align: center;
+	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	font-size: 0.5em;
 }
@@ -333,8 +381,8 @@ figure.waveform canvas {
 }
 
 .screen-selector label.checked {
-	background: var(--line);
-	color: var(--background);
+	background: var(--screen-selector-fill);
+	color: var(--screen-selector-line);
 }
 
 .screen-selector label:not(:last-child) {
@@ -350,30 +398,30 @@ figure.waveform canvas {
 /* todo consider moving these styles to their component */
 
 bento-grid {
+	background: var(--grid-background);
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);
 	grid-template-columns: repeat(4, 1fr);
-	background: var(--background);
 	justify-items: center;
 	gap: var(--box-gap);
 	margin: var(--box-gap);
 }
 
 bento-box {
+	--box-fill: var(--box-off-fill);
+	--box-line: var(--box-off-line);
+	background-color: var(--box-fill);
+	color: var(--box-line);
 	height: var(--box-size);
 	width: var(--box-size);
+	transition: background 0.022s ease-in-out;
 	border: 1px solid;
 	position: relative;
-	--box-color: var(--box-off);
-	background: var(--box-color);
-	color: var(--box-line);
-	user-select: none;
-	--webkit-user-select: none;
-	transition: background 0.022s ease-in-out;
 }
 
 bento-box .wav {
+	-webkit-user-drag: none;
 	width: 100%;
 	height: 100%;
 	image-rendering: optimizeQuality;
@@ -381,8 +429,6 @@ bento-box .wav {
 	pointer-events: none;
 	display: none;
 	user-select: none;
-	--webkit-user-select: none;
-	-webkit-user-drag: none;
 }
 
 bento-box[on][with-wav] .wav {
@@ -392,24 +438,24 @@ bento-box[on][with-wav] .wav {
 bento-box[selected] {
 	/* prettier-ignore */
 	box-shadow:
-		-2px -2px 0 0 var(--background),
-		02px 02px 0 0 var(--background),
-		-2px 02px 0 0 var(--background),
-		02px -2px 0 0 var(--background),
-		-3px -3px 0 0 var(--line),
-		03px 03px 0 0 var(--line),
-		-3px 03px 0 0 var(--line),
-		03px -3px 0 0 var(--line),
-		-4px -4px 0 0 var(--line),
-		04px 04px 0 0 var(--line),
-		-4px 04px 0 0 var(--line),
-		04px -4px 0 0 var(--line);
+		-2px -2px 0 0 var(--grid-fill),
+		02px 02px 0 0 var(--grid-fill),
+		-2px 02px 0 0 var(--grid-fill),
+		02px -2px 0 0 var(--grid-fill),
+		-3px -3px 0 0 var(--selected-box-outline),
+		03px 03px 0 0 var(--selected-box-outline),
+		-3px 03px 0 0 var(--selected-box-outline),
+		03px -3px 0 0 var(--selected-box-outline),
+		-4px -4px 0 0 var(--selected-box-outline),
+		04px 04px 0 0 var(--selected-box-outline),
+		-4px 04px 0 0 var(--selected-box-outline),
+		04px -4px 0 0 var(--selected-box-outline);
 	border-color: currentColor;
 }
 
 bento-box[on] {
-	color: var(--box-off);
-	--box-color: var(--box-on);
+	--box-fill: var(--box-on-fill);
+	--box-line: var(--box-on-line);
 }
 
 bento-box:not([on]) {
@@ -417,7 +463,7 @@ bento-box:not([on]) {
 }
 
 bento-box:focus:not([aria-selected="true"]) {
-	outline: 2px dashed currentColor;
+	outline: 2px dashed var(--focus-outline);
 	outline-offset: 0;
 }
 
@@ -434,7 +480,7 @@ bento-box[playing]:after {
 	bottom: 1%;
 	transform: translate(-50%, -0%);
 	border-radius: 100%;
-	background: currentColor;
+	background: var(--box-line);
 }
 
 bento-box[disabled] {
@@ -448,147 +494,187 @@ bento-box[disabled] {
  * all in CSS? let's find out!!!!!!
  * todo adjust percentages when you've had a chance to play with it
  */
-bento-box[pan="-6"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 100%);
-}
-
-bento-box[pan="-5"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 90%);
-}
-
-bento-box[pan="-4"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 80%);
-}
-
-bento-box[pan="-3"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 70%);
-}
-
-bento-box[pan="-2"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 60%);
-}
-
-bento-box[pan="-1"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-left-base) 50%);
-}
-
-bento-box[pan="6"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 100%);
-}
-
-bento-box[pan="5"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 90%);
-}
-
-bento-box[pan="4"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 80%);
-}
-
-bento-box[pan="3"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 70%);
-}
-
-bento-box[pan="2"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 60%);
-}
-
-bento-box[pan="1"] {
-	--box-color: color-mix(in srgb, var(--box-on), var(--pan-right-base) 50%);
-}
-
-bento-box[quiet="1"] {
-	background-color: color-mix(
+bento-box[on][pan="-6"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 96%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 100%
 	);
 }
 
-bento-box[quiet="2"] {
-	background-color: color-mix(
+bento-box[on][pan="-5"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 88%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 84%
 	);
 }
 
-bento-box[quiet="3"] {
-	background-color: color-mix(
+bento-box[on][pan="-4"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 81%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 69%
 	);
 }
 
-bento-box[quiet="4"] {
-	background-color: color-mix(
+bento-box[on][pan="-3"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 69%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 47%
 	);
 }
 
-bento-box[quiet="5"] {
-	background-color: color-mix(
+bento-box[on][pan="-2"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 63%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 39%
 	);
 }
 
-bento-box[quiet="6"] {
-	background-color: color-mix(
+bento-box[on][pan="-1"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 55%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 22%
 	);
 }
 
-bento-box[quiet="7"] {
-	background-color: color-mix(
+bento-box[on][pan="6"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 47%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 100%
 	);
 }
 
-bento-box[quiet="8"] {
-	background-color: color-mix(
+bento-box[on][pan="5"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 39%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 84%
 	);
 }
 
-bento-box[quiet="9"] {
-	background-color: color-mix(
+bento-box[on][pan="4"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 29%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 69%
 	);
 }
 
-bento-box[quiet="10"] {
-	background-color: color-mix(
+bento-box[on][pan="3"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 22%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 47%
 	);
 }
 
-bento-box[quiet="11"] {
-	background-color: color-mix(
+bento-box[on][pan="2"] {
+	--box-fill: color-mix(
 		in srgb,
-		var(--box-color) 13%,
-		var(--quiet-base)
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 39%
 	);
 }
 
-bento-box[quiet="12"] {
-	background-color: color-mix(in srgb, var(--box-color) 5%, var(--quiet-base));
+bento-box[on][pan="1"] {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 22%
+	);
 }
 
-body:not([chee]) [chee] {
+bento-box[on][quiet="1"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 96%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="2"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 88%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="3"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 81%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="4"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 69%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="5"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 63%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="6"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 55%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="7"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 47%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="8"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 39%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="9"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 29%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="10"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 22%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="11"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 13%,
+		var(--box-fill-mix-quiet)
+	);
+}
+bento-box[on][quiet="12"] {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 5%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:not([chee]) [chee] {
 	display: none;
 }
 
@@ -624,15 +710,15 @@ body:not([chee]) [chee] {
 	max-width: 100%;
 	align-items: center;
 	justify-content: center;
-	background: var(--recording-background);
+	background: var(--recording-fill);
 }
 
 .tape svg {
-	background: var(--recording-background);
+	background: var(--recording-fill);
 }
 
 [recording] {
-	background-color: var(--recording-background);
+	background: var(--recording-fill);
 	min-height: 100vh;
 }
 
@@ -698,110 +784,4 @@ body:not([chee]) [chee] {
 }
 .tape .spool {
 	animation: infinite wobble linear 1.2s;
-}
-
-/* all of this is here as a backup plan if the svg fails to load */
-[recording] .layer,
-[recording] input,
-[recording] label:not(.recorder),
-[recording] select,
-[recording] .screen .wav,
-[recording] .screen .env,
-[recording] .screen .mix,
-[recording] .screen .fx,
-[recording] .screen .wav {
-	visibility: hidden;
-}
-[recording] .layer-controls select {
-	display: none;
-}
-[recording] .ui {
-	background: var(--line-color);
-}
-[recording] .master-controls {
-	border: none;
-	background: var(--line-color);
-}
-[recording] .layer-controls,
-[recording] .layer-selector {
-	background: var(--line-color);
-}
-
-[recording] {
-	/* --line: color-mix(in srgb, var(--background-color), 50% var(--line-color)); */
-	--background: var(--background-color);
-}
-
-[recording] bento-grid {
-	visibility: hidden;
-}
-
-[recording] bento-box {
-	background: none;
-	background-image: none;
-}
-/* </backup-plan> */
-
-dialog {
-	box-sizing: border-box;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 1;
-	height: 100%;
-	width: 100%;
-	color: var(--background);
-	padding: 1em;
-	background: var(--orla-foster);
-	color: var(--holy-light);
-}
-
-dialog * {
-	box-sizing: border-box;
-}
-
-dialog .close {
-	position: absolute;
-	top: 0.25em;
-	right: 0.25em;
-	background: transparent;
-	color: currentColor;
-	border: none;
-	appearance: none;
-	font-size: 1rem;
-	cursor: pointer;
-	overflow: hidden;
-	text-align: center;
-	width: 2em;
-}
-
-dialog .button {
-	border: 4px solid;
-	--other-edge: color-mix(in srgb, var(--orla-foster) 60%, var(--holy-dark));
-	border-bottom-color: var(--other-edge);
-	border-right-color: var(--other-edge);
-	background: color-mix(in srgb, var(--orla-foster) 90%, var(--holy-light));
-	color: color-mix(in srgb, var(--orla-foster) 15%, var(--holy-light));
-}
-
-dialog .content {
-	display: flex;
-	margin-top: 2em;
-	font-size: 0.8rem;
-}
-
-dialog .button:hover,
-dialog .button:focus {
-	color: var(--holy-light);
-}
-
-dialog .button:active {
-	border-color: var(--other-edge) currentColor currentColor var(--other-edge);
-}
-
-dialog .content .button {
-	max-width: unset;
-	white-space: break-spaces;
-	width: 100%;
 }

@@ -2,7 +2,10 @@ import "./extend-native-prototypes.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 
-let {DPI, style} = graphics
+let {DPI} = graphics
+
+/** @type {graphics.StyleMaps}*/
+let styles
 
 /**
  * @type {OffscreenCanvasRenderingContext2D} context
@@ -24,8 +27,8 @@ function clear(context) {
 	let {width, height} = canvas
 	context.restore()
 	context.clearRect(0, 0, width, height)
-	context.fillStyle = style.normal.fill
-	context.strokeStyle = style.normal.line
+	context.fillStyle = styles.normal.fill
+	context.strokeStyle = styles.normal.line
 	context.lineWidth = DPI
 }
 
@@ -130,6 +133,7 @@ function getVisibleSound(stepDetails) {
 	return visibleSound
 }
 
+// todo use indexeddb for the bitmap cache:)
 let bitmapCache = {}
 /**
  * Create and post the bitmap for a step
@@ -161,7 +165,7 @@ function postBitmap(memory, context, layer, step) {
 		let height = (context.canvas.height = 256)
 		let width = (context.canvas.width = 256)
 		drawSampleLine({
-			style: style.step,
+			style: styles.boxOnLine,
 			array,
 			x: 0,
 			xm: width / length,
@@ -291,7 +295,7 @@ function update(_frame = 0, force = false) {
 	// i am so bad at math lol
 	// will experiment again if it's too slow on lower-powered devices
 	drawSampleLine({
-		style: style.normal,
+		style: styles.normal,
 		array: visibleSound,
 		x: 0,
 		xm,
@@ -305,11 +309,11 @@ function update(_frame = 0, force = false) {
 			fillStart = width - pixelRegion.end
 			fillEnd = width - pixelRegion.start
 		}
-		fillRegion(fillStart, fillEnd, style.region.fill)
+		fillRegion(fillStart, fillEnd, styles.region.fill)
 		let r = reversed ? reversedRegion : region
 		let array = visibleSound.subarray(r.start, r.end)
 		drawSampleLine({
-			style: style.region,
+			style: styles.region,
 			array,
 			x: fillStart,
 			xm,
@@ -321,7 +325,7 @@ function update(_frame = 0, force = false) {
 		fillRegion(
 			drawingRegion.start,
 			drawingRegion.end,
-			style.drawingRegion.fill
+			styles.drawingRegion.fill
 		)
 		let s = (drawingRegion.start / xm) | 0
 		let e = (drawingRegion.end / xm) | 0
@@ -329,7 +333,7 @@ function update(_frame = 0, force = false) {
 		let array = visibleSound.subarray(s, e)
 
 		drawSampleLine({
-			style: style.drawingRegion,
+			style: styles.drawingRegion,
 			array,
 			x: drawingRegion.start,
 			xm,
@@ -349,10 +353,11 @@ onmessage = async event => {
 	let message = event.data
 
 	if (message.type == "init") {
-		let {canvas} = message
+		let {canvas, styles: newStyles} = message
+		styles = newStyles
 		context = canvas.getContext("2d")
 		context.save()
-		context.fillStyle = style.normal.fill
+		context.fillStyle = styles.normal.fill
 		context.fillRect(0, 0, canvas.width, canvas.height)
 		context.lineWidth = DPI
 		context.moveTo(0, canvas.height / 2)
@@ -373,7 +378,7 @@ onmessage = async event => {
 			)
 		}
 		context.lineTo(canvas.width, canvas.height)
-		context.strokeStyle = style.normal.line
+		context.strokeStyle = styles.normal.line
 		context.stroke()
 
 		let action = "click"
@@ -381,8 +386,8 @@ onmessage = async event => {
 			action = "tap"
 		}
 
-		context.font = style.normal.font
-		context.fillStyle = style.normal.text
+		context.font = styles.normal.font
+		context.fillStyle = styles.normal.text
 		context.textAlign = "center"
 		context.textBaseline = "bottom"
 		let text = `${action} ▶ to start`

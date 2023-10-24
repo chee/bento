@@ -10,28 +10,28 @@ import {
 } from "./custom-elements/custom-elements.js"
 
 // TODO move non ui stuff to, like, start.js
-let ui = document.querySelector(".ui")
+let machine = document.querySelector(".machine")
 /** @type {NodeListOf<HTMLInputElement>} */
-let layerSelectors = ui.querySelectorAll(".layer-selector input")
+let layerSelectors = machine.querySelectorAll(".layer-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
-let layerSelectorLabels = ui.querySelectorAll(".layer-selector label")
+let layerSelectorLabels = machine.querySelectorAll(".layer-selector label")
 
 /** @type {BentoGrid} */
-let grid = ui.querySelector("bento-grid")
+let grid = machine.querySelector("bento-grid")
 /** @type {Array<BentoBox>} */
-let boxes = Array.from(ui.querySelectorAll("bento-box"))
+let boxes = Array.from(machine.querySelectorAll("bento-box"))
 /** @type {HTMLSelectElement} */
-let speedSelector = ui.querySelector('[name="speed"]')
+let speedSelector = machine.querySelector('[name="speed"]')
 /** @type {HTMLSelectElement} */
-let lengthSelector = ui.querySelector('[name="length"]')
+let lengthSelector = machine.querySelector('[name="length"]')
 /** @type {HTMLInputElement} */
-let bpmInput = ui.querySelector('[name="bpm"]')
+let bpmInput = machine.querySelector('[name="bpm"]')
 /** @type {HTMLInputElement} */
-let playButton = ui.querySelector('[name="play"]')
-/** @type {HTMLInputElement} */
-let recordButton = ui.querySelector('[name="record"]')
+let playButton = machine.querySelector('[name="play"]')
+/** @type {HTMLButtonElement} */
+let recordButton = machine.querySelector("button.recorder")
 /** @type {HTMLElement} */
-let screen = ui.querySelector(".screen")
+let screen = machine.querySelector(".screen")
 /** @type {HTMLCanvasElement} */
 let screenWaveformCanvas = screen.querySelector(".waveform canvas")
 
@@ -165,12 +165,12 @@ playButton.addEventListener("click", () => {
 	sounds.play()
 })
 
-ui.querySelector('[name="pause"]').addEventListener("click", () => {
+machine.querySelector('[name="pause"]').addEventListener("click", () => {
 	Memory.pause(memory)
 	sounds.pause()
 })
 
-ui.querySelector('[name="stop"]').addEventListener("click", () => {
+machine.querySelector('[name="stop"]').addEventListener("click", () => {
 	Memory.stop(memory)
 	sounds.pause()
 })
@@ -404,15 +404,8 @@ for (let [flag, value] of featureflags.entries()) {
 globalThis.addEventListener(
 	"keydown",
 	/** @param {KeyboardEvent} event */ event => {
-		if (document.activeElement.tagName == "INPUT") {
-			// why does ^ that guard not work, typescript?
-			// you KNOW this mfer is an input element
-			let activeElement = /** @type {HTMLInputElement} */ (
-				document.activeElement
-			)
-			if (activeElement?.type == "number" || activeElement?.type == "text") {
-				return
-			}
+		if (["INPUT", "SELECT"].includes(document.activeElement.tagName)) {
+			return
 		}
 		let chan = Memory.selectedLayer(memory)
 		let selected = Memory.selectedStep(memory)
@@ -421,7 +414,7 @@ globalThis.addEventListener(
 		let bottomRow = selected > 11
 		let rightColumn = !((selected + 1) % 4)
 		let next = selected
-		let boxes = "1234qwerasdfzxcv"
+		let boxnames = "1234qwerasdfzxcv"
 
 		// in case you are kara brightwell / french
 		let normalPersonKeyLocation =
@@ -443,7 +436,7 @@ globalThis.addEventListener(
 			}
 		}
 
-		let boxIndex = boxes.indexOf(normalPersonKeyLocation)
+		let boxIndex = boxnames.indexOf(normalPersonKeyLocation)
 		let ops = []
 		let mod = modifiers(event)
 
@@ -470,15 +463,26 @@ globalThis.addEventListener(
 		} else if (mod.shift && boxIndex > -1 && boxIndex < 4) {
 			Memory.selectedLayer(memory, boxIndex)
 		} else if (mod.ctrl && event.key == "ArrowDown") {
-			let gain = Memory.stepQuiet(memory, chan, selected)
-			gain = Math.clamp(0, gain + 1, 12)
+			let quiet = Memory.stepQuiet(memory, chan, selected)
+			quiet = Math.clamp(0, quiet + 1, 12)
 			// TODO fire event on box
-			Memory.stepQuiet(memory, chan, selected, gain)
+			Memory.stepQuiet(memory, chan, selected, quiet)
 		} else if (mod.ctrl && event.key == "ArrowUp") {
-			let gain = Memory.stepQuiet(memory, chan, selected)
-			gain = Math.clamp(0, gain - 1, 12)
+			let quiet = Memory.stepQuiet(memory, chan, selected)
+			quiet = Math.clamp(0, quiet - 1, 12)
 			// TODO fire event on box
-			Memory.stepQuiet(memory, chan, selected, gain)
+			Memory.stepQuiet(memory, chan, selected, quiet)
+		} else if (mod.ctrl && event.key == "ArrowRight") {
+			let pan = Memory.stepPan(memory, chan, selected)
+			pan = Math.clamp(-6, pan + 1, 6)
+			// TODO fire event on box
+			Memory.stepPan(memory, chan, selected, pan)
+		} else if (mod.ctrl && event.key == "ArrowLeft") {
+			let pan = Memory.stepPan(memory, chan, selected)
+			// TODO sohuld clamping happen in memory? probably
+			pan = Math.clamp(-6, pan - 1, 6)
+			// TODO fire event on box
+			Memory.stepPan(memory, chan, selected, pan)
 		} else if (mod.ctrl && event.key == "r") {
 			let reversed = Memory.stepReversed(memory, chan, selected)
 			// TODO fire event on box
@@ -491,17 +495,18 @@ globalThis.addEventListener(
 				Memory.toggleStep(memory, Memory.selectedLayer(memory), next)
 			}
 		} else if (ops.includes("move")) {
+			event.preventDefault()
 			Memory.selectedStep(memory, next)
 			boxes[next].focus()
 		}
 	}
 )
 
-// let optionsButton = ui.querySelector("[name='options']")
+// let optionsButton = machine.querySelector("[name='options']")
 // let optionsDialog = /** @type {HTMLDialogElement} */ (
-// 	ui.querySelector(".save-dialog")
+// 	machine.querySelector(".save-dialog")
 // )
-// let dialogCloseButton = ui.querySelector("dialog .close")
+// let dialogCloseButton = machine.querySelector("dialog .close")
 
 // optionsButton.addEventListener("click", () => {
 // 	optionsDialog.show()

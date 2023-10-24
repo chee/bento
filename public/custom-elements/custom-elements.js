@@ -4,7 +4,7 @@
 // the event handlers can never set this.something, they must announce an
 // event. the setting is done in the main event loop when memory changes.
 // ui state is strictly a representation of memory, and user interactions are
-// events handled in ui.js
+// events handled in machine.js
 
 import BentoGrid from "./grid.js"
 import BentoBox from "./box.js"

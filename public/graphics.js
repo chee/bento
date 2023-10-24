@@ -17,29 +17,86 @@ export const Screen = {
 
 export const DPI = 3
 
-// todo style tokens?
-export const style = {
-	normal: {
-		fill: "#00000000",
-		line: "white",
-		text: "white",
-		font: "69px qp, monospace"
-	},
-	step: {
-		fill: "#00000000",
-		line: "#fff"
-	},
-	region: {
-		fill: "#ffffffff",
-		line: "#333"
-	},
-	drawingRegion: {
-		fill: "#00ff99ee",
-		line: "#fff"
+/**
+ * @typedef {Object} StyleMap
+ * @prop {string} fill
+ * @prop {string} line
+ * @prop {string} [text]
+ * @prop {string} [font]
+ */
+
+/** @param {string} prop */
+function getStyle(prop, sel = ".screen") {
+	let root = document.documentElement
+	let el = /** @type {HTMLElement} */ (root.querySelector(sel))
+	let vvv = "--" + prop
+	console.log(
+		root,
+		el,
+		prop,
+		el.style.getPropertyValue(prop),
+		el.style.getPropertyValue(vvv),
+		getComputedStyle(el).getPropertyValue(vvv),
+		getComputedStyle(el).getPropertyValue(prop),
+		root.style.getPropertyValue(vvv),
+		getComputedStyle(root).getPropertyValue(prop),
+		getComputedStyle(root).getPropertyValue(vvv)
+	)
+	return (
+		(el && el.style.getPropertyValue(vvv)) ||
+		root.style.getPropertyValue(vvv) ||
+		(el && getComputedStyle(el)[vvv]) ||
+		getComputedStyle(root)[vvv]
+	)
+}
+
+/**
+ * @typedef {Record<string, StyleMap>} StyleMaps
+ * @returns {StyleMaps}
+ */
+function getStyles() {
+	let screenElement = /** @type {HTMLElement} */ (
+		document.querySelector(".screen")
+	)
+	// todo --screen-fill
+	let fill = getStyle("screen-fill")
+	let line = getStyle("screen-line")
+	let boxOnLine = getStyle("boxOnLine")
+	let boxOffLine = getStyle("boxOffLine")
+	let fontFamily = getComputedStyle(screenElement).fontFamily
+	let regionFill = getStyle("region-fill")
+	let drawingRegionFill = getStyle("drawing-region-fill")
+	let regionLine = getStyle("region-line")
+	let drawingRegionLine = getStyle("drawing-region-line")
+	let fontSize = 23 * DPI
+	let font = `${fontSize}px ${fontFamily}`
+
+	return {
+		normal: {
+			fill,
+			line,
+			text: line,
+			font
+		},
+		boxOn: {
+			fill: "transparent",
+			line: boxOnLine
+		},
+		boxOff: {
+			fill: "transparent",
+			line: boxOffLine
+		},
+		region: {
+			fill: regionFill,
+			line: regionLine
+		},
+		drawingRegion: {
+			fill: drawingRegionFill,
+			line: drawingRegionLine
+		}
 	}
 }
 
-// TODO add another tiny translucent canvas for the region
 export let IS_BASICALLY_A_PHONE =
 	typeof window != "undefined" &&
 	window.matchMedia("(pointer: coarse)").matches
@@ -166,6 +223,14 @@ export function switchScreen(mode) {
 	}
 }
 
+export function theme(/**@type string*/ _name) {
+	// todo load theme
+	screenWorker.postMessage({
+		type: "styles",
+		styles: getStyles()
+	})
+}
+
 let alreadyInit = false
 /**
  * @param {HTMLCanvasElement} c
@@ -182,14 +247,13 @@ export async function init(c) {
 	canvas.width = parentBounds.width * DPI
 
 	let offscreen = canvas.transferControlToOffscreen()
-	screenWorker.postMessage({type: "init", canvas: offscreen}, [offscreen])
-
-	document.addEventListener(
-		"recording",
-		/** @param {CustomEvent} event */
-		event => {
-			recording(event.detail)
-		}
+	screenWorker.postMessage(
+		{
+			type: "init",
+			canvas: offscreen,
+			styles: getStyles()
+		},
+		[offscreen]
 	)
 
 	let tapeElement = document.querySelector(".tape .svg")

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-ca">
+<html lang="en-ca" theme="cherries">
 	<meta charset="utf-8">
 	<title>bento sampler + sequencer</title>
 	<meta
@@ -33,9 +33,9 @@
 			autoplay
 			preload="auto">
 		</audio>
-		<article class="ui"  onsubmit="event.preventDefault()">
+		<article class="machine" onsubmit="event.preventDefault()">
 			<header>
-				<fieldset class="master-controls" >
+				<fieldset class="master-controls machine-controls">
 					<legend screenreader>Master Controls</legend>
 					<input
 						type="button"
@@ -61,12 +61,9 @@
 						value="120"
 						autocomplete="off"
 						aria-label="Set the bpm">
-					<button aria-label="Open the options dialog" name="options" hidden>
-						•••
-					</button>
 				</fieldset>
 
-				<fieldset class="layer-selector" autocomplete="off" >
+				<fieldset class="layer-selector machine-controls" autocomplete="off" >
 					<legend screenreader>Selected layer</legend>
 
 					<label class="checked" draggable="true">
@@ -91,8 +88,8 @@
 
 				</fieldset>
 
-				<fieldset class="layer-controls">
-					<legend screenreader>Layer Controls</legend>
+				<fieldset class="layer-options machine-controls">
+					<legend screenreader>Layer Options</legend>
 					<select
 						autocomplete="off"
 						name="speed"
@@ -174,18 +171,17 @@
 					</select>
 					<label
 						aria-label="Upload a sound from your computer"
-						class="upload">
+						class="upload"
+						hidden>
 						↥
 						<input
 							type="file"
 							accept="audio/*"
-							name="upload"
-							screenreader>
+							name="upload">
 					</label>
-					<label aria-label="Record a sound" class="recorder">
+					<button class="recorder" aria-label="Record a sound">
 						●
-						<input type="checkbox" label="Recording" name="record">
-					</label>
+					</button>
 				</fieldset>
 			</header>
 
@@ -203,7 +199,7 @@
 				</div>
 			</article>
 
-			<nav class="screen-selector" chee>
+			<nav class="screen-selector machine-controls" chee>
 				<fieldset>
 					<legend screenreader>Screen</legend>
 					<label class="checked">
@@ -245,4 +241,4 @@
 			</dialog>
 
 	</article>
-	<script type="module" src="/ui.js"></script>
+	<script type="module" src="/machine.js"></script>

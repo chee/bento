@@ -22,4 +22,17 @@ export class BentoElement extends HTMLElement {
 	announce(name, detail, options = {bubbles: true}) {
 		this.dispatchEvent(new BentoEvent(name, detail, options))
 	}
+
+	/**
+	 * @param {string} name
+	 * @param {boolean} state
+	 */
+	toggleAttribute(name, state) {
+		if (state) {
+			this.setAttribute(name, name)
+		} else {
+			this.removeAttribute(name)
+		}
+		return state
+	}
 }

@@ -21,6 +21,7 @@ export default class BentoBox extends BentoElement {
 
 		this.addEventListener("click", this.#click)
 		this.addEventListener("keyup", this.#keyup)
+
 		this.#wavimg.className = "wav"
 		this.appendChild(this.#wavimg)
 

@@ -47,7 +47,7 @@ bento-party {
 	/* =machine= */
 	--machine-fill: var(--page-fill);
 	--machine-line: var(--page-line);
-	--machine-shadow-color: var(--machine-line);
+	--machine-shadow-color: var(--page-fill);
 	--prominent-fill: var(--machine-line);
 	--prominent-line: var(--machine-fill);
 	--recording-fill: var(--prominent-fill);

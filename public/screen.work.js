@@ -1,10 +1,8 @@
 import "./extend-native-prototypes.js"
-import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
+import {DPI, Screen} from "./graphics.const.js"
 
-let {DPI} = graphics
-
-/** @type {graphics.StyleMaps}*/
+/** @type {import("./graphics.js").StyleMaps}*/
 let styles
 
 /**
@@ -43,10 +41,19 @@ function fillRegion(start, end, fill) {
 	context.fillRect(start, 0, end - start, context.canvas.height)
 }
 
+/**
+ * @typedef {Object} DrawSampleLineArguments
+ * @prop {import("./graphics").StyleMap} style
+ * @prop {Float32Array} array
+ * @prop {number} x
+ * @prop {number} xm
+ * @prop {number} height
+ * @param {DrawSampleLineArguments} args
+ */
 function drawSampleLine({style, array, x, xm, height}) {
 	context.beginPath()
 	context.strokeStyle = style.line
-	context.lineWidth = style.width || DPI
+	context.lineWidth = DPI
 	// trying to make it inversely correlated with the size input so smaller
 	// samples have more accuracy
 	// cleverer than this would be to move in chunks of 10 and draw their average
@@ -157,15 +164,19 @@ function postBitmap(memory, context, layer, step) {
 	let start = hasRegion ? r.start : 0
 	let end = hasRegion ? r.end : soundLength
 	let array = visibleSound.subarray(start, end)
-	let cachename = `s${start}e${end}r${reversed}v${version}p${layer}`
+	let on = stepDetails.on
+	let style = on ? styles.boxOn : styles.boxOff
+	let color = style.line
+	let cachename = `s${start}e${end}r${reversed}v${version}p${layer}o${on}c${color}`
 
 	if (!bitmapCache[cachename]) {
 		let beforeheight = context.canvas.height
 		let beforewidth = context.canvas.width
 		let height = (context.canvas.height = 256)
 		let width = (context.canvas.width = 256)
+
 		drawSampleLine({
-			style: styles.boxOnLine,
+			style,
 			array,
 			x: 0,
 			xm: width / length,
@@ -225,6 +236,7 @@ function getXMultiplier(context, soundLength) {
 
 let lastStepDetails
 let lastSoundDetails
+let lastStyles = styles
 function update(_frame = 0, force = false) {
 	if (!context || !memory) return
 	let stepDetails = Memory.getSelectedStepDetails(memory)
@@ -236,20 +248,23 @@ function update(_frame = 0, force = false) {
 	let {canvas} = context
 	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
 
-	if (!force && !regionIsBeingDrawn && same(stepDetails, lastStepDetails)) {
+	if (
+		!force &&
+		!regionIsBeingDrawn &&
+		same(stepDetails, lastStepDetails) &&
+		styles == lastStyles
+	) {
 		return requestAnimationFrame(update)
 	}
 
 	clear(context)
 
-	lastStepDetails = stepDetails
 	// Send the current line to the window so it can be used as the step button's
 	// background colour. Don't update while the region is being drawn, that's
 	// silly and would be v slow
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too
-
-	if (!same(soundDetails, lastSoundDetails)) {
+	if (!same(soundDetails, lastSoundDetails) || styles != lastStyles) {
 		if (!regionIsBeingDrawn) {
 			postAllBitmaps(memory, context)
 		}
@@ -258,7 +273,8 @@ function update(_frame = 0, force = false) {
 		postBitmap(memory, context, stepDetails.layer, stepDetails.step)
 	}
 	lastSoundDetails = soundDetails
-
+	lastStyles = styles
+	lastStepDetails = stepDetails
 	let {region, reversed} = stepDetails
 
 	let visibleSound = getVisibleSound(stepDetails)
@@ -355,6 +371,7 @@ onmessage = async event => {
 	if (message.type == "init") {
 		let {canvas, styles: newStyles} = message
 		styles = newStyles
+
 		context = canvas.getContext("2d")
 		context.save()
 		context.fillStyle = styles.normal.fill
@@ -381,16 +398,11 @@ onmessage = async event => {
 		context.strokeStyle = styles.normal.line
 		context.stroke()
 
-		let action = "click"
-		if (graphics.IS_BASICALLY_A_PHONE) {
-			action = "tap"
-		}
-
 		context.font = styles.normal.font
 		context.fillStyle = styles.normal.text
 		context.textAlign = "center"
 		context.textBaseline = "bottom"
-		let text = `${action} ▶ to start`
+		let text = `press ▶ to start`
 
 		// TODO this is inaccessible. where should this go for a screenreader?
 		f.load().finally(() => {
@@ -402,5 +414,9 @@ onmessage = async event => {
 		let {buffer} = message
 		memory = Memory.map(buffer)
 		requestAnimationFrame(update)
+	}
+
+	if (message.type == "styles") {
+		styles = message.styles
 	}
 }

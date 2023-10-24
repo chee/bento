@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-ca" theme="cherries">
+<html lang="en-ca">
 	<meta charset="utf-8">
 	<title>bento sampler + sequencer</title>
 	<meta
@@ -24,15 +24,14 @@
 	</script>
 
 	<h1 screenreader>bento</h1>
-
-	<section class="bento">
-		<audio
-			class="iphone-silence"
-			src="/sounds/iphone-silence.flac"
-			loop
-			autoplay
-			preload="auto">
-		</audio>
+	<audio
+		class="iphone-silence"
+		src="/sounds/iphone-silence.flac"
+		loop
+		autoplay
+		preload="auto">
+	</audio>
+	<bento-party class="bento" theme="cherries">
 		<article class="machine" onsubmit="event.preventDefault()">
 			<header>
 				<fieldset class="master-controls machine-controls">
@@ -239,6 +238,7 @@
 						value="save bento for later">
 				</div>
 			</dialog>
+		</article>
 
-	</article>
+	</bento-party>
 	<script type="module" src="/machine.js"></script>

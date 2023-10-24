@@ -1,21 +1,8 @@
 import * as Memory from "./memory.js"
+import {DPI, Screen} from "./graphics.const.js"
 
-/**
- * @readonly
- * @enum {keyof typeof Screen}
- */
-export const Screen = {
-	/** @type {"wav"} */
-	wav: "wav",
-	/** @type {"env"} */
-	env: "env",
-	/** @type {"mix"} */
-	mix: "mix",
-	/** @type {"fx"} */
-	fx: "fx"
-}
-
-export const DPI = 3
+let partyElement = document.querySelector("bento-party")
+partyElement.addEventListener("theme", event => theme(event.detail))
 
 /**
  * @typedef {Object} StyleMap
@@ -29,25 +16,7 @@ export const DPI = 3
 function getStyle(prop, sel = ".screen") {
 	let root = document.documentElement
 	let el = /** @type {HTMLElement} */ (root.querySelector(sel))
-	let vvv = "--" + prop
-	console.log(
-		root,
-		el,
-		prop,
-		el.style.getPropertyValue(prop),
-		el.style.getPropertyValue(vvv),
-		getComputedStyle(el).getPropertyValue(vvv),
-		getComputedStyle(el).getPropertyValue(prop),
-		root.style.getPropertyValue(vvv),
-		getComputedStyle(root).getPropertyValue(prop),
-		getComputedStyle(root).getPropertyValue(vvv)
-	)
-	return (
-		(el && el.style.getPropertyValue(vvv)) ||
-		root.style.getPropertyValue(vvv) ||
-		(el && getComputedStyle(el)[vvv]) ||
-		getComputedStyle(root)[vvv]
-	)
+	return getComputedStyle(el || root).getPropertyValue("--" + prop)
 }
 
 /**
@@ -61,8 +30,8 @@ function getStyles() {
 	// todo --screen-fill
 	let fill = getStyle("screen-fill")
 	let line = getStyle("screen-line")
-	let boxOnLine = getStyle("boxOnLine")
-	let boxOffLine = getStyle("boxOffLine")
+	let boxOnLine = getStyle("box-on-line")
+	let boxOffLine = getStyle("box-off-line")
 	let fontFamily = getComputedStyle(screenElement).fontFamily
 	let regionFill = getStyle("region-fill")
 	let drawingRegionFill = getStyle("drawing-region-fill")
@@ -223,10 +192,11 @@ export function switchScreen(mode) {
 	}
 }
 
-export function theme(/**@type string*/ _name) {
+export function theme(/**@type string*/ name) {
 	// todo load theme
 	screenWorker.postMessage({
 		type: "styles",
+		theme: name,
 		styles: getStyles()
 	})
 }

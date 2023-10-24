@@ -12,7 +12,17 @@ import {BentoElement, BentoEvent} from "./base.js"
 
 export {BentoGrid, BentoBox, BentoElement, BentoEvent}
 
+export class BentoParty extends BentoElement {
+	static observedAttributes = ["theme"]
+	attributeChangedCallback(attr, _old, value) {
+		if (attr == "theme") {
+			this.announce("theme", value)
+		}
+	}
+}
+
 export function init() {
 	customElements.define("bento-grid", BentoGrid)
 	customElements.define("bento-box", BentoBox)
+	customElements.define("bento-party", BentoParty)
 }

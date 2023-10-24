@@ -15,6 +15,11 @@
 	background: transparent;
 }
 
+html {
+	font-size: 2.2em;
+	line-height: 1.15;
+}
+
 /*
  * todo
  *
@@ -26,7 +31,7 @@
  *
  * - enable theming
  */
-:root {
+bento-party {
 	/*=START-OF-PUBLIC-API*/
 	/* =page= */
 	--fill: white;
@@ -88,12 +93,9 @@
 	/* *END-OF-PUBLIC-API* */
 
 	background: var(--page-fill);
-	font-family: var(--font-family);
-	font-size: 2.2em;
-	line-height: 1.15;
 }
 
-[theme="cherries"] {
+bento-party[theme="cherries"] {
 	--cherries-light: #ffe9ed;
 	--cherries-dark: #cc3366;
 	--holy-light: white;
@@ -120,12 +122,48 @@
 	--region-fill: var(--cherries-yellow);
 	--region-line: var(--2013-body-grey);
 	--drawing-region-fill: #00ff99ee;
-	/* --box-off-fill: color-mix( */
-	/* 	in srgb, */
-	/* 	var(--machine-fill) 20%, */
-	/* 	var(--holy-light) */
-	/* ); */
-	/* --box-on-fill: color-mix(in srgb, var(--box-fill) 20%, var(--holy-dark)); */
+}
+
+[theme="night"] {
+	--font-family: menlo;
+	--fill: black;
+	--line: #66c;
+	--page-fill: #000;
+	--machine-shadow-color: black;
+	--machine-fill: black;
+	--prominent-line: #aaf;
+	--prominent-fill: #000;
+	--screen-fill: black;
+	--screen-line: #f4a;
+	--box-on-fill: #113;
+	--region-fill: #339;
+	--region-line: #f4a;
+}
+
+[theme="dw"] {
+	--font-family: courier;
+	--dark: black;
+	--holy: white;
+	--grey: #595959;
+	--m8: #00efff;
+	--fill: var(--dark);
+	--line: var(--grey);
+	--machine-shadow-color: var(--fill);
+	--prominent-line: var(--holy);
+	--prominent-fill: var(--fill);
+	--screen-fill: var(--fill);
+	--screen-line: var(--m8);
+	--box-on-fill: var(--fill);
+	--box-on-line: var(--m8);
+	--selected-box-outline: var(--m8);
+	--region-fill: var(--m8);
+	--region-line: var(--fill);
+	--layer-options-fill: var(--fill);
+}
+
+[theme="dark"] {
+	--line: #666;
+	--fill: black;
 }
 
 [screenreader] {
@@ -148,7 +186,7 @@ body {
 	margin: 0;
 }
 
-.bento {
+bento-party {
 	--number-of-boxes: 4;
 	--box-size: 2em;
 	--box-gap: 0.25em;
@@ -156,16 +194,14 @@ body {
 		(var(--box-size) * var(--number-of-boxes)) +
 			(var(--box-gap) * (var(--number-of-boxes) * 2))
 	);
-
-	min-height: 95vh;
+	font-family: var(--font-family);
+	background: var(--page-fill);
+	box-sizing: content-box;
+	min-height: 100vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	font-family: var(--font-family);
-	box-sizing: content-box;
-	margin-inline: auto;
-	max-inline-size: var(--total-width);
 }
 
 /* completely disable highlighting stuff everywhere */
@@ -235,7 +271,7 @@ fieldset {
 }
 
 .master-controls input[name="bpm"] {
-	max-width: 3ex;
+	max-width: 3.5ch;
 }
 
 .master-controls {
@@ -718,8 +754,16 @@ bento-box[on][quiet="12"] {
 }
 
 [recording] {
-	background: var(--recording-fill);
 	min-height: 100vh;
+}
+
+bento-party[recording] {
+	background: var(--recording-fill);
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
 }
 
 [recording] .tape {

@@ -1,36 +1,3 @@
-@font-face {
-	font-family: qp;
-	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
-	display: swap;
-}
-
-@font-face {
-	font-family: qp;
-	src: url("/fonts/iosevka-qp-light.ttf") format("truetype");
-	font-weight: light;
-	display: swap;
-}
-
-::selection {
-	background: transparent;
-}
-
-html {
-	font-size: 2.2em;
-	line-height: 1.15;
-}
-
-/*
- * todo
- *
- *  - make sure not to use any colours directly that aren't part of the
- * public interface.
- *
- * - separate the colours that are (named by their purpose) from those that
- * aren't (named by a colour or cute name).
- *
- * - enable theming
- */
 bento-party {
 	/*=START-OF-PUBLIC-API*/
 	/* =page= */
@@ -94,6 +61,8 @@ bento-party {
 
 	background: var(--page-fill);
 }
+
+/* =EXAMPLE-THEMES* */
 
 bento-party[theme="cherries"] {
 	--cherries-light: #ffe9ed;
@@ -164,6 +133,30 @@ bento-party[theme="cherries"] {
 [theme="dark"] {
 	--line: #666;
 	--fill: black;
+}
+
+/* =*= */
+
+@font-face {
+	font-family: qp;
+	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
+	display: swap;
+}
+
+@font-face {
+	font-family: qp;
+	src: url("/fonts/iosevka-qp-light.ttf") format("truetype");
+	font-weight: light;
+	display: swap;
+}
+
+::selection {
+	background: transparent;
+}
+
+html {
+	font-size: 2.2em;
+	line-height: 1.15;
 }
 
 [screenreader] {

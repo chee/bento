@@ -744,19 +744,26 @@ bento-box[on][quiet="12"] {
 
 .tape svg {
 	background: var(--recording-fill);
+	color: var(--recording-line);
 }
 
-[recording] {
-	min-height: 100vh;
+.tape svg * {
+	fill: var(--recording-fill);
+	stroke: var(--recording-line);
 }
 
 bento-party[recording] {
+	min-height: 100vh;
 	background: var(--recording-fill);
 	position: absolute;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	left: 0;
+}
+
+[recording] .machine {
+	box-shadow: none;
 }
 
 [recording] .tape {

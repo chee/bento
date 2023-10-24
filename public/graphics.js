@@ -225,15 +225,6 @@ export async function init(c) {
 		},
 		[offscreen]
 	)
-
-	let tapeElement = document.querySelector(".tape .svg")
-	try {
-		let svgresponse = await fetch("graphics/cassette.svg")
-		let svg = await svgresponse.text()
-		tapeElement.innerHTML = svg
-	} catch (error) {
-		console.error("didn't get svg, recording will be confusing :(", error)
-	}
 }
 
 /**

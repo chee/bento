@@ -9,13 +9,13 @@ import {
 	BentoEvent
 } from "./custom-elements/custom-elements.js"
 
+let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
 let machine = document.querySelector(".machine")
 /** @type {NodeListOf<HTMLInputElement>} */
 let layerSelectors = machine.querySelectorAll(".layer-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
 let layerSelectorLabels = machine.querySelectorAll(".layer-selector label")
-
 /** @type {BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 /** @type {Array<BentoBox>} */
@@ -47,14 +47,14 @@ function fancy() {
 async function getFancy() {
 	if (!sounds.fancy()) {
 		await sounds.start(buffer)
-		document.body.removeAttribute("fancy")
+		party.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && !graphics.fancy()) {
 		graphics.start(screenWaveformCanvas, buffer)
-		document.body.removeAttribute("fancy")
+		party.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && graphics.fancy()) {
-		document.body.setAttribute("fancy", "fancy")
+		party.setAttribute("fancy", "fancy")
 		if (db.loaded) {
 			// lmao imagine if i saved on every click
 			db.save()
@@ -199,10 +199,10 @@ lengthSelector.addEventListener("change", () => {
 })
 
 recordButton.addEventListener("click", async () => {
-	if (document.body.hasAttribute("recording")) {
+	if (party.hasAttribute("recording")) {
 		return
 	}
-	document.body.setAttribute("recording", "recording")
+	party.setAttribute("recording", "recording")
 	let audio = await sounds.recordSound()
 	sounds.setSound(memory, Memory.selectedLayer(memory), audio)
 })
@@ -348,7 +348,7 @@ window.onmessage = function (event) {
 	if (message.type == "recording") {
 		let recording = event.data.recording
 		recordButton.checked = recording
-		document.body.toggleAttribute("recording", recording)
+		party.toggleAttribute("recording", recording)
 		document.dispatchEvent(new CustomEvent("recording", {detail: message}))
 		let length = event.data.length / 1000
 		messageElement.textContent = recording
@@ -395,7 +395,7 @@ document.addEventListener(
 
 let featureflags = new URLSearchParams(location.search.slice(1))
 for (let [flag, value] of featureflags.entries()) {
-	document.body.setAttribute(flag, value)
+	party.setAttribute(flag, value)
 }
 
 // ================================= hotkeys ===============================

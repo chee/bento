@@ -427,7 +427,7 @@ figure.waveform canvas {
 /* todo consider moving these styles to their component */
 
 bento-grid {
-	background: var(--grid-background);
+	background: var(--grid-fill);
 	text-align: center;
 	display: grid;
 	grid-template-rows: repeat(4, 1fr);

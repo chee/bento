@@ -1,3 +1,7 @@
+// ==============================
+// PLEASE DONT LOOK AT THIS FILE
+// ==============================
+// todo remove above when it's legal to look at this file
 import * as Memory from "./memory.js"
 import {DPI} from "./graphics.const.js"
 import BentoScreen from "./bento-elements/screen.js"
@@ -19,43 +23,127 @@ let screenElement
 let screenWorker
 
 /**
- * @param {number} pageX
- * @param {DOMRectReadOnly} bounds
+ * @param {import("./memory.js").MousePoint} clientXY
+ * @returns {import("./memory.js").MousePoint} corrected
  */
-function getX(pageX, bounds) {
-	// TODO
-	// let bounds = canvas.getBoundingClientRect()
+function resolveMouse(
+	clientXY,
+	bounds = screenElement.canvas.getBoundingClientRect()
+) {
+	// todo is it bad to do ask for bounds constantly? if so, i'll make them
+	// module-scoped and update when events fire. or use IntersectionObserver?
+	// todo why do i not have to multiple clientXY.x when checking overbound?
+	// todo neaten up
+	return {
+		x:
+			clientXY.x < bounds.left
+				? 0
+				: clientXY.x > bounds.right
+				? screenElement.canvas.width
+				: (clientXY.x - bounds.left) * DPI,
+		y:
+			clientXY.y < bounds.top
+				? 0
+				: clientXY.y > bounds.bottom
+				? screenElement.canvas.height
+				: (clientXY.y - bounds.top) * DPI * 1.2
+	}
+}
 
-	return pageX < bounds.left
-		? 0
-		: pageX > bounds.right
-		? screenElement.canvas.width
-		: (pageX - bounds.left) * 3
+/**
+ * @param {MouseEvent | Touch} event
+ * @returns {import("./memory.js").MousePoint}
+ */
+function resolveMouseFromEvent(
+	event,
+	bounds = screenElement.canvas.getBoundingClientRect()
+) {
+	return resolveMouse(
+		{
+			x: event.clientX,
+			y: event.clientY
+		},
+		bounds
+	)
 }
 
 // why is this in this file
 // todo make this work for both TouchEvent and MouseEvent
 // todo this should be part of <bento-screen>
+// todo consolidate all mousey things, separate the mouse from the mousist
 /** @param {MouseEvent} event */
 function startSelectingRegion(event) {
 	// assumes nothing ever changes size while you're trying to trim a sample
 	let bounds = screenElement.canvas.getBoundingClientRect()
-	Memory.drawingRegionStart(memory, getX(event.pageX, bounds))
+	Memory.drawingRegionStart(memory, resolveMouseFromEvent(event, bounds).x)
 	/** @param {MouseEvent} event */
 	function mousemove(event) {
 		if (Memory.regionIsBeingDrawn(memory)) {
-			Memory.drawingRegionX(memory, getX(event.pageX, bounds))
+			Memory.drawingRegionX(memory, resolveMouseFromEvent(event, bounds).x)
 		}
 	}
 	window.addEventListener("mousemove", mousemove)
 
 	/** @param {MouseEvent} event */
 	function drawingRegionComplete(event) {
-		Memory.drawingRegionEnd(memory, getX(event.pageX, bounds))
+		Memory.drawingRegionEnd(memory, resolveMouseFromEvent(event, bounds).x)
 		window.removeEventListener("mousemove", mousemove)
 	}
 
 	window.addEventListener("mouseup", drawingRegionComplete, {once: true})
+}
+
+/** @param {import("./memory.js").MousePoint} mouse */
+function getMixFromMouse(mouse) {
+	let pan = Math.round((mouse.x / screenElement.canvas.width) * 12 - 6)
+	let quiet = Math.round((mouse.y / screenElement.canvas.height) * 12)
+	return {pan, quiet}
+}
+
+// why is this in this file
+// todo make this work for both TouchEvent and MouseEvent
+// todo this should be part of <bento-screen>
+// todo consolidate all mousey things, separate the mouse from the mousist
+/** @param {MouseEvent} event */
+function startSelectingMix(event) {
+	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let {layer, step} = stepDetails
+	// assumes nothing ever changes size while you're trying to trim a sample
+	let bounds = screenElement.canvas.getBoundingClientRect()
+	let mix = getMixFromMouse(resolveMouseFromEvent(event, bounds))
+	Memory.stepPan(memory, layer, step, mix.pan)
+	Memory.stepQuiet(memory, layer, step, mix.quiet)
+
+	/** @param {MouseEvent} event */
+	function mousemove(event) {
+		let mix = getMixFromMouse(resolveMouseFromEvent(event, bounds))
+		Memory.stepPan(memory, layer, step, mix.pan)
+		Memory.stepQuiet(memory, layer, step, mix.quiet)
+	}
+	window.addEventListener("mousemove", mousemove)
+
+	/** @param {MouseEvent} event */
+	function done(event) {
+		window.removeEventListener("mousemove", mousemove)
+	}
+
+	window.addEventListener("mouseup", done, {once: true})
+}
+
+function startMousing(event) {
+	if (screenElement.screen == "wav") {
+		startSelectingRegion(event)
+	} else if (screenElement.screen == "mix") {
+		startSelectingMix(event)
+	}
+}
+
+function startFingering(event) {
+	if (screenElement.screen == "wav") {
+		startSelectingRegionWithFinger(event)
+	} else if (screenElement.screen == "mix") {
+		startSelectingMixWithFinger(event)
+	}
 }
 
 /**
@@ -72,19 +160,22 @@ function findFinger(finger, touches) {
 }
 
 // todo this should be part of <bento-screen>
+// todo lol please clean this up rabbit
 /** @param {TouchEvent} event */
 function startSelectingRegionWithFinger(event) {
-	// assumes nothing ever changes size while you're trying to drawingRegion a sample
+	// assumes nothing ever changes size while you're trying to drawingRegion a
+	// sample
 	let bounds = screenElement.canvas.getBoundingClientRect()
 	let finger = event.touches.item(0)
-	Memory.drawingRegionStart(memory, getX(finger.pageX, bounds))
+
 	/** @param {TouchEvent} event */
 	function move(event) {
 		if (Memory.regionIsBeingDrawn(memory)) {
 			/** @type {Touch} */
 			let moved = findFinger(finger, event.changedTouches)
 			if (moved) {
-				Memory.drawingRegionX(memory, getX(moved.pageX, bounds))
+				let x = resolveMouseFromEvent(moved, bounds).x
+				Memory.drawingRegionX(memory, x)
 			}
 		}
 	}
@@ -95,10 +186,45 @@ function startSelectingRegionWithFinger(event) {
 		function (event) {
 			let lost = findFinger(finger, event.changedTouches)
 			if (lost) {
-				Memory.drawingRegionEnd(memory, getX(lost.pageX, bounds))
+				let x = resolveMouseFromEvent(lost, bounds).x
+				Memory.drawingRegionEnd(memory, x)
 				window.removeEventListener("touchmove", move)
 			}
 		},
+		{once: true}
+	)
+}
+
+// todo this should be part of <bento-screen>
+// todo this is all very rushed you should fix it it's bad
+// todo lol come on now
+/** @param {TouchEvent} event */
+function startSelectingMixWithFinger(event) {
+	// assumes nothing ever changes size while you're trying to drawingRegion a
+	// sample
+	let bounds = screenElement.canvas.getBoundingClientRect()
+	let finger = event.touches.item(0)
+	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let {layer, step} = stepDetails
+	let mix = getMixFromMouse(resolveMouseFromEvent(finger, bounds))
+	Memory.stepPan(memory, layer, step, mix.pan)
+	Memory.stepQuiet(memory, layer, step, mix.quiet)
+	/** @param {TouchEvent} event */
+	function move(event) {
+		if (Memory.regionIsBeingDrawn(memory)) {
+			/** @type {Touch} */
+			let moved = findFinger(finger, event.changedTouches)
+			if (moved) {
+				let mix = getMixFromMouse(resolveMouseFromEvent(moved, bounds))
+				Memory.stepPan(memory, layer, step, mix.pan)
+				Memory.stepQuiet(memory, layer, step, mix.quiet)
+			}
+		}
+	}
+	window.addEventListener("touchmove", move)
+	window.addEventListener(
+		"touchend",
+		() => window.removeEventListener("touchmove", move),
 		{once: true}
 	)
 }
@@ -133,14 +259,23 @@ export async function init() {
 	screenElement.canvas.width = parentBounds.width * DPI
 
 	let offscreen = screenElement.canvas.transferControlToOffscreen()
+
 	screenWorker.postMessage(
 		{
 			type: "init",
 			canvas: offscreen,
-			styles: screenElement.getStyles()
+			styles: screenElement.getStyles(),
+			screen: screenElement.screen
 		},
 		[offscreen]
 	)
+
+	screenElement.addEventListener("screen", event => {
+		screenWorker.postMessage({
+			type: "screen",
+			screen: event.detail.screen
+		})
+	})
 }
 
 /**
@@ -153,11 +288,11 @@ export function start(canvas, buffer) {
 	memory = Memory.map(buffer)
 
 	if (IS_BASICALLY_A_PHONE) {
-		canvas.addEventListener("touchstart", startSelectingRegionWithFinger, {
+		canvas.addEventListener("touchstart", startFingering, {
 			passive: true
 		})
 	} else {
-		canvas.addEventListener("mousedown", startSelectingRegion, {
+		canvas.addEventListener("mousedown", startMousing, {
 			passive: true
 		})
 	}

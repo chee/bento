@@ -25,6 +25,7 @@ bento-party {
 	--controls-line: var(--machine-line);
 	--master-controls-fill: var(--controls-fill);
 	--master-controls-line: var(--controls-line);
+	--master-controls-shadow-color: var(--machine-shadow-color);
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
 	--selected-layer-selector-fill: var(--prominent-fill);
@@ -41,6 +42,11 @@ bento-party {
 	--drawing-region-line: var(--region-line);
 	--screen-selector-fill: var(--screen-fill);
 	--screen-selector-line: var(--screen-line);
+	--screen-selector-button-fill: var(--screen-fill);
+	--screen-selector-button-line: var(--screen-line);
+	--screen-selector-button-shadow-color: transparent;
+	--selected-screen-selector-button-fill: var(--screen-line);
+	--selected-screen-selector-button-line: var(--screen-fill);
 
 	/* =grid= */
 	--grid-fill: var(--machine-fill);
@@ -52,7 +58,12 @@ bento-party {
 	--box-off-fill: var(--grid-fill);
 	--box-off-line: var(--grid-line);
 	--selected-box-outline: var(--focus-outline);
+	--box-shadow-color: var(--machine-shadow-color);
 	/* :3d_glasses_emoji: */
+	--mix-pan-left: red;
+	--mix-quiet: white;
+	--mix-pan-right: blue;
+
 	--box-fill-mix-pan-left: red;
 	--box-fill-mix-pan-right: blue;
 	--box-fill-mix-quiet: var(--box-off-fill);
@@ -85,12 +96,18 @@ bento-party {
 		var(--cherries-light) 90%,
 		var(--holy-dark)
 	);
+	--screen-selector-button-shadow-color: color-mix(
+		in srgb,
+		var(--cherries-dark) 88%,
+		var(--holy-dark)
+	);
 	--machine-fill: var(--cherries-light);
 	--region-fill: var(--cherries-yellow);
 	--region-line: var(--2013-body-grey);
 	--drawing-region-fill: #00ff99ee;
 	--focus-outline: var(--orla-foster-2003-bermuda-cocktail-3);
 	--selected-box-outline: black;
+	--drop-target-outline: #00ffcc;
 }
 
 [theme="night"] {

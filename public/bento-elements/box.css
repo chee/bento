@@ -8,6 +8,7 @@
 	transition: background 0.022s ease-in-out;
 	border: 1px solid;
 	position: relative;
+	box-shadow: 1px 1px 4px 0px var(--box-shadow-color);
 }
 
 img {

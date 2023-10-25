@@ -89,7 +89,8 @@ export let arrays = [
 		name: "layerSounds",
 		type: Float32Array,
 		size: SOUND_SIZE * (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET)
-	}
+	},
+	{name: "mouse", type: Float32Array, size: 2}
 	// TODO what size is this? is it the same on every platform? hahaha
 	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},
 ]
@@ -147,6 +148,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @prop {Uint32Array} MemoryMap.stepStarts
  * @prop {Uint32Array} MemoryMap.stepEnds
  * @prop {Float32Array} MemoryMap.drawingRegion
+ * @prop {Float32Array} MemoryMap.mouse
  */
 
 /**
@@ -681,6 +683,26 @@ export function fixRegions(memory, layer) {
 }
 
 /**
+ * @typedef {Object} MousePoint
+ * @prop {number} x
+ * @prop {number} y
+ */
+/**
+ * @param {MemoryMap} memory
+ * @param {MousePoint} [point]
+ * @returns {MousePoint}
+ */
+export function mouse(memory, point) {
+	if (point && typeof point.x == "number" && typeof point.y == "number") {
+		memory.mouse.set([point.x, point.y])
+	}
+	return {
+		x: memory.mouse.at(0),
+		y: memory.mouse.at(1)
+	}
+}
+
+/**
  * @param {MemoryMap} memory
  * @param {Region} [region]
  * @returns {Region}
@@ -770,7 +792,7 @@ export function getStepDetails(memory, layer, step) {
 	let attack = stepAttack(memory, layer, step)
 	let release = stepRelease(memory, layer, step)
 	let quiet = stepQuiet(memory, layer, step)
-	let pan = stepQuiet(memory, layer, step)
+	let pan = stepPan(memory, layer, step)
 	let pitch = stepPitch(memory, layer, step)
 	let on = stepOn(memory, layer, step)
 	let reversed = stepReversed(memory, layer, step)
@@ -809,8 +831,9 @@ export function getSelectedStepDetails(memory) {
  */
 export function copyStepWithinSelectedLayer(memory, from, to) {
 	let layer = selectedLayer(memory)
+	console.log(from, typeof from, to, typeof to, layer, typeof layer)
 	let fromDetails = getStepDetails(memory, layer, from)
-	console.log(layer, from, fromDetails)
+
 	stepRegion(memory, layer, to, fromDetails.region)
 	stepQuiet(memory, layer, to, fromDetails.quiet)
 	stepPan(memory, layer, to, fromDetails.pan)

@@ -24,10 +24,6 @@ let memory = Memory.map(buffer)
 
 let fancyListeners = ["keydown", "click", "touchstart"]
 
-function fancy() {
-	return sounds.fancy() && graphics.fancy()
-}
-
 async function getFancy() {
 	if (!sounds.fancy()) {
 		await sounds.start(buffer)
@@ -156,89 +152,25 @@ layerOptions.addEventListener(
 	}
 )
 
-// TODO move to <bento-screen/>
-/* this runs once when drag enters the target's zone */
-screen.addEventListener("dragenter", async event => {
-	event.preventDefault()
-	if (!fancy()) {
-		await getFancy()
-	}
-
-	let {items} = event.dataTransfer
-
-	// todo allow dragging a clip to the screen to trim the sound to the length
-	// of its region
-	for (let item of Array.from(items)) {
-		// TODO restrict to supported formats by trying to decode a silent audio
-		// item of all the formats anyone supports?
-		if (item.kind == "file") {
-			if (item.type.startsWith("audio/")) {
-				screen.setAttribute("drop-target", "")
-			} else {
-				console.debug(`unsupported type: ${item.kind}, ${event.type}`)
-			}
+screen.addEventListener(
+	"change",
+	/** @param {import("./bento-elements/bento-elements.js").BentoEvent} event */
+	async event => {
+		if (event.detail.change == "sound") {
+			sounds.setSound(
+				memory,
+				Memory.selectedLayer(memory),
+				await sounds.decode(event.detail.file)
+			)
+		} else if (event.detail.change == "reverse") {
+			Memory.stepReverse(
+				memory,
+				Memory.selectedLayer(memory),
+				Memory.selectedStep(memory)
+			)
 		}
 	}
-	event.preventDefault()
-})
-
-/* this runs a billion times a second while a drag is being held on top of the
-   target */
-screen.addEventListener("dragover", event => {
-	event.preventDefault()
-
-	if (!fancy() || screen.hasAttribute("drop-target")) {
-		return
-	}
-
-	let {items} = event.dataTransfer
-
-	// todo allow dragging a clip to the screen to trim the sound to the length
-	// of its region
-	for (let item of Array.from(items)) {
-		// TODO restrict to supported formats by trying to decode a silent audio
-		// item of all the formats anyone supports?
-		if (item.kind == "file") {
-			if (item.type.startsWith("audio/")) {
-				screen.setAttribute("drop-target", "")
-			} else {
-				console.debug(`unsupported type: ${item.kind}, ${event.type}`)
-			}
-		}
-	}
-})
-
-/* this runs once when drag exits the target's zone */
-screen.addEventListener("dragleave", event => {
-	event.preventDefault()
-	if (!fancy()) {
-		return
-	}
-	screen.removeAttribute("drop-target")
-})
-
-/* i don't know when this runs. seems never */
-screen.addEventListener("dragend", () => {})
-
-screen.addEventListener("drop", async event => {
-	event.preventDefault()
-	if (!fancy()) {
-		await getFancy()
-	}
-	screen.removeAttribute("drop-target")
-	if (event.dataTransfer.items) {
-		for (let item of Array.from(event.dataTransfer.items)) {
-			if (item.kind == "file") {
-				let file = item.getAsFile()
-				sounds.setSound(
-					memory,
-					Memory.selectedLayer(memory),
-					await sounds.decode(file)
-				)
-			}
-		}
-	}
-})
+)
 
 grid.addEventListener(
 	"change",
@@ -321,6 +253,10 @@ document.addEventListener(
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
 		let box = boxes[step]
+		if (!box) {
+			console.log(step)
+			return
+		}
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)

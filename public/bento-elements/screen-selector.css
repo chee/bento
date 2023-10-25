@@ -1,3 +1,35 @@
-:host {
-	display: none;
+nav {
+	display: flex;
+	justify-content: space-evenly;
+	background: var(--screen-selector-fill);
+	color: var(--screen-selector-line);
+	padding: 0.125em 0;
+}
+
+button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	box-sizing: content-box;
+	background: var(--screen-selector-button-fill);
+	color: var(--screen-selector-button-line);
+	font-family: var(--font-family);
+	font-size: 0.5em;
+	text-align: center;
+	line-height: 1em;
+	cursor: pointer;
+	width: 4ch;
+	border: 1px solid;
+	padding: 0 1em;
+	box-shadow: 1px 1px 2px 0px var(--screen-selector-button-shadow-color);
+	border-radius: 4px;
+}
+
+button:hover {
+	box-shadow: 2px 2px 2px 0 var(--screen-selector-button-shadow-color);
+}
+
+button[aria-checked] {
+	background: var(--selected-screen-selector-button-fill);
+	color: var(--selected-screen-selector-button-line);
 }

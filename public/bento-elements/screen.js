@@ -1,4 +1,5 @@
 import {BentoElement, BentoEvent} from "./base.js"
+import BentoScreenSelector from "./screen-selector.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -20,19 +21,103 @@ export default class BentoScreen extends BentoElement {
 		this.shadow.innerHTML = `<figure></figure>`
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
+		this.setAttribute("screen", this.screen)
 		customElements.whenDefined("bento-screen-selector").then(() => {
 			let screens = Object.values(BentoScreen.screens)
 			let screenSelector = document.createElement("bento-screen-selector")
 			this.shadow.appendChild(screenSelector)
 			screenSelector.setAttribute("screens", screens.join(" "))
+			screenSelector.setAttribute("selected", this.screen)
 		})
 		this.shadow.addEventListener(
 			"screen",
 			/** @param {BentoEvent} event */
 			event => {
+				if (this.screen == event.detail.screen) {
+					this.announce("change", {
+						change: "reverse"
+					})
+				}
+				this.announce("screen", {
+					screen: event.detail.screen
+				})
+
 				this.screen = event.detail.screen
+				this.setAttribute("screen", this.screen)
+				if (event.target instanceof BentoScreenSelector) {
+					event.target.setAttribute("selected", event.detail.screen)
+				}
 			}
 		)
+
+		/* this runs once when drag enters the target's zone */
+		this.addEventListener("dragenter", async event => {
+			event.preventDefault()
+			let {items} = event.dataTransfer
+
+			// todo allow dragging a clip to the screen to trim the sound to the
+			// length of its region
+			for (let item of Array.from(items)) {
+				// TODO restrict to supported formats by trying to decode a silent
+				// audio item of all the formats anyone supports?
+				if (item.kind == "file") {
+					if (item.type.startsWith("audio/")) {
+						this.setAttribute("drop-target", "drop-target")
+					} else {
+						console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+					}
+				}
+			}
+			event.preventDefault()
+		})
+
+		/* this runs a billion times a second while a drag is being held on top of the
+		target */
+		this.addEventListener("dragover", event => {
+			event.preventDefault()
+
+			let {items} = event.dataTransfer
+
+			// todo allow dragging a clip to the screen to trim the sound to the length
+			// of its region
+			for (let item of Array.from(items)) {
+				// TODO restrict to supported formats by trying to decode a silent audio
+				// item of all the formats anyone supports?
+				if (item.kind == "file") {
+					if (item.type.startsWith("audio/")) {
+						this.setAttribute("drop-target", "")
+					} else {
+						console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+					}
+				}
+			}
+		})
+
+		/* this runs once when drag exits the target's zone */
+		this.addEventListener("dragleave", event => {
+			event.preventDefault()
+			this.removeAttribute("drop-target")
+		})
+
+		/* i don't know when this runs. seems never */
+		this.addEventListener("dragend", () => {})
+
+		this.addEventListener("drop", async event => {
+			event.preventDefault()
+
+			this.removeAttribute("drop-target")
+			if (event.dataTransfer.items) {
+				for (let item of Array.from(event.dataTransfer.items)) {
+					if (item.kind == "file") {
+						let file = item.getAsFile()
+						this.announce("change", {
+							change: "sound",
+							file
+						})
+					}
+				}
+			}
+		})
 	}
 
 	/** @param {string} prop */

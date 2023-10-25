@@ -44,6 +44,10 @@ label {
 	position: relative;
 }
 
+label.checked:not(:last-child) {
+	box-shadow: 2px -2px 2px var(--layer-selector-shadow-color);
+}
+
 input {
 	-webkit-appearance: none;
 	-moz-appearance: none;

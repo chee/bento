@@ -6,6 +6,12 @@
 	background: var(--screen-fill);
 	color: var(--screen-line);
 	margin: 0;
+	box-sizing: border-box;
+}
+
+:host([drop-target]) {
+	outline: 4px dashed var(--drop-target-outline);
+	outline-offset: 2px;
 }
 
 figure {
@@ -21,4 +27,42 @@ figure {
 canvas {
 	width: var(--total-width);
 	height: 100%;
+}
+
+:host([screen="mix"]) {
+	background: linear-gradient(
+		to right,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 0%) 8.3%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 8.3%) 0 16.6%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 16%) 0 24%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 24%) 0 32%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 32%) 0 43%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 42%) 0 50%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 50%) 0 58%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 58%) 0 66%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 66%) 0 66%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 74%) 0 74%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 84%) 0 84%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 92%) 0 92%,
+		color-mix(in srgb, var(--mix-pan-left), var(--mix-pan-right) 100%) 0 100%
+	);
+}
+
+:host([screen="mix"]) figure {
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, transparent, var(--mix-quiet) 0%) 8.3%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 8.3%) 0 16.6%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 16%) 0 24%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 24%) 0 32%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 32%) 0 43%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 42%) 0 50%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 50%) 0 58%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 58%) 0 66%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 63%) 0 66%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 65%) 0 74%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 72%) 0 84%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 76%) 0 92%,
+		color-mix(in srgb, transparent, var(--mix-quiet) 84%) 0 100%
+	);
 }

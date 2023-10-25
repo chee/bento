@@ -1,7 +1,7 @@
 import {BentoElement} from "./base.js"
 
 export default class BentoScreenSelector extends BentoElement {
-	static observedAttributes = ["screens"]
+	static observedAttributes = ["screens", "selected"]
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<nav></nav>`
@@ -10,10 +10,11 @@ export default class BentoScreenSelector extends BentoElement {
 			"click",
 			/** @param {MouseEvent} event */
 			event => {
-				let button = /** @type {HTMLButtonElement} */ (event.target)
-				this.announce("screen", {
-					screen: button.name
-				})
+				if (event.target instanceof HTMLButtonElement) {
+					this.announce("screen", {
+						screen: event.target.name
+					})
+				}
 			}
 		)
 	}
@@ -28,6 +29,11 @@ export default class BentoScreenSelector extends BentoElement {
 				button.name = name
 				nav.appendChild(button)
 			}
+			nav.children[0].setAttribute("aria-checked", "true")
+		} else if (attr == "selected") {
+			Array.from(this.shadow.querySelectorAll("button")).forEach(button => {
+				button.toggleAttribute("aria-checked", button.name == value)
+			})
 		}
 	}
 }

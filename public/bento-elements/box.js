@@ -65,12 +65,12 @@ export default class BentoBox extends BentoElement {
 
 	/** @param {DragEvent} event */
 	#dragenter(event) {
-		for (let file of Array.from(event.dataTransfer.files)) {
+		event.preventDefault()
+		for (let item of Array.from(event.dataTransfer.items)) {
 			// TODO restrict to supported formats by trying to decode a silent audio
 			// file of the format?
-			if (file.type == "application/bento.step") {
+			if (item.type == "application/bento.step") {
 				this.#droptarget = true
-				event.preventDefault()
 			}
 		}
 	}
@@ -78,6 +78,14 @@ export default class BentoBox extends BentoElement {
 	/** @param {DragEvent} event */
 	#dragover(event) {
 		event.preventDefault()
+
+		for (let file of Array.from(event.dataTransfer.files)) {
+			// TODO restrict to supported formats by trying to decode a silent audio
+			// file of the format?
+			if (file.type == "application/bento.step") {
+				this.#droptarget = true
+			}
+		}
 	}
 
 	/** @param {DragEvent} event */

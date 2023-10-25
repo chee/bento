@@ -2,7 +2,7 @@ import "./extend-native-prototypes.js"
 import * as Memory from "./memory.js"
 import {DPI} from "./graphics.const.js"
 
-/** @type {import("./graphics.js").StyleMaps}*/
+/** @type {Record<string, import("./bento-elements/screen.js").StyleMap>}*/
 let styles
 
 /**
@@ -14,6 +14,11 @@ let context
  * @type {Memory.MemoryMap} [memory]
  */
 let memory
+
+/**
+ * @type {"wav" | "mix"}
+ */
+let screen
 
 /**
  * Clear the canvas and reset the tools
@@ -234,47 +239,17 @@ function getXMultiplier(context, soundLength) {
 	return context.canvas.width / soundLength
 }
 
-let lastStepDetails
-let lastSoundDetails
-let lastStyles = styles
-function update(_frame = 0, force = false) {
-	if (!context || !memory) return
+function wav(_frame = 0, force = false) {
+	if (!context || !memory) {
+		return requestAnimationFrame(update)
+	}
 	let stepDetails = Memory.getSelectedStepDetails(memory)
-	let soundDetails = Memory.getSoundDetails(
-		memory,
-		Memory.selectedLayer(memory)
-	)
 
 	let {canvas} = context
 	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
 
-	if (
-		!force &&
-		!regionIsBeingDrawn &&
-		same(stepDetails, lastStepDetails) &&
-		styles == lastStyles
-	) {
-		return requestAnimationFrame(update)
-	}
-
 	clear(context)
 
-	// Send the current line to the window so it can be used as the step button's
-	// background colour. Don't update while the region is being drawn, that's
-	// silly and would be v slow
-	// This'll clear the current canvas, so needs to be done before anything else
-	// that means it has be be done synchronously too
-	if (!same(soundDetails, lastSoundDetails) || styles != lastStyles) {
-		if (!regionIsBeingDrawn) {
-			postAllBitmaps(memory, context)
-		}
-	}
-	if (!regionIsBeingDrawn) {
-		postBitmap(memory, context, stepDetails.layer, stepDetails.step)
-	}
-	lastSoundDetails = soundDetails
-	lastStyles = styles
-	lastStepDetails = stepDetails
 	let {region, reversed} = stepDetails
 
 	let visibleSound = getVisibleSound(stepDetails)
@@ -362,6 +337,121 @@ function update(_frame = 0, force = false) {
 	requestAnimationFrame(update)
 }
 
+function mix(_frame = 0, force = false) {
+	if (!context || !memory) {
+		return requestAnimationFrame(update)
+	}
+	let stepDetails = Memory.getSelectedStepDetails(memory)
+
+	clear(context)
+	let {width, height} = context.canvas
+	let b = Memory.DYNAMIC_RANGE
+
+	let h = height
+	let w = width
+	let quietY = (stepDetails.quiet / b) * h
+	let panX = ((stepDetails.pan + 6) / b) * w
+
+	context.strokeStyle = "white"
+
+	context.lineWidth = DPI * 2
+	context.beginPath()
+	context.arc(panX, quietY, 20, 0, 2 * Math.PI)
+	context.stroke()
+	context.lineWidth = DPI
+	// horizontal line
+	// left side
+	context.beginPath()
+	context.moveTo(0, height / 2)
+	context.lineTo(panX, quietY)
+	context.stroke()
+	// right side
+	context.beginPath()
+	context.moveTo(panX, quietY)
+	context.lineTo(width, height / 2)
+	context.stroke()
+	// vertical line
+	context.beginPath()
+	context.moveTo(width / 2, 0)
+	// loud side
+	context.strokeStyle = "#fff"
+	context.lineTo(panX, quietY)
+	context.stroke()
+	// quiet side
+	context.beginPath()
+	context.moveTo(panX, quietY)
+	context.strokeStyle = "#fff"
+	context.lineTo(width / 2, height)
+	context.stroke()
+
+	context.font = "50px qp, monospace"
+	context.fillStyle = styles.normal.line
+	context.strokeStyle = styles.normal.line
+
+	context.textAlign = "left"
+	context.textBaseline = "middle"
+	context.fillText("l", 0, height / 2)
+
+	context.textAlign = "right"
+	context.textBaseline = "middle"
+	context.fillText("r", width, height / 2)
+
+	context.textAlign = "center"
+	context.textBaseline = "top"
+	context.fillText("loud", width / 2, 0)
+
+	context.textAlign = "center"
+	context.textBaseline = "bottom"
+	context.fillText("quiet", width / 2, height)
+
+	requestAnimationFrame(update)
+}
+
+let lastScreen = screen
+let lastStepDetails
+let lastStyles = styles
+let lastSoundDetails
+function update(frame = 0, force = false) {
+	force = force || lastScreen != screen
+	lastScreen = screen
+	let soundDetails = Memory.getSoundDetails(
+		memory,
+		Memory.selectedLayer(memory)
+	)
+	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
+	if (
+		!force &&
+		!regionIsBeingDrawn &&
+		same(stepDetails, lastStepDetails) &&
+		styles == lastStyles
+	) {
+		return requestAnimationFrame(update)
+	}
+	// Send the current line to the window so it can be used as the step button's
+	// background colour. Don't update while the region is being drawn, that's
+	// silly and would be v slow
+	// This'll clear the current canvas, so needs to be done before anything else
+	// that means it has be be done synchronously too
+	if (!same(soundDetails, lastSoundDetails) || styles != lastStyles) {
+		if (!regionIsBeingDrawn) {
+			postAllBitmaps(memory, context)
+		}
+	}
+	if (!regionIsBeingDrawn) {
+		postBitmap(memory, context, stepDetails.layer, stepDetails.step)
+	}
+	lastSoundDetails = soundDetails
+	lastStyles = styles
+	lastStepDetails = stepDetails
+
+	if (screen == "wav") {
+		wav(frame, force)
+	} else if (screen == "mix") {
+		mix(frame, force)
+	}
+}
+
 let f = new FontFace("qp", 'url("/fonts/iosevka-qp-regular.ttf")')
 f.load()
 
@@ -371,6 +461,7 @@ onmessage = async event => {
 	if (message.type == "init") {
 		let {canvas, styles: newStyles} = message
 		styles = newStyles
+		screen = message.screen
 
 		context = canvas.getContext("2d")
 		context.save()
@@ -418,5 +509,9 @@ onmessage = async event => {
 
 	if (message.type == "styles") {
 		styles = message.styles
+	}
+
+	if (message.type == "screen") {
+		screen = message.screen
 	}
 }

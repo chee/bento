@@ -253,10 +253,6 @@ document.addEventListener(
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
 		let box = boxes[step]
-		if (!box) {
-			console.log(step)
-			return
-		}
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)

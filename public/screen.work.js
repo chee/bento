@@ -390,11 +390,11 @@ function mix(_frame = 0, force = false) {
 
 	context.textAlign = "left"
 	context.textBaseline = "middle"
-	context.fillText("l", 0, height / 2)
+	context.fillText("left ear", 0, height / 2)
 
 	context.textAlign = "right"
 	context.textBaseline = "middle"
-	context.fillText("r", width, height / 2)
+	context.fillText("right ear", width, height / 2)
 
 	context.textAlign = "center"
 	context.textBaseline = "top"

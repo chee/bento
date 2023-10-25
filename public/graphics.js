@@ -46,7 +46,7 @@ function resolveMouse(
 				? 0
 				: clientXY.y > bounds.bottom
 				? screenElement.canvas.height
-				: (clientXY.y - bounds.top) * DPI * 1.2
+				: (clientXY.y - bounds.top) * DPI * 1.2 // 🎩.🐰
 	}
 }
 
@@ -167,7 +167,8 @@ function startSelectingRegionWithFinger(event) {
 	// sample
 	let bounds = screenElement.canvas.getBoundingClientRect()
 	let finger = event.touches.item(0)
-
+	let x = resolveMouseFromEvent(finger, bounds).x
+	Memory.drawingRegionStart(memory, x)
 	/** @param {TouchEvent} event */
 	function move(event) {
 		if (Memory.regionIsBeingDrawn(memory)) {
@@ -211,14 +212,14 @@ function startSelectingMixWithFinger(event) {
 	Memory.stepQuiet(memory, layer, step, mix.quiet)
 	/** @param {TouchEvent} event */
 	function move(event) {
-		if (Memory.regionIsBeingDrawn(memory)) {
-			/** @type {Touch} */
-			let moved = findFinger(finger, event.changedTouches)
-			if (moved) {
-				let mix = getMixFromMouse(resolveMouseFromEvent(moved, bounds))
-				Memory.stepPan(memory, layer, step, mix.pan)
-				Memory.stepQuiet(memory, layer, step, mix.quiet)
-			}
+		/** @type {Touch} */
+		let moved = findFinger(finger, event.changedTouches)
+
+		if (moved) {
+			let mix = getMixFromMouse(resolveMouseFromEvent(moved, bounds))
+
+			Memory.stepPan(memory, layer, step, mix.pan)
+			Memory.stepQuiet(memory, layer, step, mix.quiet)
 		}
 	}
 	window.addEventListener("touchmove", move)

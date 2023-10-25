@@ -831,7 +831,7 @@ export function getSelectedStepDetails(memory) {
  */
 export function copyStepWithinSelectedLayer(memory, from, to) {
 	let layer = selectedLayer(memory)
-	console.log(from, typeof from, to, typeof to, layer, typeof layer)
+
 	let fromDetails = getStepDetails(memory, layer, from)
 
 	stepRegion(memory, layer, to, fromDetails.region)

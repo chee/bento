@@ -33,6 +33,14 @@ function alter(stepDetails) {
 }
 
 class Bako extends AudioWorkletProcessor {
+	static parameterDescriptors = [
+		{
+			name: "pan",
+			defaultValue: 0,
+			minValue: -1,
+			maxValue: 1
+		}
+	]
 	constructor(options) {
 		super()
 		let memory = Memory.map(options.processorOptions.buffer)
@@ -43,16 +51,17 @@ class Bako extends AudioWorkletProcessor {
 		/** @type {import("./memory.js").StepDetails} */
 		this.alteredSound = null
 		this.tick = 0
+		this.pan = 0
 	}
 
 	// :)
 	/**
 	 * @param {Float32Array[][]} _inputs
 	 * @param {Float32Array[][]} outputs
-	 * @param {Record<string, Float32Array>} _parameters
+	 * @param {Record<string, Float32Array>} parameters
 	 */
-	process(_inputs, outputs, _parameters) {
-		let [output] = outputs
+	process(_inputs, outputs, parameters) {
+		let [[leftear, rightear], [pan]] = outputs
 		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {
@@ -78,6 +87,7 @@ class Bako extends AudioWorkletProcessor {
 			if (stepDetails.on) {
 				this.point = 0
 				this.alteredSound = alter(stepDetails)
+				this.pan = stepDetails.pan / 6
 			}
 		}
 
@@ -86,16 +96,17 @@ class Bako extends AudioWorkletProcessor {
 		if (this.alteredSound) {
 			if (this.point + 128 > this.alteredSound.sound.length) {
 				this.alteredSound = null
+				this.pan = 0
 			} else {
 				let portionOfSound = this.alteredSound.sound.subarray(
 					this.point,
 					this.point + 128
 				)
 				this.point += 128
-				for (let ear of output) {
-					for (let i = 0; i < ear.length; i += 1) {
-						ear[i] = portionOfSound[i]
-					}
+
+				for (let i = 0; i < 128; i++) {
+					leftear[i] = rightear[i] = portionOfSound[i]
+					pan[i] = this.pan
 				}
 			}
 		}

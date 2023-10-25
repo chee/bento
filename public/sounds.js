@@ -5,7 +5,7 @@ let context = new AudioContext()
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
 let iphoneSilenceElement = document.querySelector("audio")
 /** @type {AudioWorkletNode[]} */
-let boxes
+let layers
 
 /**
  * normalize audio
@@ -183,24 +183,44 @@ export async function init(buffer) {
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
 
-	boxes = loop.layers(
+	layers = loop.layers(
 		layerNumber =>
 			new AudioWorkletNode(context, "bako", {
 				processorOptions: {buffer, layerNumber},
 				channelCount: 2,
-				outputChannelCount: [2]
+				numberOfOutputs: 2,
+				outputChannelCount: [2, 1]
 			})
 	)
+	let layerParams = []
+	layers.forEach((l, i) => {
+		layerParams[i] = {}
+		l.parameters.forEach((p, n, r) => {
+			layerParams[i][n] = {
+				param: p,
+				parent: r
+			}
+		})
+	})
 
 	let filters = loop.layers(() => context.createBiquadFilter())
-	let pans = loop.layers(() => context.createPanner())
+	let panConstants = loop.layers(() => context.createConstantSource())
+	let pans = loop.layers(() => context.createStereoPanner())
 	let analyzer = context.createAnalyser()
 
 	// let delays = loop.layers(() => context.createDelay())
 	// let feedbacks = loop.layers(() => createGain())
 	// let reverbs = loop.layers(() => createReverb(ps1s))
 	loop.layers(layerIdx => {
-		boxes[layerIdx].connect(context.destination)
+		// layers[layerIdx].parameters.forEach((param, name) => {
+		// 	if (name == "pan") {
+		// 	}
+		// })
+
+		layers[layerIdx].connect(pans[layerIdx], 0)
+		layers[layerIdx].connect(pans[layerIdx].pan, 1)
+		pans[layerIdx].connect(context.destination)
+		pans[layerIdx].connect(analyzer)
 		// let filter = filters[layerIdx]
 		// filter.type = "allpass"
 		// boxes[layerIdx].connect(filters[layerIdx])

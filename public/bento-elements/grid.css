@@ -1,0 +1,10 @@
+:host {
+	background: var(--grid-fill);
+	text-align: center;
+	display: grid;
+	grid-template-rows: repeat(4, 1fr);
+	grid-template-columns: repeat(4, 1fr);
+	justify-items: center;
+	gap: var(--box-gap);
+	padding: var(--box-gap);
+}

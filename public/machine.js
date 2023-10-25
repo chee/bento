@@ -3,11 +3,6 @@ import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as db from "./db.js"
-import {
-	BentoBox,
-	BentoGrid,
-	BentoEvent
-} from "./custom-elements/custom-elements.js"
 
 let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
@@ -16,10 +11,9 @@ let machine = document.querySelector(".machine")
 let layerSelectors = machine.querySelectorAll(".layer-selector input")
 /** @type {NodeListOf<HTMLInputElement>} */
 let layerSelectorLabels = machine.querySelectorAll(".layer-selector label")
-/** @type {BentoGrid} */
+/** @type {import("./bento-elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
-/** @type {Array<BentoBox>} */
-let boxes = Array.from(machine.querySelectorAll("bento-box"))
+let boxes = grid.boxes
 /** @type {HTMLSelectElement} */
 let speedSelector = machine.querySelector('[name="speed"]')
 /** @type {HTMLSelectElement} */
@@ -55,16 +49,6 @@ async function getFancy() {
 	}
 	if (sounds.fancy() && graphics.fancy()) {
 		party.setAttribute("fancy", "fancy")
-		if (db.loaded) {
-			// lmao imagine if i saved on every click
-			db.save()
-		} else {
-			try {
-				await db.load()
-			} catch (error) {
-				console.error("couldnt load bento, oh well :(")
-			}
-		}
 	}
 }
 
@@ -88,16 +72,10 @@ async function init() {
 		}
 	})
 
-	for (let box of boxes) {
+	loop.steps(sidx => {
 		let selectedLayer = Memory.selectedLayer(memory)
-		Memory.stepOn(memory, selectedLayer, box.step, box.on)
-	}
-
-	// keeping this deactivated until i have time to do it right
-	// because broken service workers are a fucking nightmare
-	// if (location.search == "?offline") {
-	// await offline.init()
-	// }
+		Memory.stepOn(memory, selectedLayer, sidx, boxes[sidx].on)
+	})
 }
 
 function update(frame = 0) {
@@ -132,15 +110,17 @@ function update(frame = 0) {
 	})
 
 	let selectedStep = Memory.selectedStep(memory)
-	for (let box of boxes) {
-		box.selected = box.step == selectedStep
+
+	loop.steps(sidx => {
+		let box = boxes[sidx]
+		box.selected = sidx == selectedStep
 		let currentStep = Memory.currentStep(memory, selectedLayer)
-		box.playing = box.step == currentStep
-		box.on = Memory.stepOn(memory, selectedLayer, box.step)
-		box.quiet = Memory.stepQuiet(memory, selectedLayer, box.step)
-		box.pan = Memory.stepPan(memory, selectedLayer, box.step)
-		box.hidden = box.step >= layerLength
-	}
+		box.playing = sidx == currentStep
+		box.on = Memory.stepOn(memory, selectedLayer, sidx)
+		box.quiet = Memory.stepQuiet(memory, selectedLayer, sidx)
+		box.pan = Memory.stepPan(memory, selectedLayer, sidx)
+		box.hidden = sidx >= layerLength
+	})
 
 	requestAnimationFrame(update)
 }
@@ -299,39 +279,36 @@ layerSelectorLabels.forEach(layer => {
 })
 
 grid.addEventListener(
-	"selected",
-	/** @param {BentoEvent} event */
-	function (event) {
-		Memory.selectedStep(memory, event.detail.step)
-	}
-)
-
-grid.addEventListener(
-	"on",
-	/** @param {BentoEvent} event */
-	function (event) {
-		let step = event.detail.step
-		Memory.stepOn(memory, Memory.selectedLayer(memory), step, true)
-	}
-)
-
-grid.addEventListener(
-	"off",
-	/** @param {BentoEvent} event */
-	function (event) {
-		let step = event.detail.step
-		Memory.stepOn(memory, Memory.selectedLayer(memory), step, false)
-	}
-)
-
-grid.addEventListener(
-	"copy",
-	/** @param {BentoEvent} event */
-	function (event) {
-		event.stopPropagation()
-		let {from, to} = event.detail
-		Memory.copyStepWithinSelectedLayer(memory, from, to)
-		Memory.selectedStep(memory, to)
+	"change",
+	// todo? BentoChangeEvent?
+	/** @param {import("./bento-elements/bento-elements.js").BentoEvent} event */
+	event => {
+		let {box, change} = event.message
+		if (box != null) {
+			let step = box
+			let layer = Memory.selectedLayer(memory)
+			if (change == "selected") {
+				Memory.selectedStep(memory, step)
+			} else if (change == "on") {
+				Memory.stepOn(memory, layer, step, true)
+			} else if (change == "off") {
+				Memory.stepOn(memory, layer, step, false)
+			} else if (change == "copy") {
+				let {from} = event.detail
+				Memory.copyStepWithinSelectedLayer(memory, from, step)
+				Memory.selectedStep(memory, step)
+			} else if (change == "quieter") {
+				Memory.stepQuieter(memory, layer, step)
+			} else if (change == "louder") {
+				Memory.stepLouder(memory, layer, step)
+			} else if (change == "pan-left") {
+				Memory.stepPanLeft(memory, layer, step)
+			} else if (change == "pan-right") {
+				Memory.stepPanRight(memory, layer, step)
+			} else if (change == "reverse") {
+				Memory.stepReverse(memory, layer, step)
+			}
+		}
 	}
 )
 
@@ -347,7 +324,7 @@ window.onmessage = function (event) {
 	let counterElement = document.querySelector(".tape .counter")
 	if (message.type == "recording") {
 		let recording = event.data.recording
-		recordButton.checked = recording
+
 		party.toggleAttribute("recording", recording)
 		document.dispatchEvent(new CustomEvent("recording", {detail: message}))
 		let length = event.data.length / 1000
@@ -397,125 +374,3 @@ let featureflags = new URLSearchParams(location.search.slice(1))
 for (let [flag, value] of featureflags.entries()) {
 	party.setAttribute(flag, value)
 }
-
-// ================================= hotkeys ===============================
-// todo let the target element handle more of this
-// todo use Modmask
-globalThis.addEventListener(
-	"keydown",
-	/** @param {KeyboardEvent} event */ event => {
-		if (["INPUT", "SELECT"].includes(document.activeElement.tagName)) {
-			return
-		}
-		let chan = Memory.selectedLayer(memory)
-		let selected = Memory.selectedStep(memory)
-		let leftColumn = !(selected % 4)
-		let topRow = selected < 4
-		let bottomRow = selected > 11
-		let rightColumn = !((selected + 1) % 4)
-		let next = selected
-		let boxnames = "1234qwerasdfzxcv"
-
-		// in case you are kara brightwell / french
-		let normalPersonKeyLocation =
-			(event.code.startsWith("Key") || event.code.startsWith("Digit")) &&
-			event.code.toLowerCase()[event.code.length - 1]
-
-		/** @param {KeyboardEvent} event */
-		let modifiers = event => {
-			let ctrl = event.ctrlKey
-			let alt = event.altKey
-			let meta = event.metaKey
-			let shift = event.shiftKey
-			return {
-				ctrl,
-				alt,
-				meta,
-				shift,
-				any: ctrl || alt || meta || shift
-			}
-		}
-
-		let boxIndex = boxnames.indexOf(normalPersonKeyLocation)
-		let ops = []
-		let mod = modifiers(event)
-
-		// todo don't steal these from the radio selector
-		if (!mod.any && event.key == "ArrowLeft") {
-			ops.push("move")
-			next += leftColumn ? 3 : -1
-		} else if (!mod.any && event.key == "ArrowUp") {
-			ops.push("move")
-			next += topRow ? 12 : -4
-		} else if (!mod.any && event.key == "ArrowRight") {
-			ops.push("move")
-			next += rightColumn ? -3 : 1
-		} else if (!mod.any && event.key == "ArrowDown") {
-			ops.push("move")
-			next += bottomRow ? -12 : 4
-		} else if (!mod.any && event.key == "Enter") {
-			// TODO fire event on button
-			Memory.togglePlaying(memory)
-		} else if (!mod.any && boxIndex != -1) {
-			ops.push("toggle")
-			ops.push("move")
-			next = boxIndex
-		} else if (mod.shift && boxIndex > -1 && boxIndex < 4) {
-			Memory.selectedLayer(memory, boxIndex)
-		} else if (mod.ctrl && event.key == "ArrowDown") {
-			let quiet = Memory.stepQuiet(memory, chan, selected)
-			quiet = Math.clamp(0, quiet + 1, 12)
-			// TODO fire event on box
-			Memory.stepQuiet(memory, chan, selected, quiet)
-		} else if (mod.ctrl && event.key == "ArrowUp") {
-			let quiet = Memory.stepQuiet(memory, chan, selected)
-			quiet = Math.clamp(0, quiet - 1, 12)
-			// TODO fire event on box
-			Memory.stepQuiet(memory, chan, selected, quiet)
-		} else if (mod.ctrl && event.key == "ArrowRight") {
-			let pan = Memory.stepPan(memory, chan, selected)
-			pan = Math.clamp(-6, pan + 1, 6)
-			// TODO fire event on box
-			Memory.stepPan(memory, chan, selected, pan)
-		} else if (mod.ctrl && event.key == "ArrowLeft") {
-			let pan = Memory.stepPan(memory, chan, selected)
-			// TODO sohuld clamping happen in memory? probably
-			pan = Math.clamp(-6, pan - 1, 6)
-			// TODO fire event on box
-			Memory.stepPan(memory, chan, selected, pan)
-		} else if (mod.ctrl && event.key == "r") {
-			let reversed = Memory.stepReversed(memory, chan, selected)
-			// TODO fire event on box
-			Memory.stepReversed(memory, chan, selected, !reversed)
-		} else {
-		}
-		// TODO ctrl+space + arrows for trim region??
-		if (next == selected) {
-			if (ops.includes("toggle")) {
-				Memory.toggleStep(memory, Memory.selectedLayer(memory), next)
-			}
-		} else if (ops.includes("move")) {
-			event.preventDefault()
-			Memory.selectedStep(memory, next)
-			boxes[next].focus()
-		}
-	}
-)
-
-// let optionsButton = machine.querySelector("[name='options']")
-// let optionsDialog = /** @type {HTMLDialogElement} */ (
-// 	machine.querySelector(".save-dialog")
-// )
-// let dialogCloseButton = machine.querySelector("dialog .close")
-
-// optionsButton.addEventListener("click", () => {
-// 	optionsDialog.show()
-// })
-
-// dialogCloseButton.addEventListener("click", function () {
-// 	this.closest("dialog").close()
-// })
-
-// let saveButton = /** @type {HTMLInputElement} */ (
-// 	optionsDialog.querySelector("[name='save']")
-// )

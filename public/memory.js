@@ -3,6 +3,7 @@ export const SOUND_SIZE = 2 ** 16 * 4
 export const NUMBER_OF_LAYERS = 4
 export const NUMBER_OF_STEPS = 16
 export const QUANTUM = 128
+export const DYNAMIC_RANGE = 12
 
 // TODO swing?
 export let arrays = [
@@ -251,6 +252,15 @@ export function stepReversed(memory, layer, step, val) {
  * @param {MemoryMap} memory
  * @param {number} layer
  * @param {number} step
+ */
+export function stepReverse(memory, layer, step) {
+	stepReversed(memory, layer, step, !stepReversed(memory, layer, step))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
  * @param {number} [val]
  * @returns {number}
  */
@@ -304,7 +314,7 @@ export function stepPitch(memory, layer, step, val) {
 /**
  * for those who need a quiet party
  *
- * 12 should be enough dynamic range for anyone
+ * 12 ought to be enough dynamic range for anybody
  *
  * @param {MemoryMap} memory
  * @param {number} layer
@@ -317,10 +327,34 @@ export function stepQuiet(memory, layer, step, val) {
 	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
-		stepQuiets.set([val], at)
+		stepQuiets.set([Math.clamp(0, val, DYNAMIC_RANGE)], at)
 	}
 
-	return Number(stepQuiets.at(at))
+	return stepQuiets.at(at)
+}
+
+/**
+ * for those who need a quieter party
+ *
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
+ */
+export function stepQuieter(memory, layer, step) {
+	stepQuiet(memory, layer, step, stepQuiet(memory, layer, step) + 1)
+}
+
+/**
+ * for those who need a louder party
+ *
+ * 12 should be enough dynamic range for anyone
+ *
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
+ */
+export function stepLouder(memory, layer, step) {
+	stepQuiet(memory, layer, step, stepQuiet(memory, layer, step) - 1)
 }
 
 /**
@@ -335,10 +369,30 @@ export function stepPan(memory, layer, step, val) {
 	let at = layer * NUMBER_OF_STEPS + step
 
 	if (typeof val == "number") {
-		stepPans.set([val], at)
+		stepPans.set(
+			[Math.clamp(-(DYNAMIC_RANGE / 2), val, DYNAMIC_RANGE / 2)],
+			at
+		)
 	}
 
-	return Number(stepPans.at(at))
+	return stepPans.at(at)
+}
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
+ */
+export function stepPanLeft(memory, layer, step) {
+	stepPan(memory, layer, step, stepPan(memory, layer, step) - 1)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
+ */
+export function stepPanRight(memory, layer, step) {
+	stepPan(memory, layer, step, stepPan(memory, layer, step) + 1)
 }
 
 /**

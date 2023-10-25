@@ -14,6 +14,18 @@ export class BentoEvent extends CustomEvent {
 }
 
 export class BentoElement extends HTMLElement {
+	#stylesheet = document.createElement("link")
+	/** @type {ShadowRoot} [shadow] */
+	shadow
+	/** @param {string} name */
+	attachStylesheet(name) {
+		this.#stylesheet.rel = "stylesheet"
+		this.#stylesheet.href = `/bento-elements/${name}.css`
+		if (this.shadow != null) {
+			this.shadow.appendChild(this.#stylesheet)
+		}
+	}
+
 	/**
 	 * @param {string} name
 	 * @param {any} [detail]

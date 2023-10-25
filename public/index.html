@@ -19,19 +19,12 @@
 	<link rel="manifest" href="/app.webmanifest">
 	<script src="/extend-native-prototypes.js"></script>
 	<script type="module">
-		import * as elements from "/custom-elements/custom-elements.js"
+		import * as elements from "/bento-elements/bento-elements.js"
 		elements.init()
 	</script>
 
 	<h1 screenreader>bento</h1>
-	<audio
-		class="iphone-silence"
-		src="/sounds/iphone-silence.flac"
-		loop
-		autoplay
-		preload="auto">
-	</audio>
-	<bento-party class="bento">
+	<bento-party class="bento" theme="cherries">
 		<article class="machine" onsubmit="event.preventDefault()">
 			<header>
 				<fieldset class="master-controls machine-controls">
@@ -60,6 +53,7 @@
 						value="120"
 						autocomplete="off"
 						aria-label="Set the bpm">
+					<button>•••</button>
 				</fieldset>
 
 				<fieldset class="layer-selector machine-controls" autocomplete="off" >
@@ -278,7 +272,7 @@
 				</fieldset>
 			</nav>
 
-			<bento-grid></bento-grid>
+			<bento-grid autofocus></bento-grid>
 
 			<dialog class="save-dialog">
 				<button class="close button" aria-label="close">
@@ -294,6 +288,13 @@
 				</div>
 			</dialog>
 		</article>
-
 	</bento-party>
+	<audio
+		class="iphone-silence"
+		src="/sounds/iphone-silence.flac"
+		loop
+		autoplay
+		preload="auto">
+	</audio>
+
 	<script type="module" src="/machine.js"></script>

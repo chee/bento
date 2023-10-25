@@ -12,6 +12,7 @@ let buffer
 
 let loaded = false
 
+/** @param {SharedArrayBuffer} sab */
 async function init(sab) {
 	buffer = sab
 	memory = Memory.map(buffer)
@@ -29,7 +30,6 @@ async function init(sab) {
 				db = open.result
 				try {
 					let store = db.createObjectStore("pattern", {
-						// keyPath: location.pathname.slice(1) ?? "?",
 						autoIncrement: false
 					})
 					for (let name in memory) {

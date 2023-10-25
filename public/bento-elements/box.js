@@ -3,37 +3,56 @@ import Modmask from "../modmask.js"
 
 // fufufu
 export default class BentoBox extends BentoElement {
-	// public api
-	step = 0
-
-	// private
 	#playing = false
 	#quiet = 0
 	#pan = 0
 
-	// children
-	#wavimg = document.createElement("img")
-
 	connectedCallback() {
-		this.setAttribute("draggable", "true")
-
 		this.tabIndex = 0
-
+		this.shadow = this.attachShadow({mode: "closed"})
+		this.shadow.innerHTML = `<img id="wavimg">`
+		this.attachStylesheet("box")
+		this.setAttribute("draggable", "true")
 		this.addEventListener("click", this.#click)
 		this.addEventListener("keyup", this.#keyup)
-
-		this.#wavimg.className = "wav"
-		this.appendChild(this.#wavimg)
-
+		this.addEventListener("keydown", this.#keydown)
 		this.addEventListener("dragenter", this.#dragenter)
 		this.addEventListener("dragover", this.#dragover)
 		this.addEventListener("dragleave", this.#dragleave)
-
 		this.addEventListener("drop", this.#drop)
 		this.addEventListener("dragstart", this.#dragstart)
+	}
 
-		// this.addEventListener("drag", this.#drag)
-		// this.addEventListener("dragend", this.#dragend)
+	/** @param {KeyboardEvent} event */
+	#keydown(event) {
+		// todo accept keymap as property
+		let mods = new Modmask(event)
+		// todo also have a thing that provides keyname and keyplace
+		// actual key name (for mnemonics) vs locational
+		// for people like kara and the french
+		/*
+		 * modifiers:
+		 * control
+		 * command - mod4/command
+		 * meta  - control on linux and windows, super on mac
+		 * unmeta - super on linux and windows, control on mac
+		 * option - alt on linux/windows, option on mac
+		 */
+		// let keymap = {
+		// 	"unmeta-arrowdown": "quieter",
+		// 	"unmeta-arrowup": "quieter",
+		// }
+		if (mods.ctrl && event.key == "ArrowDown") {
+			this.announce("change", {change: "quieter"})
+		} else if (mods.ctrl && event.key == "ArrowUp") {
+			this.announce("change", {change: "louder"})
+		} else if (mods.ctrl && event.key == "ArrowLeft") {
+			this.announce("change", {change: "pan-left"})
+		} else if (mods.ctrl && event.key == "ArrowRight") {
+			this.announce("change", {change: "pan-right"})
+		} else if (mods.none && event.key == "r") {
+			this.announce("change", {change: "reverse"})
+		}
 	}
 
 	get #droptarget() {
@@ -48,7 +67,7 @@ export default class BentoBox extends BentoElement {
 	#dragenter(event) {
 		for (let file of Array.from(event.dataTransfer.files)) {
 			// TODO restrict to supported formats by trying to decode a silent audio
-			// file of all the formats anyone supports?
+			// file of the format?
 			if (file.type == "application/bento.step") {
 				this.#droptarget = true
 				event.preventDefault()
@@ -71,27 +90,22 @@ export default class BentoBox extends BentoElement {
 	#dragstart(event) {
 		// TODO make this a special file format containing all the step info
 		// (maybe a .wav with cue points + instrument info)
-		event.dataTransfer.setData("application/bento.step", this.step.toString())
+		event.dataTransfer.setData("application/bento.step", this.id)
 	}
 
 	/** @param {DragEvent} event */
 	#drop(event) {
 		event.preventDefault()
-
 		if (event.dataTransfer.items) {
 			for (let item of Array.from(event.dataTransfer.items)) {
 				if (item.type == "application/bento.step") {
-					let from = Number(
-						event.dataTransfer.getData("application/bento.step")
-					)
-					this.announce("copy", {
-						from,
-						to: this.step
+					this.announce("change", {
+						change: "copy",
+						from: event.dataTransfer.getData("application/bento.step")
 					})
 				}
 			}
 		}
-
 		this.#droptarget = false
 	}
 
@@ -106,11 +120,11 @@ export default class BentoBox extends BentoElement {
 	}
 
 	#click() {
-		let {step, selected, on} = this
+		let {selected, on} = this
 		if (selected) {
-			this.announce(on ? "off" : "on", {step})
+			this.announce("change", {change: on ? "off" : "on"})
 		} else {
-			this.announce("selected", {step: this.step})
+			this.announce("change", {change: "selected"})
 		}
 	}
 
@@ -186,5 +200,12 @@ export default class BentoBox extends BentoElement {
 
 	get wav() {
 		return this.#wavimg.src
+	}
+
+	/** @returns {HTMLImageElement} */
+	get #wavimg() {
+		return /** @type {HTMLImageElement} */ (
+			this.shadow.getElementById("wavimg")
+		)
 	}
 }

@@ -1,5 +1,4 @@
 // welcome to my file
-
 Object.defineProperties(Array.prototype, {
 	chunk: {
 		value(size = 1) {

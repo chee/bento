@@ -1,6 +1,6 @@
 import "./extend-native-prototypes.js"
 import * as Memory from "./memory.js"
-import {DPI, Screen} from "./graphics.const.js"
+import {DPI} from "./graphics.const.js"
 
 /** @type {import("./graphics.js").StyleMaps}*/
 let styles

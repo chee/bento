@@ -1,0 +1,262 @@
+:host {
+	--box-fill: var(--box-off-fill);
+	--box-line: var(--box-off-line);
+	background-color: var(--box-fill);
+	color: var(--box-line);
+	height: var(--box-size);
+	width: var(--box-size);
+	transition: background 0.022s ease-in-out;
+	border: 1px solid;
+	position: relative;
+}
+
+:host #wavimg {
+	-webkit-user-drag: none;
+	width: 100%;
+	height: 100%;
+	image-rendering: optimizeQuality;
+	user-select: none;
+	pointer-events: none;
+	display: none;
+	user-select: none;
+}
+
+:host([on][with-wav]) #wavimg {
+	display: block;
+}
+
+:host([selected]) {
+	/* prettier-ignore */
+	box-shadow:
+					-2px -2px 0 0 var(--grid-fill),
+					02px 02px 0 0 var(--grid-fill),
+					-2px 02px 0 0 var(--grid-fill),
+					02px -2px 0 0 var(--grid-fill),
+					-3px -3px 0 0 var(--selected-box-outline),
+					03px 03px 0 0 var(--selected-box-outline),
+					-3px 03px 0 0 var(--selected-box-outline),
+					03px -3px 0 0 var(--selected-box-outline),
+					-4px -4px 0 0 var(--selected-box-outline),
+					04px 04px 0 0 var(--selected-box-outline),
+					-4px 04px 0 0 var(--selected-box-outline),
+					04px -4px 0 0 var(--selected-box-outline);
+	border-color: currentColor;
+}
+
+:host([on]) {
+	--box-fill: var(--box-on-fill);
+	--box-line: var(--box-on-line);
+}
+
+:host(:focus:not([aria-selected="true"])) {
+	outline: 2px dashed var(--focus-outline);
+	outline-offset: 0;
+}
+
+:host(:focus[aria-selected="true"]) {
+	outline: 0;
+}
+
+:host([playing]):after {
+	content: "";
+	height: 15%;
+	width: 15%;
+	position: absolute;
+	left: 50%;
+	bottom: 1%;
+	transform: translate(-50%, -0%);
+	border-radius: 100%;
+	background: var(--box-line);
+}
+
+:host([disabled]) {
+	border: none;
+}
+
+/*
+ * i will find god
+ *
+ * it possible to set --box-color in both pan and quiet? and do this
+ * all in CSS? let's find out!!!!!!
+ * todo adjust percentages when you've had a chance to play with it
+ */
+:host([on][pan="-6"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 100%
+	);
+}
+
+:host([on][pan="-5"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 84%
+	);
+}
+
+:host([on][pan="-4"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 69%
+	);
+}
+
+:host([on][pan="-3"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 47%
+	);
+}
+
+:host([on][pan="-2"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 39%
+	);
+}
+
+:host([on][pan="-1"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-left) 22%
+	);
+}
+
+:host([on][pan="6"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 100%
+	);
+}
+
+:host([on][pan="5"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 84%
+	);
+}
+
+:host([on][pan="4"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 69%
+	);
+}
+
+:host([on][pan="3"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 47%
+	);
+}
+
+:host([on][pan="2"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 39%
+	);
+}
+
+:host([on][pan="1"]) {
+	--box-fill: color-mix(
+		in srgb,
+		var(--box-on-fill),
+		var(--box-fill-mix-pan-right) 22%
+	);
+}
+
+:host([on][quiet="1"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 96%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="2"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 88%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="3"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 81%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="4"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 69%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="5"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 63%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="6"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 55%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="7"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 47%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="8"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 39%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="9"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 29%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="10"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 22%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="11"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 13%,
+		var(--box-fill-mix-quiet)
+	);
+}
+:host([on][quiet="12"]) {
+	background: color-mix(
+		in srgb,
+		var(--box-fill) 5%,
+		var(--box-fill-mix-quiet)
+	);
+}

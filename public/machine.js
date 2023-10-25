@@ -7,23 +7,15 @@ import * as db from "./db.js"
 let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
 let machine = document.querySelector(".machine")
-/** @type {NodeListOf<HTMLInputElement>} */
-let layerSelectors = machine.querySelectorAll(".layer-selector input")
-/** @type {NodeListOf<HTMLInputElement>} */
-let layerSelectorLabels = machine.querySelectorAll(".layer-selector label")
+/** @type {import("./bento-elements/bento-elements.js").BentoMasterControls} */
+let master = document.querySelector("bento-master-controls")
+/** @type {import("./bento-elements/bento-elements.js").BentoLayerSelector} */
+let layerSelector = machine.querySelector("bento-layer-selector")
+/** @type {import("./bento-elements/bento-elements.js").BentoLayerOptions} */
+let layerOptions = machine.querySelector("bento-layer-options")
 /** @type {import("./bento-elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
-/** @type {HTMLSelectElement} */
-let speedSelector = machine.querySelector('[name="speed"]')
-/** @type {HTMLSelectElement} */
-let lengthSelector = machine.querySelector('[name="length"]')
-/** @type {HTMLInputElement} */
-let bpmInput = machine.querySelector('[name="bpm"]')
-/** @type {HTMLInputElement} */
-let playButton = machine.querySelector('[name="play"]')
-/** @type {HTMLButtonElement} */
-let recordButton = machine.querySelector("button.recorder")
 /** @type {HTMLElement} */
 let screen = machine.querySelector(".screen")
 /** @type {HTMLCanvasElement} */
@@ -63,13 +55,10 @@ async function init() {
 	sounds.init(buffer)
 	await db.init(buffer)
 
-	Memory.bpm(memory, Number(bpmInput.value))
+	Memory.bpm(memory, master.bpm)
 	loop.layers(pidx => {
 		Memory.layerSpeed(memory, pidx, 1)
 		Memory.layerLength(memory, pidx, 16)
-		if (layerSelectors[pidx].checked) {
-			Memory.selectedLayer(memory, pidx)
-		}
 	})
 
 	loop.steps(sidx => {
@@ -80,37 +69,15 @@ async function init() {
 
 function update(frame = 0) {
 	let selectedLayer = Memory.selectedLayer(memory)
-	let bpm = Memory.bpm(memory).toString()
-	speedSelector.querySelectorAll("option").forEach(option => {
-		let label = option.dataset.label || option.value
-		let full = bpm + "×" + label
-
-		// why not a span inside? or an attr? for use in a ::before??
-		if (option.textContent != full) {
-			option.textContent = full
-		}
-	})
-
-	speedSelector.value = Memory.layerSpeed(memory, selectedLayer).toString()
-	let layerLength = Memory.layerLength(memory, selectedLayer)
-	lengthSelector.value = layerLength.toString()
-
-	playButton.classList.toggle("playing", Memory.playing(memory))
-	if (bpmInput != document.activeElement) {
-		bpmInput.value = bpm
-	}
-
-	layerSelectors.forEach((layerSelector, index) => {
-		layerSelector.checked = index == selectedLayer
-		layerSelector.toggleAttribute("checked", index == selectedLayer)
-		layerSelector.parentElement.classList.toggle(
-			"checked",
-			index == selectedLayer
-		)
-	})
+	let bpm = Memory.bpm(memory)
+	master.bpm = bpm
+	master.toggleAttribute("playing", Memory.playing(memory))
+	master.toggleAttribute("paused", Memory.paused(memory))
+	layerSelector.selected = selectedLayer
+	layerOptions.speed = Memory.layerSpeed(memory, selectedLayer)
+	layerOptions.length = Memory.layerLength(memory, selectedLayer)
 
 	let selectedStep = Memory.selectedStep(memory)
-
 	loop.steps(sidx => {
 		let box = boxes[sidx]
 		box.selected = sidx == selectedStep
@@ -119,7 +86,7 @@ function update(frame = 0) {
 		box.on = Memory.stepOn(memory, selectedLayer, sidx)
 		box.quiet = Memory.stepQuiet(memory, selectedLayer, sidx)
 		box.pan = Memory.stepPan(memory, selectedLayer, sidx)
-		box.hidden = sidx >= layerLength
+		// box.hidden = sidx >= layerLength
 	})
 
 	requestAnimationFrame(update)
@@ -129,63 +96,67 @@ await init()
 getFancy()
 update()
 
-layerSelectors.forEach((layerSelector, index) => {
-	/**
-	 * @param {InputEvent} _event
-	 */
-	layerSelector.addEventListener("change", _event => {
-		if (layerSelector.checked) {
-			Memory.selectedLayer(memory, index)
-		}
-	})
-})
-
-playButton.addEventListener("click", () => {
+master.addEventListener("play", () => {
 	Memory.play(memory)
+	// todo check if this is needed
 	sounds.play()
 })
 
-machine.querySelector('[name="pause"]').addEventListener("click", () => {
+master.addEventListener("pause", () => {
 	Memory.pause(memory)
 	sounds.pause()
 })
 
-machine.querySelector('[name="stop"]').addEventListener("click", () => {
+master.addEventListener("stop", () => {
 	Memory.stop(memory)
 	sounds.pause()
 })
 
-bpmInput.addEventListener("change", () => {
-	let num = Number(bpmInput.value)
-	let min = Number(bpmInput.min)
-	let max = Number(bpmInput.max)
-	Memory.bpm(memory, Math.clamp(min, num, max))
-})
-
-speedSelector.addEventListener("change", () => {
-	Memory.layerSpeed(
-		memory,
-		Memory.selectedLayer(memory),
-		Number(speedSelector.value)
-	)
-})
-
-lengthSelector.addEventListener("change", () => {
-	Memory.layerLength(
-		memory,
-		Memory.selectedLayer(memory),
-		Number(lengthSelector.value)
-	)
-})
-
-recordButton.addEventListener("click", async () => {
-	if (party.hasAttribute("recording")) {
-		return
+master.addEventListener(
+	"change",
+	/** @param {import("./bento-elements/base.js").BentoEvent} event */
+	event => {
+		if (event.detail.change == "bpm") {
+			Memory.bpm(memory, event.detail.value)
+		}
 	}
-	party.setAttribute("recording", "recording")
-	let audio = await sounds.recordSound()
-	sounds.setSound(memory, Memory.selectedLayer(memory), audio)
-})
+)
+
+layerSelector.addEventListener(
+	"change",
+	/** @param {import("./bento-elements/base.js").BentoEvent} event */
+	event => {
+		if (event.detail.change == "selected") {
+			Memory.selectedLayer(memory, event.detail.selected)
+		}
+	}
+)
+
+layerOptions.addEventListener(
+	"change",
+	/** @param {import("./bento-elements/base.js").BentoEvent} event */
+	event => {
+		let {change, value} = event.detail
+		if (change == "speed") {
+			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
+		} else if (change == "length") {
+			Memory.layerLength(memory, Memory.selectedLayer(memory), value)
+		}
+	}
+)
+
+layerOptions.addEventListener(
+	"record",
+	/** @param {import("./bento-elements/base.js").BentoEvent} _event */
+	async _event => {
+		if (party.hasAttribute("recording")) {
+			return
+		}
+		party.setAttribute("recording", "recording")
+		let audio = await sounds.recordSound()
+		sounds.setSound(memory, Memory.selectedLayer(memory), audio)
+	}
+)
 
 // TODO move to <bento-screen/> (when that exists)
 /* this runs once when drag enters the target's zone */
@@ -269,13 +240,6 @@ screen.addEventListener("drop", async event => {
 			}
 		}
 	}
-})
-
-layerSelectorLabels.forEach(layer => {
-	layer.addEventListener("drop", event => {})
-	layer.addEventListener("dragstart", event => {
-		event.preventDefault()
-	})
 })
 
 grid.addEventListener(

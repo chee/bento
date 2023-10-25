@@ -10,7 +10,7 @@
 	position: relative;
 }
 
-:host #wavimg {
+img {
 	-webkit-user-drag: none;
 	width: 100%;
 	height: 100%;

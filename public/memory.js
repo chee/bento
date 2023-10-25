@@ -1,73 +1,94 @@
 // ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
+// let NUMBER_OF_LAYERS = number_of_samplers + number_of_synths
 export const NUMBER_OF_LAYERS = 4
 export const NUMBER_OF_STEPS = 16
 export const QUANTUM = 128
 export const DYNAMIC_RANGE = 12
+export const LAYER_NUMBER_OFFSET = 4 - (NUMBER_OF_LAYERS % 4)
 
-// TODO swing?
 export let arrays = [
 	{name: "notify", type: Int32Array, size: 1},
 	{name: "master", type: Uint8Array, size: 16},
-	{name: "layerLengths", type: Uint8Array, size: NUMBER_OF_LAYERS},
+	{
+		name: "layerLengths",
+		type: Uint8Array,
+		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+	},
 	{name: "frame", type: Float32Array, size: QUANTUM},
-	{name: "soundLengths", type: Uint32Array, size: NUMBER_OF_LAYERS},
+	{
+		name: "soundLengths",
+		type: Uint32Array,
+		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+	},
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
 	// 4294967295 times in one session
-	{name: "soundVersions", type: Int32Array, size: NUMBER_OF_LAYERS},
-	{name: "layerSpeeds", type: Float32Array, size: NUMBER_OF_LAYERS},
-	{name: "currentSteps", type: Uint8Array, size: NUMBER_OF_LAYERS},
+	{
+		name: "soundVersions",
+		type: Int32Array,
+		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+	},
+	{
+		name: "layerSpeeds",
+		type: Float32Array,
+		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+	},
+	{
+		name: "currentSteps",
+		type: Uint8Array,
+		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+	},
 	{
 		name: "stepOns",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepReverseds",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepPitches",
 		type: Int8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepQuiets",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepPans",
 		type: Int8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepAttacks",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepReleases",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{
 		name: "stepStarts",
 		type: Uint32Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS * 2
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS * 2
 	},
 	{
 		name: "stepEnds",
 		type: Uint32Array,
-		size: NUMBER_OF_LAYERS * NUMBER_OF_STEPS
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
 	{name: "drawingRegion", type: Float32Array, size: 4},
 	{
 		name: "layerSounds",
 		type: Float32Array,
-		size: SOUND_SIZE * NUMBER_OF_LAYERS
+		size: SOUND_SIZE * (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET)
 	}
 	// TODO what size is this? is it the same on every platform? hahaha
 	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},

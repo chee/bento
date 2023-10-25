@@ -1,0 +1,69 @@
+:host {
+	background: var(--layer-selector);
+	color: var(--master-controls-line);
+
+	margin: 0;
+	padding: 0;
+	--dimmed-line: color-mix(
+		in srgb,
+		var(--master-controls-line) 50%,
+		var(--master-controls-fill)
+	);
+}
+
+:focus {
+	outline: 2px dashed var(--focus-outline);
+	outline-offset: 5px;
+}
+
+fieldset {
+	border: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+	text-align: center;
+	align-items: center;
+	width: var(--total-width);
+}
+
+legend {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+label {
+	cursor: pointer;
+	width: 100%;
+	text-align: center;
+	position: relative;
+}
+
+input {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	cursor: pointer;
+}
+
+/* until the :has selector is real */
+/* .layer-selector label:has(:checked)  */
+label.checked {
+	background: var(--selected-layer-selector-fill);
+	color: var(--selected-layer-selector-line);
+}
+
+input:checked,
+label.checked {
+	cursor: unset;
+}

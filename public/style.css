@@ -25,7 +25,6 @@ bento-party {
 	--controls-line: var(--machine-line);
 	--master-controls-fill: var(--controls-fill);
 	--master-controls-line: var(--controls-line);
-	--layer-selector-name-style: lower-latin;
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
 	--selected-layer-selector-fill: var(--prominent-fill);
@@ -73,10 +72,7 @@ bento-party[theme="cherries"] {
 	--2013-body-grey: #333;
 	--orla-foster-2003-bermuda-cocktail-3: #3399ff;
 
-	/* =FEATURES= */
-	/* =page= */
 	--font-family: qp, iosevka, monaco, monospace;
-	/* --fill: var(--cherries-light); */
 	--line: var(--cherries-dark);
 	--page-fill: color-mix(
 		in srgb,
@@ -230,15 +226,15 @@ fieldset {
 	padding: 0;
 }
 
-.machine-controls :focus {
+.controls :focus {
 	outline: 2px dashed var(--focus-outline);
 	outline-offset: 5px;
 }
 
-.machine-controls input,
-.machine-controls select,
-.machine-controls option,
-.machine-controls .master-controls {
+.controls input,
+.controls select,
+.controls option,
+.controls .master-controls {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -250,107 +246,9 @@ fieldset {
 	text-align: center;
 }
 
-.machine-controls button,
-.machine-controls input[type="file"],
-.machine-controls input[type="button"] {
-	cursor: pointer;
-}
-
-/* to make the number selector go away on safari */
-.master-controls input::-webkit-outer-spin-button,
-.master-controls input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
-}
-
-.master-controls input[type="number"] {
-	appearance: textfield;
-}
-
-.master-controls input[name="bpm"] {
-	max-width: 3.5ch;
-}
-
-.master-controls {
-	display: flex;
-	justify-content: space-evenly;
-	text-align: center;
-	align-items: center;
-	background: var(--controls-fill);
-	color: var(--controls-line);
-	border-bottom: 1px solid var(--machine-line);
-}
-
-.master-controls input {
-	font-size: 1em;
-	line-height: 1em;
-}
-
-.layer-selector {
-	display: flex;
-	justify-content: space-evenly;
-	background: var(--layer-selector-fill);
-	color: var(--layer-selector-line);
-	counter-reset: layer;
-}
-
-.layer-selector label::before {
-	counter-increment: layer;
-	content: counters(layer, "", var(--layer-selector-name-style));
-}
-
-.layer-selector label {
-	width: 100%;
-	text-align: center;
-	cursor: pointer;
-	position: relative;
-}
-
-/* until the :has selector is real */
-/* .layer-selector label:has(:checked)  */
-.layer-selector label.checked {
-	background: var(--selected-layer-selector-fill);
-	color: var(--selected-layer-selector-line);
-}
-
-/* to be clickable with voice */
-.layer-selector label input {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-}
-
-.layer-options {
-	display: flex;
-	justify-content: space-evenly;
-	text-align: center;
-	background: var(--layer-options-fill);
-	color: var(--layer-options-line);
-}
-
-.layer-options select {
-	font-size: 0.7rem;
-}
-
-.layer-options .upload {
-	font-weight: bold;
-	font-size: 0.5em;
-	line-height: 1rem;
-}
-
-/*
- * the rest of the styles for label.recorder are with the [recording] styles
- * further down
-*/
-.layer-options .recorder {
-	background: var(--layer-options-fill);
-	color: var(--layer-options-line);
-	border: none;
-	appearance: none;
-	font-size: 0.8em;
-	line-height: 1rem;
+.controls button,
+.controls input[type="file"],
+.controls input[type="button"] {
 	cursor: pointer;
 }
 

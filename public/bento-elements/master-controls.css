@@ -1,0 +1,84 @@
+:host {
+	background: var(--master-controls-fill);
+	color: var(--master-controls-line);
+	margin: 0;
+	padding: 0;
+	--dimmed-line: color-mix(
+		in srgb,
+		var(--master-controls-line) 50%,
+		var(--master-controls-fill)
+	);
+}
+
+:focus {
+	outline: 2px dashed var(--focus-outline);
+	outline-offset: 5px;
+}
+
+fieldset {
+	border: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+	text-align: center;
+	align-items: center;
+	width: var(--total-width);
+}
+
+legend {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+button {
+	cursor: pointer;
+}
+
+button:hover {
+	color: color-mix(
+		in srgb,
+		var(--master-controls-line) 90%,
+		var(--master-controls-fill)
+	);
+}
+
+button,
+input {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	border: none;
+	background: none;
+	color: currentColor;
+	font-family: var(--font-family);
+	font-size: 1em;
+	text-align: center;
+	line-height: 1em;
+}
+
+#bpm {
+	appearance: textfield;
+	max-width: 3.5ch;
+}
+
+#bpm::-webkit-outer-spin-button,
+#bpm::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+/** todo do this in the .js with disabled */
+button:disabled,
+:host(:not([playing])) #pause,
+:host(:not([playing])) #stop,
+:host([playing]:not([paused])) #play,
+:host([playing][paused]) #pause {
+	color: var(--dimmed-line);
+	cursor: unset;
+}

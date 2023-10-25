@@ -260,3 +260,9 @@ img {
 		var(--box-fill-mix-quiet)
 	);
 }
+
+:host([drop-target]) {
+	outline: 4px solid var(--drop-target-outline);
+	border: 2px solid var(--drop-target-outline);
+	outline-offset: 2px;
+}

@@ -6,7 +6,7 @@ import * as db from "./db.js"
 
 let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
-let machine = document.querySelector(".machine")
+let machine = document.querySelector("bento-machine")
 /** @type {import("./bento-elements/bento-elements.js").BentoMasterControls} */
 let master = document.querySelector("bento-master-controls")
 /** @type {import("./bento-elements/bento-elements.js").BentoLayerSelector} */
@@ -16,10 +16,8 @@ let layerOptions = machine.querySelector("bento-layer-options")
 /** @type {import("./bento-elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
-/** @type {HTMLElement} */
-let screen = machine.querySelector(".screen")
-/** @type {HTMLCanvasElement} */
-let screenWaveformCanvas = screen.querySelector(".waveform canvas")
+/** @type {import("./bento-elements/bento-elements.js").BentoScreen} */
+let screen = machine.querySelector("bento-screen")
 
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
@@ -36,7 +34,7 @@ async function getFancy() {
 		party.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && !graphics.fancy()) {
-		graphics.start(screenWaveformCanvas, buffer)
+		graphics.start(screen.canvas, buffer)
 		party.removeAttribute("fancy")
 	}
 	if (sounds.fancy() && graphics.fancy()) {
@@ -51,7 +49,7 @@ fancyListeners.map(async eventName =>
 )
 
 async function init() {
-	graphics.init(screenWaveformCanvas)
+	graphics.init(screen.canvas)
 	sounds.init(buffer)
 	await db.init(buffer)
 
@@ -67,7 +65,7 @@ async function init() {
 	})
 }
 
-function update(frame = 0) {
+function update(_frame = 0) {
 	let selectedLayer = Memory.selectedLayer(memory)
 	let bpm = Memory.bpm(memory)
 	master.bpm = bpm
@@ -75,7 +73,7 @@ function update(frame = 0) {
 	master.toggleAttribute("paused", Memory.paused(memory))
 	layerSelector.selected = selectedLayer
 	layerOptions.speed = Memory.layerSpeed(memory, selectedLayer)
-	layerOptions.length = Memory.layerLength(memory, selectedLayer)
+	// layerOptions.length = Memory.layerLength(memory, selectedLayer)
 
 	let selectedStep = Memory.selectedStep(memory)
 	loop.steps(sidx => {
@@ -126,8 +124,8 @@ layerSelector.addEventListener(
 	"change",
 	/** @param {import("./bento-elements/base.js").BentoEvent} event */
 	event => {
-		if (event.detail.change == "selected") {
-			Memory.selectedLayer(memory, event.detail.selected)
+		if (event.detail.change == "layer") {
+			Memory.selectedLayer(memory, event.detail.value)
 		}
 	}
 )
@@ -158,7 +156,7 @@ layerOptions.addEventListener(
 	}
 )
 
-// TODO move to <bento-screen/> (when that exists)
+// TODO move to <bento-screen/>
 /* this runs once when drag enters the target's zone */
 screen.addEventListener("dragenter", async event => {
 	event.preventDefault()
@@ -259,8 +257,8 @@ grid.addEventListener(
 				Memory.stepOn(memory, layer, step, false)
 			} else if (change == "copy") {
 				let {from} = event.detail
-				Memory.copyStepWithinSelectedLayer(memory, from, step)
-				Memory.selectedStep(memory, step)
+				Memory.copyStepWithinSelectedLayer(memory, +from, +step)
+				Memory.selectedStep(memory, +step)
 			} else if (change == "quieter") {
 				Memory.stepQuieter(memory, layer, step)
 			} else if (change == "louder") {

@@ -1,70 +1,9 @@
 import * as Memory from "./memory.js"
-import {DPI, Screen} from "./graphics.const.js"
+import {DPI} from "./graphics.const.js"
+import BentoScreen from "./bento-elements/screen.js"
 
 let partyElement = document.querySelector("bento-party")
 partyElement.addEventListener("theme", event => theme(event.detail))
-
-/**
- * @typedef {Object} StyleMap
- * @prop {string} fill
- * @prop {string} line
- * @prop {string} [text]
- * @prop {string} [font]
- */
-
-/** @param {string} prop */
-function getStyle(prop, sel = ".screen") {
-	let root = document.documentElement
-	let el = /** @type {HTMLElement} */ (root.querySelector(sel))
-	return getComputedStyle(el || root).getPropertyValue("--" + prop)
-}
-
-/**
- * @typedef {Record<string, StyleMap>} StyleMaps
- * @returns {StyleMaps}
- */
-function getStyles() {
-	let screenElement = /** @type {HTMLElement} */ (
-		document.querySelector(".screen")
-	)
-	// todo --screen-fill
-	let fill = getStyle("screen-fill")
-	let line = getStyle("screen-line")
-	let boxOnLine = getStyle("box-on-line")
-	let boxOffLine = getStyle("box-off-line")
-	let fontFamily = getComputedStyle(screenElement).fontFamily
-	let regionFill = getStyle("region-fill")
-	let drawingRegionFill = getStyle("drawing-region-fill")
-	let regionLine = getStyle("region-line")
-	let drawingRegionLine = getStyle("drawing-region-line")
-	let fontSize = 23 * DPI
-	let font = `${fontSize}px ${fontFamily}`
-
-	return {
-		normal: {
-			fill,
-			line,
-			text: line,
-			font
-		},
-		boxOn: {
-			fill: "transparent",
-			line: boxOnLine
-		},
-		boxOff: {
-			fill: "transparent",
-			line: boxOffLine
-		},
-		region: {
-			fill: regionFill,
-			line: regionLine
-		},
-		drawingRegion: {
-			fill: drawingRegionFill,
-			line: drawingRegionLine
-		}
-	}
-}
 
 export let IS_BASICALLY_A_PHONE =
 	typeof window != "undefined" &&
@@ -73,8 +12,8 @@ export let IS_BASICALLY_A_PHONE =
 /** @type {Memory.MemoryMap} */
 let memory
 
-/** @type {HTMLCanvasElement} */
-let canvas
+/** @type {BentoScreen} */
+let screenElement
 
 /** @type {Worker} */
 let screenWorker
@@ -90,16 +29,17 @@ function getX(pageX, bounds) {
 	return pageX < bounds.left
 		? 0
 		: pageX > bounds.right
-		? canvas.width
+		? screenElement.canvas.width
 		: (pageX - bounds.left) * 3
 }
 
 // why is this in this file
 // todo make this work for both TouchEvent and MouseEvent
+// todo this should be part of <bento-screen>
 /** @param {MouseEvent} event */
 function startSelectingRegion(event) {
 	// assumes nothing ever changes size while you're trying to trim a sample
-	let bounds = canvas.getBoundingClientRect()
+	let bounds = screenElement.canvas.getBoundingClientRect()
 	Memory.drawingRegionStart(memory, getX(event.pageX, bounds))
 	/** @param {MouseEvent} event */
 	function mousemove(event) {
@@ -131,10 +71,11 @@ function findFinger(finger, touches) {
 	)
 }
 
+// todo this should be part of <bento-screen>
 /** @param {TouchEvent} event */
 function startSelectingRegionWithFinger(event) {
 	// assumes nothing ever changes size while you're trying to drawingRegion a sample
-	let bounds = canvas.getBoundingClientRect()
+	let bounds = screenElement.canvas.getBoundingClientRect()
 	let finger = event.touches.item(0)
 	Memory.drawingRegionStart(memory, getX(finger.pageX, bounds))
 	/** @param {TouchEvent} event */
@@ -168,60 +109,35 @@ export function fancy() {
 	return alreadyFancy
 }
 
-/**
- * @param {Screen} mode
- */
-export function switchScreen(mode) {
-	/** @type {HTMLElement} */
-	let screen = document.querySelector(".screen")
-	let currentMode = screen.dataset.mode
-	if (mode == currentMode) return
-	screen.dataset.mode = mode
-	let currentModeElement = screen.getElementsByClassName(currentMode)[0]
-	let modeElement = screen.getElementsByClassName(mode)[0]
-
-	if (modeElement) {
-		modeElement.removeAttribute("hidden")
-		screenWorker.postMessage({
-			type: "mode",
-			mode
-		})
-		currentModeElement.setAttribute("hidden", "hidden")
-	} else {
-		console.error(`tried to switch to bad screen: ${mode}`)
-	}
-}
-
 export function theme(/**@type string*/ name) {
 	// todo load theme
 	screenWorker.postMessage({
 		type: "styles",
 		theme: name,
-		styles: getStyles()
+		styles: screenElement.getStyles()
 	})
 }
 
 let alreadyInit = false
-/**
- * @param {HTMLCanvasElement} c
- */
-export async function init(c) {
+
+export async function init() {
 	if (alreadyInit) return
 	alreadyInit = true
 	screenWorker = new Worker("/screen.work.js", {type: "module"})
-	canvas = c
+	await customElements.whenDefined("bento-screen")
+	screenElement = document.querySelector("bento-screen")
 	// starring lindsey lohan
-	let parentBounds = canvas.parentElement.getBoundingClientRect()
+	let parentBounds = screenElement.getBoundingClientRect()
 
-	canvas.height = parentBounds.height * DPI
-	canvas.width = parentBounds.width * DPI
+	screenElement.canvas.height = parentBounds.height * DPI
+	screenElement.canvas.width = parentBounds.width * DPI
 
-	let offscreen = canvas.transferControlToOffscreen()
+	let offscreen = screenElement.canvas.transferControlToOffscreen()
 	screenWorker.postMessage(
 		{
 			type: "init",
 			canvas: offscreen,
-			styles: getStyles()
+			styles: screenElement.getStyles()
 		},
 		[offscreen]
 	)

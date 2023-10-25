@@ -1,0 +1,24 @@
+:host {
+	width: var(--total-width);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	background: var(--screen-fill);
+	color: var(--screen-line);
+	margin: 0;
+}
+
+figure {
+	width: var(--total-width);
+	height: 4em;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	/* this disabled scrolling so selecting a region doesn't move you around */
+	touch-action: none;
+}
+
+canvas {
+	width: var(--total-width);
+	height: 100%;
+}

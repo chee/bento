@@ -63,7 +63,7 @@ bento-party {
 
 /* =EXAMPLE-THEMES* */
 
-bento-party[theme="cherries"] {
+[theme="cherries"] {
 	--cherries-light: #ffe9ed;
 	--cherries-dark: #cc3366;
 	--holy-light: white;
@@ -136,7 +136,6 @@ bento-party[theme="cherries"] {
 }
 
 /* =*= */
-
 @font-face {
 	font-family: qp;
 	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
@@ -150,28 +149,15 @@ bento-party[theme="cherries"] {
 	display: swap;
 }
 
-::selection {
-	background: transparent;
+* {
+	/* disable bouncing */
+	overscroll-behavior: none;
+	scrollbar-color: var(--scrollbar-bg) var(--scrollbar-fg);
 }
 
 html {
 	font-size: 2.2em;
 	line-height: 1.15;
-}
-
-[screenreader] {
-	position: absolute;
-	left: -10000px;
-	top: auto;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-}
-
-* {
-	/* disable bouncing */
-	overscroll-behavior: none;
-	scrollbar-color: var(--scrollbar-bg) var(--scrollbar-fg);
 }
 
 body {
@@ -197,9 +183,19 @@ bento-party {
 	flex-direction: column;
 }
 
+bento-machine {
+	background: var(--machine-fill);
+	color: var(--machine-line);
+	border: 1px solid currentColor;
+	margin: 0;
+	width: var(--total-width);
+	position: relative;
+	box-shadow: 0px 0px 50px 0px var(--machine-shadow-color);
+}
+
 /* completely disable highlighting stuff everywhere */
-.machine,
-.machine * {
+bento-machine,
+bento-machine * {
 	--webkit-user-select: none;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -210,135 +206,8 @@ bento-party {
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-.machine {
-	background: var(--machine-fill);
-	color: var(--machine-line);
-	border: 1px solid currentColor;
-	margin: 0;
-	width: var(--total-width);
-	position: relative;
-	box-shadow: 0px 0px 50px 0px var(--machine-shadow-color);
-}
-
-fieldset {
-	border: none;
-	margin: 0;
-	padding: 0;
-}
-
-.controls :focus {
-	outline: 2px dashed var(--focus-outline);
-	outline-offset: 5px;
-}
-
-.controls input,
-.controls select,
-.controls option,
-.controls .master-controls {
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-	border: none;
-	background: none;
-	font-family: var(--font-family);
-	font-size: 1em;
-	color: currentColor;
-	text-align: center;
-}
-
-.controls button,
-.controls input[type="file"],
-.controls input[type="button"] {
-	cursor: pointer;
-}
-
-/* todo consider <bento-screen> */
-
-/*
- * allow selecting a screen by screen.scrollTo(screen.clientWidth * index, 0)
- */
-.screen {
-	width: var(--total-width);
-	overflow: hidden;
-	display: flex;
-	flex-direction: row;
-	scroll-snap-type: x mandatory;
-	background: var(--screen-fill);
-	color: var(--screen-line);
-	scrollbar-width: 0;
-}
-
-.screen.switching {
-	/* overflow-x: scroll; */
-}
-
-.screen figure {
-	width: var(--total-width);
-	margin: 0;
-	height: 4em;
-	scroll-snap-align: center;
-	background: var(--screen-fill);
-	color: var(--screen-line);
-}
-
-.screen figure canvas {
-	width: var(--total-width);
-	height: 100%;
-}
-
-[drop-target] {
-	outline: 4px solid var(--drop-target-outline);
-	border: 2px solid var(--drop-target-outline);
-	outline-offset: 2px;
-}
-
-figure.waveform canvas {
-	/* this disabled scrolling so selecting a region doesn't move you around */
-	touch-action: none;
-}
-
-.screen-selector fieldset {
-	text-align: center;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	font-size: 0.5em;
-}
-
-.screen-selector label {
-	text-align: center;
-	border-bottom: 1px solid;
-	cursor: pointer;
-	font-weight: bold;
-}
-
-.screen-selector label.checked {
-	background: var(--screen-selector-fill);
-	color: var(--screen-selector-line);
-}
-
-.screen-selector label:not(:last-child) {
-	border-right: 1px solid;
-}
-
-.screen-selector label input {
-	position: absolute;
-	width: 5px;
-	height: 5px;
-}
-
-:not([chee]) [chee] {
-	display: none;
-}
-
-@keyframes blink {
-	50% {
-		opacity: 0.5;
-	}
-}
-
-[recording] .recorder {
-	animation: blink 1s steps(5, start) infinite;
-	cursor: unset;
+::selection {
+	background: transparent;
 }
 
 @keyframes spinnygoweee {
@@ -385,11 +254,11 @@ bento-party[recording] {
 	left: 0;
 }
 
-[recording] .machine {
+bento-party[recording] bento-machine {
 	box-shadow: none;
 }
 
-[recording] .tape {
+bento-party[recording] .tape {
 	display: flex;
 }
 

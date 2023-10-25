@@ -39,8 +39,8 @@ export default class BentoLayerSelector extends BentoElement {
 				)
 				if (index != null) {
 					this.announce("change", {
-						change: "selected",
-						selected: index
+						change: "layer",
+						value: index
 					})
 				}
 			}

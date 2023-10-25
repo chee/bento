@@ -29,6 +29,8 @@ export default class BentoLayerOptions extends BentoElement {
 			label: "×3"
 		}
 	]
+	/** @type {HTMLSelectElement} */
+	#speedSelector
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
@@ -45,6 +47,13 @@ export default class BentoLayerOptions extends BentoElement {
 			speedSelector.appendChild(option)
 		}
 		fieldset.appendChild(speedSelector)
+		this.#speedSelector = speedSelector
+		speedSelector.addEventListener("change", () => {
+			this.announce("change", {
+				change: "speed",
+				value: Number(this.#speedSelector.value)
+			})
+		})
 
 		let record = document.createElement("button")
 		record.ariaLabel = "Record a sound"
@@ -53,10 +62,11 @@ export default class BentoLayerOptions extends BentoElement {
 		fieldset.appendChild(record)
 		record.addEventListener("click", () => {
 			record.blur()
-			this.announce("recording")
+			this.announce("record")
 		})
 
 		// not fully convinced i should include these
+		// they make it easier to make bad music
 		// let optgroup = document.createElement("optgroup")
 		// this.#speedSelector.appendChild(optgroup)
 		// optgroup.label = "ethically non-monogamous"
@@ -73,5 +83,10 @@ export default class BentoLayerOptions extends BentoElement {
 		// 	option.textContent = i.toString()
 		// 	lengthSelector.append()
 		// }
+	}
+
+	/** @param {number} val */
+	set speed(val) {
+		this.#speedSelector.value = val.toString()
 	}
 }

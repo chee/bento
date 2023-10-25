@@ -176,7 +176,7 @@ export async function start(buffer) {
 	alreadyFancy = true
 }
 
-export function init(buffer) {
+export async function init(buffer) {
 	let memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)

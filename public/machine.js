@@ -2,7 +2,7 @@ import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
-import * as db from "./db.js"
+// import * as db from "./db.js"
 
 let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
@@ -49,9 +49,9 @@ fancyListeners.map(async eventName =>
 )
 
 async function init() {
-	graphics.init(screen.canvas)
-	sounds.init(buffer)
-	await db.init(buffer)
+	await graphics.init()
+	await sounds.init(buffer)
+	// await db.init(buffer)
 
 	Memory.bpm(memory, master.bpm)
 	loop.layers(pidx => {

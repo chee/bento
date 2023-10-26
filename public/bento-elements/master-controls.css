@@ -23,6 +23,7 @@ fieldset {
 	border: none;
 	margin: 0;
 	padding: 0;
+	padding-top: 0.125em;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-evenly;
@@ -71,6 +72,9 @@ input {
 
 #bpm {
 	appearance: textfield;
+	font-size: 0.75em;
+	margin: 0.25em;
+	margin-bottom: 0.4em;
 }
 
 #bpm::-webkit-outer-spin-button,
@@ -79,12 +83,30 @@ input {
 	margin: 0;
 }
 
+button svg {
+	height: 0.6em;
+	width: 0.6em;
+	margin: 0.2em;
+}
+
+button svg * {
+	fill: var(--master-controls-line);
+}
+
+/** todo do this in the .js with disabled */
+button:disabled svg *,
+:host(:not([playing])) #pause svg *,
+:host(:not([playing])) #stop svg *,
+:host([playing]:not([paused])) #play svg *,
+:host([playing][paused]) svg * {
+	fill: var(--dimmed-line);
+}
+
 /** todo do this in the .js with disabled */
 button:disabled,
 :host(:not([playing])) #pause,
 :host(:not([playing])) #stop,
 :host([playing]:not([paused])) #play,
-:host([playing][paused]) #pause {
-	color: var(--dimmed-line);
+:host([playing][paused]) {
 	cursor: unset;
 }

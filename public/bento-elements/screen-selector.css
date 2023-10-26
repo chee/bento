@@ -29,7 +29,7 @@ button {
 	border: 1px solid;
 	padding: 0 1em;
 	box-shadow: 1px 1px 2px 0px var(--screen-selector-button-shadow-color);
-	border-radius: 4px;
+	border-radius: var(--button-border-radius);
 }
 
 button:hover {

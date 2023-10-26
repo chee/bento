@@ -1,48 +1,74 @@
 import {BentoElement} from "./base.js"
 
 /** @typedef {Object} ControlSpec
- * @param {string} name
- * @param {string} type
- * @param {string} [icon]
- * @param {string} label
+ * @prop {string} name
+ * @prop {string} type
+ * @prop {string} [label]
+ * @prop {string} [ariaLabel]
  */
 export default class BentoMasterControls extends BentoElement {
-	/** @param {ControlSpec} control */
-	createButton(control) {
-		let element = document.createElement("button")
-		element.innerHTML = control.icon || control.name
+	/** @type {HTMLButtonElement[]} */
+	#buttons = []
+	/**
+	 * @param {ControlSpec} control
+	 * @param {Element} [appendTo]
+	 */
+	createButton(control, appendTo) {
+		let button = document.createElement("button")
 		if (control.type == "button") {
-			element.addEventListener("click", () => {
+			button.addEventListener("click", () => {
 				this.announce(control.name)
 			})
 		}
-		element.id = control.name
-		element.ariaLabel = control.label
-		return element
+		button.id = control.name
+		// stay frosty until we're open
+		button.tabIndex = this.open ? 0 : -1
+		let label = control.label || control.name
+		let ariaLabel = control.ariaLabel || label
+		button.innerHTML = label
+		button.ariaLabel = ariaLabel
+		this.shadow.firstElementChild.appendChild(button)
+		this.#buttons.push(button)
+		return button
 	}
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<div></div>`
 		this.attachStylesheet("settings")
-		// let save = this.createButton({
-		// 	name: "save",
-		// 	type: "button",
-		// 	label: "save the project"
-		// })
-		let reset = this.createButton({
-			name: "reset",
+
+		this.createButton({
+			name: "save-as",
 			type: "button",
-			label: "reset the project",
-			icon: "start fresh"
+			label: "duplicate pattern"
 		})
-		this.shadow.firstElementChild.append(reset)
+		this.createButton({
+			name: "choose-theme",
+			type: "button",
+			label: "choose theme"
+		})
+		this.createButton({
+			name: "load-pattern",
+			type: "button",
+			label: "load pattern"
+		})
+		this.createButton(
+			{
+				name: "reset",
+				type: "button",
+				label: "clear pattern"
+			},
+			this.shadow.firstElementChild
+		)
 	}
 
 	get open() {
 		return this.hasAttribute("open")
 	}
 
-	set open(val) {
-		this.toggleAttribute("open", val)
+	set open(open) {
+		this.toggleAttribute("open", open)
+		for (let button of this.#buttons) {
+			button.tabIndex = open ? 0 : -1
+		}
 	}
 }

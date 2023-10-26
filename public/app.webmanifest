@@ -2,5 +2,26 @@
 	"name": "bento",
 	"start_url": ".",
 	"description": "sampler and sequencer",
-	"display": "fullscreen"
+	"display": "standalone",
+	"scope": "/",
+	"icons": [
+		{
+			"src": "icons/maskable_icon.png",
+			"sizes": "any",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "icons/bento.svg",
+			"type": "image/svg",
+			"purpose": "any",
+			"sizes": "any"
+		},
+		{
+			"src": "icons/bento-monochrome.png",
+			"type": "image/png",
+			"purpose": "monochrome",
+			"sizes": "any"
+		}
+	]
 }

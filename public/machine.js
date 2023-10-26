@@ -4,11 +4,28 @@ import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as db from "./db.js"
 
+/** @type {import("./bento-elements/bento-elements.js").BentoElement} */
 let party = document.querySelector("bento-party")
+let root = document.documentElement
+let themeObserver = new MutationObserver(changes => {
+	for (let change of changes) {
+		if (change.type == "attributes") {
+			if (change.attributeName == "theme") {
+				party.announce("theme", root.getAttribute("theme"))
+			}
+		}
+	}
+})
+themeObserver.observe(root, {
+	attributes: true,
+	attributeFilter: ["theme"]
+})
 // TODO move non ui stuff to, like, start.js
 let machine = document.querySelector("bento-machine")
 /** @type {import("./bento-elements/bento-elements.js").BentoMasterControls} */
 let master = document.querySelector("bento-master-controls")
+/** @type {HTMLElement} */
+let nav = document.querySelector("bento-nav")
 /** @type {import("./bento-elements/bento-elements.js").BentoLayerSelector} */
 let layerSelector = machine.querySelector("bento-layer-selector")
 /** @type {import("./bento-elements/bento-elements.js").BentoLayerOptions} */
@@ -24,28 +41,46 @@ let settings = machine.querySelector("bento-settings")
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
-party.removeAttribute("loading")
-setTimeout(() => {
-	screen.open = true
-})
+/** @type {HTMLDialogElement} */
+let dialog = document.getElementById("dialog")
+root.removeAttribute("loading")
 
 let fancyListeners = ["keydown", "click", "touchstart"]
 
-async function getFancy() {
-	if (!sounds.fancy()) {
-		await sounds.start(buffer)
-		party.removeAttribute("fancy")
-	}
-	if (sounds.fancy() && !graphics.fancy()) {
-		graphics.start(screen.canvas, buffer)
-		party.removeAttribute("fancy")
-	}
-	if (sounds.fancy() && graphics.fancy() && !db.loaded) {
-		db.load()
-	}
+let slug = slugify(db.getIdFromLocation())
+window.history.pushState({slug}, "", `${location.pathname}${location.search}`)
 
-	if (sounds.fancy() && graphics.fancy()) {
-		party.setAttribute("fancy", "fancy")
+function updateNav() {
+	nav.querySelector("h1").textContent = history.state.slug || "bento"
+}
+updateNav()
+
+async function getFancy() {
+	try {
+		if (!sounds.fancy()) {
+			await sounds.start(buffer)
+			party.removeAttribute("fancy")
+		}
+		if (sounds.fancy() && !graphics.fancy()) {
+			graphics.start(screen.canvas, buffer)
+			party.removeAttribute("fancy")
+		}
+		if (sounds.fancy() && graphics.fancy() && !db.loaded) {
+			db.load()
+		}
+		if (sounds.fancy() && graphics.fancy()) {
+			party.setAttribute("fancy", "fancy")
+			dialog.close()
+			if (!settings.open) {
+				setTimeout(() => {
+					screen.open = true
+				}, 200)
+			}
+		}
+	} catch {}
+	if (!party.hasAttribute("fancy")) {
+		dialog.firstElementChild.innerHTML = `<p>say ok to start to play</p>`
+		dialog.showModal()
 	}
 }
 
@@ -72,6 +107,14 @@ async function init() {
 	})
 }
 
+let dj = /** @type {HTMLInputElement} */ (document.getElementById("dj"))
+dj.oninput = e => {
+	memory.stepDjs.set(
+		[Number(dj.value)],
+		Memory.selectedLayer(memory) * Memory.NUMBER_OF_LAYERS +
+			Memory.selectedStep(memory)
+	)
+}
 function update(_frame = 0) {
 	let selectedLayer = Memory.selectedLayer(memory)
 	let bpm = Memory.bpm(memory)
@@ -83,6 +126,9 @@ function update(_frame = 0) {
 	// layerOptions.length = Memory.layerLength(memory, selectedLayer)
 
 	let selectedStep = Memory.selectedStep(memory)
+	let d = Memory.getSelectedStepDetails(memory)
+
+	dj.value = d.dj.toString()
 	loop.steps(sidx => {
 		let box = boxes[sidx]
 		box.selected = sidx == selectedStep
@@ -91,6 +137,7 @@ function update(_frame = 0) {
 		box.on = Memory.stepOn(memory, selectedLayer, sidx)
 		box.quiet = Memory.stepQuiet(memory, selectedLayer, sidx)
 		box.pan = Memory.stepPan(memory, selectedLayer, sidx)
+
 		// box.hidden = sidx >= layerLength
 	})
 
@@ -290,18 +337,75 @@ screen.addEventListener("open", event => {
 	screen.open = true
 })
 
+function slugify(name = "") {
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9+=~@]/g, "-")
+		.replace(/-:[:a-z0-9]+:$/g, "")
+		.replace(/-+/g, "-")
+		.replace(/(^\-|\-$)/, "")
+}
+
 settings.addEventListener("reset", async event => {
 	let ok = window.confirm("this will delete the pattern from your disk. ok?")
+
 	if (ok) {
 		console.log({ok})
 		await db.reset()
-		// db.load()
-		// console.log("came back")
 		location.reload()
 	}
 })
 
+addEventListener("popstate", async event => {
+	let slug = history.state.slug || "?"
+	await db.load(slug)
+	nav.querySelector("h1").textContent = history.state.slug || "bento"
+})
+
+async function saveAs(defaultName = "") {
+	let name = window.prompt("enter a name", defaultName)
+	if (name) {
+		let slug = slugify(name)
+		if (slug == db.getIdFromLocation()) {
+			window.alert(`you are looking at ${slug} right now! bento autosaves btw`)
+			return
+		}
+		if (slug) {
+			if (await db.exists(slug)) {
+				let ok = window.confirm(
+					`already pattern called ${slug}. this wil overwrite. ok?`
+				)
+				if (!ok) {
+					return saveAs(name)
+				}
+			}
+			await db.save(slug)
+			window.history.pushState(
+				{slug},
+				"",
+				`/patterns/${slug}/${location.search}`
+			)
+			updateNav()
+			screen.open = true
+			settings.open = false
+		}
+	}
+}
+
+async function load(defaultName = "") {
+	let names = await db.getPatternNames()
+	db.load(names)
+}
+
+settings.addEventListener("load-pattern", async event => {
+	await load()
+})
+
+settings.addEventListener("save-as", async event => {
+	await saveAs()
+})
+
 let featureflags = new URLSearchParams(location.search.slice(1))
 for (let [flag, value] of featureflags.entries()) {
-	party.setAttribute(flag, value)
+	root.setAttribute(flag, value)
 }

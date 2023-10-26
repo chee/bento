@@ -1,6 +1,7 @@
 * {
 	touch-action: manipulation;
 }
+
 :host {
 	display: block;
 	height: 0;
@@ -10,24 +11,52 @@
 	color: var(--settings-line);
 }
 
+:host::-webkit-scrollbar {
+	-webkit-appearance: none;
+	width: 10px;
+}
+
+:host::-webkit-scrollbar-thumb {
+	border-radius: var(--button-border-radius);
+	background-color: var(--settings-button-fill);
+	box-shadow: 1px 1px 2px 0px var(--settings-button-shadow-color);
+}
+
 :host([open]) {
 	height: 4em;
 }
 
 :host > div {
-	padding: 0.5em;
+	padding: 1em;
 	display: flex;
 	flex-direction: column;
-	row-gap: 0.25em;
+	row-gap: 1em;
 	align-items: center;
 }
 
-input {
-	border: 1px solid var(--master-controls-line);
-	text-transform: uppercase;
+button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	box-sizing: content-box;
+	background: var(--settings-button-fill);
+	color: var(--settings-button-line);
+	box-shadow: 1px 1px 2px 0px var(--settings-button-shadow-color);
+	font-family: var(--font-family);
+	font-size: 0.75em;
+	text-align: center;
+	line-height: 1em;
+	cursor: pointer;
+	width: 4ch;
+	border: 1px solid;
+	padding: 1em;
+	border-radius: var(--button-border-radius);
+	appearance: none;
+	cursor: pointer;
+	min-width: 10em;
+	font-weight: bold;
 }
 
-button {
-	cursor: pointer;
-	width: 10em;
+button:hover {
+	box-shadow: 2px 2px 2px 0 var(--settings-button-shadow-color);
 }

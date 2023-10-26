@@ -1,13 +1,13 @@
-bento-party {
+:root {
 	/*=START-OF-PUBLIC-API*/
-	/* =page= */
 	--fill: white;
 	--line: black;
 	--font-family: monospace;
+	/* =page= */
 	--page-fill: var(--fill);
 	--page-line: var(--line);
 	--scrollbar-bg: var(--fill);
-	--scrollbar-fg: var(--fill);
+	--scrollbar-fg: var(--line);
 	--focus-outline: var(--page-line);
 	--drop-target-outline: var(--focus-outline);
 
@@ -28,12 +28,16 @@ bento-party {
 	--master-controls-shadow-color: var(--machine-shadow-color);
 	--settings-fill: var(--master-controls-fill);
 	--settings-line: var(--master-controls-line);
+	--settings-button-fill: var(--settings-line);
+	--settings-button-line: var(--settings-fill);
+	--settings-button-shadow-color: var(--machine-shadow-color);
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
 	--selected-layer-selector-fill: var(--prominent-fill);
 	--selected-layer-selector-line: var(--prominent-line);
 	--layer-options-fill: var(--selected-layer-selector-fill);
 	--layer-options-line: var(--selected-layer-selector-line);
+	--button-border-radius: 4px;
 
 	/* =screen= */
 	--screen-fill: var(--prominent-fill);
@@ -65,10 +69,9 @@ bento-party {
 	--mix-pan-left: red;
 	--mix-quiet: white;
 	--mix-pan-right: blue;
-
-	--box-fill-mix-pan-left: red;
-	--box-fill-mix-pan-right: blue;
-	--box-fill-mix-quiet: var(--box-off-fill);
+	--box-mix-pan-left: var(--mix-pan-left);
+	--box-mix-quiet: var(--mix-quiet);
+	--box-mix-pan-right: var(--mix-pan-right);
 	/* *END-OF-PUBLIC-API* */
 
 	background: var(--page-fill);
@@ -104,6 +107,11 @@ bento-party {
 	--screen-selector-button-shadow-color: color-mix(
 		in srgb,
 		var(--cherries-dark) 88%,
+		var(--holy-dark)
+	);
+	--settings-button-shadow-color: color-mix(
+		in srgb,
+		var(--settings-fill) 75%,
 		var(--holy-dark)
 	);
 	--machine-fill: var(--cherries-light);
@@ -157,6 +165,27 @@ bento-party {
 	--fill: black;
 }
 
+[theme="256k"] {
+	--font-family: "DejaVu Sans Mono", Menlo, monospace;
+	--fill: white;
+	--line: black;
+	--prominent-fill: white;
+	--prominent-line: black;
+	--screen-fill: white;
+	--screen-line: black;
+	--mix-pan-left: #f99;
+	--mix-pan-right: #99f;
+	--selected-layer-selector-fill: black;
+	--selected-layer-selector-line: white;
+	--layer-options-fill: white;
+	--layer-options-line: black;
+	--button-border-radius: 0px;
+	--settings-button-fill: white;
+	--settings-button-line: black;
+	--region-fill: black;
+	--region-line: white;
+}
+
 /* =*= */
 @font-face {
 	font-family: qp;
@@ -188,6 +217,7 @@ html {
 body {
 	/* remove margin from mosaic or whatever */
 	margin: 0;
+	background: var(--page-fill);
 }
 
 bento-party {
@@ -216,7 +246,7 @@ bento-machine {
 	margin: 0;
 	width: var(--total-width);
 	position: relative;
-	box-shadow: 0px 0px 50px 0px var(--machine-shadow-color);
+	box-shadow: 0px 0px 40px 0px var(--machine-shadow-color);
 }
 
 /* completely disable highlighting stuff everywhere */
@@ -259,12 +289,60 @@ bento-party[recording] bento-tape {
 	display: flex;
 }
 
-bento-party[loading] bento-machine {
+[loading] bento-party {
 	opacity: 0;
 }
 
-bento-party bento-machine {
+bento-party {
 	opacity: 1;
-	transition: opacity 0.05s linear;
-	display: block;
+	transition: opacity 0.5s linear;
+}
+
+bento-nav {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	margin-bottom: 0.25em;
+	color: var(--page-line);
+}
+
+bento-nav h1 {
+	padding: 0;
+	font-size: 0.5rem;
+	margin: auto;
+}
+
+bento-nav button {
+	appearance: none;
+	background: var(--page-fill);
+	flex: 1;
+	border: 1px solid var(--page-line);
+	display: none;
+}
+
+#tape {
+	display: none;
+}
+
+dialog {
+	text-align: center;
+}
+
+[click-to-start] {
+	font-size: 0.5rem;
+}
+
+dialog button {
+	appearance: none;
+	color: var(--machine-line);
+	border: 1px solid;
+	box-shadow: 2px 2px 2px var(--machine-shadow-color);
+	font-size: 1em;
+	margin-bottom: 1em;
+	cursor: pointer;
+	width: 5em;
+	height: 1.5em;
+	font-family: var(--font-family);
+	background: var(--fill);
+	margin: auto;
 }

@@ -1,5 +1,6 @@
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
+import * as constants from "./sounds.const.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -124,15 +125,15 @@ export function setSound(memory, layerNumber, sound) {
  * Create a convolver from an audio buffer
  * @param {AudioBuffer} audiobuffer
  */
-// function createReverb(audiobuffer) {
-// 	let convolver = context.createConvolver()
-// 	convolver.buffer = audiobuffer
-// 	return convolver
-// }
+function createReverb(audiobuffer) {
+	let convolver = context.createConvolver()
+	convolver.buffer = audiobuffer
+	return convolver
+}
 
-// let ps1s = await context.decodeAudioData(
-// 	await (await fetch("sounds/ps1s.flac")).arrayBuffer()
-// )
+let ps1 = await context.decodeAudioData(
+	await (await fetch("/sounds/ps1h.flac")).arrayBuffer()
+)
 
 let alreadyFancy = false
 export function fancy() {
@@ -188,8 +189,8 @@ export async function init(buffer) {
 			new AudioWorkletNode(context, "bako", {
 				processorOptions: {buffer, layerNumber},
 				channelCount: 2,
-				numberOfOutputs: 2,
-				outputChannelCount: [2, 1]
+				numberOfOutputs: 12,
+				outputChannelCount: [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 			})
 	)
 	let layerParams = []
@@ -203,36 +204,63 @@ export async function init(buffer) {
 		})
 	})
 
-	let filters = loop.layers(() => context.createBiquadFilter())
-	let panConstants = loop.layers(() => context.createConstantSource())
+	let lowpasses = loop.layers(
+		() =>
+			new BiquadFilterNode(context, {
+				type: "lowpass"
+			})
+	)
+	let highpasses = loop.layers(
+		() =>
+			new BiquadFilterNode(context, {
+				type: "highpass"
+			})
+	)
+	// these will have their
+	let lowpassGains = loop.layers(() => context.createGain())
+	let highpassGains = loop.layers(() => context.createGain())
 	let pans = loop.layers(() => context.createStereoPanner())
 	let analyzer = context.createAnalyser()
 
-	// let delays = loop.layers(() => context.createDelay())
-	// let feedbacks = loop.layers(() => createGain())
-	// let reverbs = loop.layers(() => createReverb(ps1s))
-	loop.layers(layerIdx => {
-		// layers[layerIdx].parameters.forEach((param, name) => {
-		// 	if (name == "pan") {
-		// 	}
-		// })
+	let delaySends = loop.layers(() => context.createGain())
+	let delays = loop.layers(() => context.createDelay())
+	let feedbacks = loop.layers(() => context.createGain())
+	let reverbs = loop.layers(() => createReverb(ps1))
+	let reverbSends = loop.layers(() => context.createGain())
+	loop.layers(idx => {
+		let layer = layers[idx]
+		layer.connect(pans[idx].pan, constants.Output.Pan)
+		layer.connect(lowpassGains[idx].gain, constants.Output.LowPassGain)
+		layer.connect(highpassGains[idx].gain, constants.Output.HighPassGain)
+		layer.connect(lowpasses[idx].frequency, constants.Output.LowPassFrequency)
+		layer.connect(
+			highpasses[idx].frequency,
+			constants.Output.HighPassFrequency
+		)
+		layer.connect(lowpasses[idx].Q, constants.Output.LowPassQ)
+		layer.connect(highpasses[idx].Q, constants.Output.HighPassQ)
+		layer.connect(reverbSends[idx].gain, constants.Output.ReverbSend)
+		layer.connect(delaySends[idx].gain, constants.Output.DelaySend)
+		layer.connect(delays[idx].delayTime, constants.Output.DelayTime)
+		layer.connect(delays[idx].delayTime, constants.Output.DelayTime)
+		layer.connect(feedbacks[idx].gain, constants.Output.DelayFeedback)
+		delays[idx].connect(feedbacks[idx])
+		feedbacks[idx].connect(delays[idx])
 
-		layers[layerIdx].connect(pans[layerIdx], 0)
-		layers[layerIdx].connect(pans[layerIdx].pan, 1)
-		pans[layerIdx].connect(context.destination)
-		pans[layerIdx].connect(analyzer)
-		// let filter = filters[layerIdx]
-		// filter.type = "allpass"
-		// boxes[layerIdx].connect(filters[layerIdx])
-		// filter.connect(pans[layerIdx])
-		// filter.connect(analyzer)
-		// pans[layerIdx].connect(context.destination)
-		// reverbs[layerIdx].connect(context.destination)
+		reverbSends[idx].connect(reverbs[idx])
 
-		// delays[layerIdx].connect(feedbacks[layerIdx])
-		// delays[layerIdx].delayTime.value = 0.3
-		// feedbacks[layerIdx].gain.value = 0.5
-		// feedbacks[layerIdx].connect(delays[layerIdx])
-		// feedbacks[layerIdx].connect(context.destination)
+		layer.connect(lowpassGains[idx], constants.Output.Sound)
+		layer.connect(highpassGains[idx], constants.Output.Sound)
+		lowpassGains[idx].connect(lowpasses[idx])
+		highpassGains[idx].connect(highpasses[idx])
+		lowpasses[idx].connect(pans[idx])
+		highpasses[idx].connect(pans[idx])
+		pans[idx].connect(reverbSends[idx])
+		pans[idx].connect(delaySends[idx])
+		delays[idx].connect(context.destination)
+		feedbacks[idx].connect(context.destination)
+		reverbs[idx].connect(context.destination)
+		pans[idx].connect(context.destination)
+		pans[idx].connect(analyzer)
 	})
 }

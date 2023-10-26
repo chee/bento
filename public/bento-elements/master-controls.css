@@ -61,11 +61,12 @@ input {
 	text-align: center;
 	line-height: 1em;
 	text-shadow: 1px 1px 4px var(--master-controls-shadow-color);
+	max-width: 3.5ch;
+	padding: 0;
 }
 
 #bpm {
 	appearance: textfield;
-	max-width: 3.5ch;
 }
 
 #bpm::-webkit-outer-spin-button,

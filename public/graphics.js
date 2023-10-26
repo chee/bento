@@ -5,6 +5,7 @@
 import * as Memory from "./memory.js"
 import {DPI} from "./graphics.const.js"
 import BentoScreen from "./bento-elements/screen.js"
+import * as db from "./db.js"
 
 let partyElement = document.querySelector("bento-party")
 partyElement.addEventListener("theme", event => theme(event.detail))
@@ -88,6 +89,7 @@ function startSelectingRegion(event) {
 	function drawingRegionComplete(event) {
 		Memory.drawingRegionEnd(memory, resolveMouseFromEvent(event, bounds).x)
 		window.removeEventListener("mousemove", mousemove)
+		db.save()
 	}
 
 	window.addEventListener("mouseup", drawingRegionComplete, {once: true})
@@ -125,6 +127,7 @@ function startSelectingMix(event) {
 	/** @param {MouseEvent} event */
 	function done(event) {
 		window.removeEventListener("mousemove", mousemove)
+		db.save()
 	}
 
 	window.addEventListener("mouseup", done, {once: true})

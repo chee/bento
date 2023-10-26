@@ -681,8 +681,8 @@ export function stepRegion(memory, layer, step, region) {
  * @param {number} layer
  */
 export function clearRegions(memory, layer) {
-	memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
-	memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
+	// memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
+	// memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
 }
 
 /**

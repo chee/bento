@@ -170,7 +170,7 @@ function postBitmap(memory, context, layer, step) {
 	let end = hasRegion ? r.end : soundLength
 	let array = visibleSound.subarray(start, end)
 	let on = stepDetails.on
-	let style = on ? styles.boxOn : styles.boxOff
+	let style = styles.boxOn
 	let color = style.line
 	let cachename = `s${start}e${end}r${reversed}v${version}p${layer}o${on}c${color}`
 

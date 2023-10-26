@@ -1,4 +1,5 @@
 import * as Memory from "./memory.js"
+import * as consts from "./sounds.const.js"
 
 /**
  * @param {import("./memory.js").StepDetails} stepDetails
@@ -61,7 +62,6 @@ class Bako extends AudioWorkletProcessor {
 	 * @param {Record<string, Float32Array>} parameters
 	 */
 	process(_inputs, outputs, parameters) {
-		let [[leftear, rightear], [pan]] = outputs
 		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {
@@ -88,6 +88,7 @@ class Bako extends AudioWorkletProcessor {
 				this.point = 0
 				this.alteredSound = alter(stepDetails)
 				this.pan = stepDetails.pan / 6
+				this.dj = stepDetails.dj
 			}
 		}
 
@@ -97,16 +98,50 @@ class Bako extends AudioWorkletProcessor {
 			if (this.point + 128 > this.alteredSound.sound.length) {
 				this.alteredSound = null
 				this.pan = 0
+				this.dj = 0
 			} else {
 				let portionOfSound = this.alteredSound.sound.subarray(
 					this.point,
 					this.point + 128
 				)
 				this.point += 128
+				let [leftear, rightear] = outputs[consts.Output.Sound]
+				let [pan] = outputs[consts.Output.Pan]
+				let [reverb] = outputs[consts.Output.ReverbSend]
+				let [lgain] = outputs[consts.Output.LowPassGain]
+				let [hgain] = outputs[consts.Output.HighPassGain]
+				let [lfreq] = outputs[consts.Output.LowPassFrequency]
+				let [hfreq] = outputs[consts.Output.HighPassFrequency]
+				let [lq] = outputs[consts.Output.LowPassQ]
+				let [hq] = outputs[consts.Output.HighPassQ]
+				let [delaytime] = outputs[consts.Output.DelayTime]
+				let [feedback] = outputs[consts.Output.DelayFeedback]
+				let [delay] = outputs[consts.Output.DelaySend]
 
 				for (let i = 0; i < 128; i++) {
 					leftear[i] = rightear[i] = portionOfSound[i]
 					pan[i] = this.pan
+					reverb[i] = -0.2
+
+					if (this.dj == 0) {
+						hgain[i] = 0.5
+						lgain[i] = 0.5
+						lfreq[i] = 40000
+						hfreq[i] = 0
+					} else if (this.dj > 0) {
+						hgain[i] = 1
+						lgain[i] = -1
+						lfreq[i] = 40000
+						hfreq[i] = 20000 * this.dj // todo logarithms
+					} else if (this.dj < 0) {
+						hgain[i] = -1
+						lgain[i] = 1
+						hfreq[i] = 0
+						lfreq[i] = 15000 - 15000 * -this.dj
+					}
+					delay[i] = 0.5
+					delaytime[i] = 0.5
+					feedback[i] = 0.9
 				}
 			}
 		}

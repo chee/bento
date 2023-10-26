@@ -7,7 +7,24 @@ import {BentoElement} from "./base.js"
  * @param {string} label
  */
 
+
 export default class BentoMasterControls extends BentoElement {
+	static icons = {
+		play: `<svg viewBox="-5 -5 522 522" xmlns="http://www.w3.org/2000/svg">
+				<polygon points="12,16 8,512 512,264"/>
+			</svg>`,
+		stop: `<svg viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg">
+				<rect width="1" height="1"/>
+			</svg>`,
+		sqop: `<svg viewBox="-10 -10 522 522" xmlns="http://www.w3.org/2000/svg">
+				<path d="M 0 256C 0 10, 10 0, 256 0S 512 10, 512 256, 502 512 256 512, 0 502, 0 256"/>
+			</svg>`,
+		paus: `<svg viewBox="-5 -5 522 522" xmlns="http://www.w3.org/2000/svg">
+				<rect width="176" height="480" x="48" y="16"/>
+				<rect width="176" height="480" x="288" y="16"/>
+			</svg>`
+	}
+
 	/** @type {HTMLInputElement} */
 	#bpmElement
 
@@ -39,7 +56,7 @@ export default class BentoMasterControls extends BentoElement {
 			this.createButton({
 				name: "play",
 				type: "button",
-				icon: "▶&#xfe0e;",
+				icon: BentoMasterControls.icons.play,
 				label: "Start or restart the music"
 			})
 		)
@@ -47,7 +64,7 @@ export default class BentoMasterControls extends BentoElement {
 			this.createButton({
 				name: "pause",
 				type: "button",
-				icon: "⏸&#xfe0e;",
+				icon: BentoMasterControls.icons.paus,
 				label: "Pause the music"
 			})
 		)
@@ -55,7 +72,7 @@ export default class BentoMasterControls extends BentoElement {
 			this.createButton({
 				name: "stop",
 				type: "button",
-				icon: "⏹&#xfe0e;",
+				icon: BentoMasterControls.icons.sqop,
 				label: "Stop the music"
 			})
 		)

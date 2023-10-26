@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-ca">
+<html lang="en-ca" theme="cherries" themes="cherries dw dark night 256k" loading>
 	<meta charset="utf-8">
 	<title>bento sampler + sequencer</title>
 	<meta
@@ -15,6 +15,7 @@
 	<meta property="og:description" content="a sampler and sequencer">
 	<meta property="og:image" content="/apple-touch-icon.png?0">
 	<meta name="twitter:card" content="summary">
+
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png?0">
 	<link rel="manifest" href="/app.webmanifest">
 	<script src="/extend-native-prototypes.js"></script>
@@ -81,7 +82,12 @@
 
 
 
-	<bento-party theme="cherries" loading>
+	<bento-party>
+		<bento-nav>
+			<button>&lt;-</button>
+			<h1>bento</h1>
+			<button>-&gt;</button>
+		</bento-nav>
 		<bento-machine>
 			<header>
 				<bento-master-controls></bento-master-controls>
@@ -95,8 +101,14 @@
 			</main>
 		</bento-machine>
 		<bento-tape></bento-tape>
+		<dialog id="dialog" click-to-start>
+			<div class="content">
+				<p>ok to start</p>
+			</div>
+			<button onclick="this.parentElement.removeAttribute('click-to-start');this.parentElement.close()">ok</button>
+		</dialog>
 	</bento-party>
-
+	<input type="range" min="-1" max="1" step="0.01" id="dj">
 
 
 	<audio

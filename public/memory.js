@@ -8,7 +8,6 @@ export const DYNAMIC_RANGE = 12
 export const LAYER_NUMBER_OFFSET = 4 - (NUMBER_OF_LAYERS % 4)
 
 export let arrays = [
-	{name: "notify", type: Int32Array, size: 1},
 	{name: "master", type: Uint8Array, size: 16},
 	{
 		name: "layerLengths",
@@ -84,13 +83,19 @@ export let arrays = [
 		type: Uint32Array,
 		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
 	},
+	{
+		name: "stepDjs",
+		type: Float32Array,
+		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+	},
 	{name: "drawingRegion", type: Float32Array, size: 4},
 	{
 		name: "layerSounds",
 		type: Float32Array,
 		size: SOUND_SIZE * (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET)
 	},
-	{name: "mouse", type: Float32Array, size: 2}
+	{name: "mouse", type: Float32Array, size: 2},
+	{name: "theme", type: Uint8Array, size: 8}
 	// TODO what size is this? is it the same on every platform? hahaha
 	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},
 ]
@@ -129,7 +134,6 @@ export let size = arrays.reduce(
 for (let arrays of (await import("./public/memory.js")).arrays)
 console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
- * @prop {Int32Array} MemoryMap.notify
  * @prop {Uint8Array} MemoryMap.master
  * @prop {Uint8Array} MemoryMap.layerLengths
  * @prop {Float32Array} MemoryMap.frame
@@ -149,6 +153,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @prop {Uint32Array} MemoryMap.stepEnds
  * @prop {Float32Array} MemoryMap.drawingRegion
  * @prop {Float32Array} MemoryMap.mouse
+ * @prop {Float32Array} MemoryMap.stepDjs
  */
 
 /**
@@ -259,8 +264,6 @@ export function stepOn(memory, layer, step, val) {
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
 	}
-
-	Atomics.notify(memory.notify, 0)
 
 	return Boolean(stepOns.at(at))
 }
@@ -775,20 +778,9 @@ export function getSoundDetails(memory, layer) {
  pan: number
  on: boolean
  reversed: boolean
+ dj: number
 }} StepDetails
 
- * @property {number} StepDetails.soundLength the layer's sound's length
- * @property {number} StepDetails.layer
- * @property {number} StepDetails.version
- * @property {Region} StepDetails.region
- * @property {number} StepDetails.step
- * @property {number} StepDetails.attack
- * @property {number} StepDetails.release
- * @property {number} StepDetails.pitch
- * @property {number} StepDetails.quiet
- * @property {number} StepDetails.pan
- * @property {boolean} StepDetails.on
- * @property {boolean} StepDetails.reversed
  */
 
 /**
@@ -809,6 +801,7 @@ export function getStepDetails(memory, layer, step) {
 	let on = stepOn(memory, layer, step)
 	let reversed = stepReversed(memory, layer, step)
 	let version = memory.soundVersions.at(layer)
+	let dj = memory.stepDjs.at(layer * NUMBER_OF_LAYERS + step)
 
 	return {
 		sound: snd,
@@ -823,7 +816,8 @@ export function getStepDetails(memory, layer, step) {
 		step,
 		on,
 		reversed,
-		version
+		version,
+		dj
 	}
 }
 

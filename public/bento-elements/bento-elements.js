@@ -1,13 +1,3 @@
-/* todo obviously */
-export class BentoParty extends BentoElement {
-	static observedAttributes = ["theme"]
-	attributeChangedCallback(attr, _old, value) {
-		if (attr == "theme") {
-			this.announce("theme", value)
-		}
-	}
-}
-
 // the components don't touch memory, they are outputs
 // they may however know how to serialize themselves?
 //
@@ -47,7 +37,6 @@ export function init() {
 	// naming them all here
 	customElements.define("bento-grid", BentoGrid)
 	customElements.define("bento-box", BentoBox)
-	customElements.define("bento-party", BentoParty)
 	customElements.define("bento-master-controls", BentoMasterControls)
 	customElements.define("bento-settings", BentoSettings)
 	customElements.define("bento-layer-selector", BentoLayerSelector)
@@ -55,4 +44,8 @@ export function init() {
 	customElements.define("bento-screen", BentoScreen)
 	customElements.define("bento-screen-selector", BentoScreenSelector)
 	customElements.define("bento-tape", BentoTape)
+	customElements.define(
+		"bento-party",
+		class BentoParty extends BentoElement {}
+	)
 }

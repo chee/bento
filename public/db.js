@@ -3,14 +3,45 @@
 
 export let loaded = false
 
-function getId() {
+export function getIdFromLocation() {
 	return (
 		(typeof window != "undefined" &&
 			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
 		"?"
 	)
 }
+
 let worker = new Worker("/db.work.js", {type: "module"})
+/**
+ * @typedef {Object} Message
+ * @prop {string} type
+ * @prop {string} [id]
+ */
+
+/**
+ * @template {Message & {hash?: string} & Record<string, any>} Msg
+ * @param {Msg} message
+ */
+async function post(message) {
+	let hash = Math.random().toString(16).slice(2, 10)
+	message.hash = hash
+	// todo timeout
+	let done = new Promise(yay => {
+		worker.addEventListener("message", event => {
+			let msg = event.data
+			if (
+				msg.type == message.type &&
+				msg.id == message.id &&
+				msg.hash == message.hash
+			) {
+				yay(msg.result)
+			}
+		})
+	})
+	worker.postMessage(message)
+	return done
+}
+
 /**
  * get started
  *
@@ -18,40 +49,38 @@ let worker = new Worker("/db.work.js", {type: "module"})
  * @returns {Promise}
  */
 export async function init(sab) {
-	worker.postMessage({
+	return post({
 		type: "init",
 		buffer: sab
 	})
 }
 
-export async function load(id = getId(), now = true) {
-	worker.postMessage({
+export async function load(id = getIdFromLocation()) {
+	await post({
 		type: "load",
-		id,
-		now
+		id
 	})
 	loaded = true // haha
 }
 
-export async function save(id = getId()) {
-	worker.postMessage({
+export async function exists(id = getIdFromLocation()) {
+	return await post({
+		type: "exists",
+		id
+	})
+}
+
+export async function save(id = getIdFromLocation()) {
+	return post({
 		type: "save",
 		id
 	})
 }
 
-export async function reset(id = getId()) {
-	let done = new Promise(yay =>
-		worker.addEventListener("message", event => {
-			console.log(event, event.data)
-			if (event.data.type == "reset" && event.data.id) {
-				yay()
-			}
-		})
-	)
-	worker.postMessage({
-		type: "reset",
-		id
-	})
-	return done
+export async function reset(id = getIdFromLocation()) {
+	return post({type: "reset", id})
+}
+
+export async function getPatternNames() {
+	return post({type: "getPatternNames"})
 }

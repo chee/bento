@@ -227,40 +227,6 @@ bento-machine * {
 	background: transparent;
 }
 
-@keyframes spinnygoweee {
-	from {
-		transform: rotate(360deg);
-	}
-	to {
-		transform: rotate(0deg);
-	}
-}
-
-.tape {
-	display: none;
-	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-	z-index: 1;
-	flex-direction: column;
-	max-width: 100%;
-	align-items: center;
-	justify-content: center;
-	background: var(--recording-fill);
-}
-
-.tape svg {
-	background: var(--recording-fill);
-	color: var(--recording-line);
-}
-
-.tape svg * {
-	fill: var(--recording-fill);
-	stroke: var(--recording-line);
-}
-
 bento-party[recording] {
 	min-height: 100vh;
 	background: var(--recording-fill);
@@ -275,66 +241,10 @@ bento-party[recording] bento-machine {
 	box-shadow: none;
 }
 
-bento-party[recording] .tape {
+bento-tape {
+	display: none;
+}
+
+bento-party[recording] bento-tape {
 	display: flex;
-}
-
-.tape .message {
-	font-size: 0.8rem;
-	color: var(--recording-line);
-	padding: 1em;
-	padding-top: 0;
-	margin: 0;
-	margin-top: -1em;
-}
-
-.tape .counter {
-	font-size: 0.8rem;
-	color: var(--recording-line);
-	margin: 0;
-}
-
-@keyframes fadeaway {
-	to {
-		opacity: 0;
-	}
-}
-
-.tape .counter span:last-child {
-	animation: fadeaway infinite 1.75s alternate ease-in-out;
-}
-
-.tape .counter:empty:after {
-	content: " ";
-	display: block;
-
-	height: 1.15em;
-}
-
-.tape .tape-guide,
-.tape .reel {
-	animation: infinite spinnygoweee linear;
-	transform-origin: center;
-	transform-box: fill-box;
-	transform-origin: center;
-}
-
-.tape .take-up {
-	animation-duration: 1.5s;
-}
-
-.tape .supply {
-	animation-duration: 2.5s;
-}
-
-@keyframes wobble {
-	from {
-		transform: skew(-0.1deg, 0.05deg);
-	}
-	50% {
-		transform: skew(0.1deg, -0.05deg);
-	}
-}
-.tape .spool {
-	animation: infinite wobble linear 1.2s;
 }

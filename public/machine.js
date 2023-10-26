@@ -18,7 +18,9 @@ let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
 /** @type {import("./bento-elements/bento-elements.js").BentoScreen} */
 let screen = machine.querySelector("bento-screen")
-
+/** @type {import("./bento-elements/bento-elements.js").BentoTape} */
+let tape = party.querySelector("bento-tape")
+console.log({tape})
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
 
@@ -206,7 +208,6 @@ grid.addEventListener(
 	}
 )
 
-let recordingCounterInterval
 /**
  * Handle messages from my friends
  * TODO window.dispatchEvent?
@@ -214,25 +215,11 @@ let recordingCounterInterval
  */
 window.onmessage = function (event) {
 	let message = event.data
-	let messageElement = document.querySelector(".tape .message")
-	let counterElement = document.querySelector(".tape .counter")
 	if (message.type == "recording") {
 		let recording = event.data.recording
-
 		party.toggleAttribute("recording", recording)
 		document.dispatchEvent(new CustomEvent("recording", {detail: message}))
-		let length = event.data.length / 1000
-		messageElement.textContent = recording
-			? `recording ${length | 0} seconds of sound`
-			: "recording sound"
-		if (recording) {
-			counterElement.innerHTML = "<span>•</span>".repeat(length)
-			recordingCounterInterval = setInterval(function () {
-				counterElement.removeChild(counterElement.lastElementChild)
-			}, 1000)
-		} else {
-			clearInterval(recordingCounterInterval)
-		}
+		tape.length = event.data.length
 	}
 }
 

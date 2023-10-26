@@ -1,0 +1,103 @@
+@keyframes spinnygoweee {
+	from {
+		transform: rotate(360deg);
+	}
+	to {
+		transform: rotate(0deg);
+	}
+}
+
+:host {
+	display: flex;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	flex-direction: column;
+	max-width: 100%;
+	align-items: center;
+	justify-content: center;
+	background: var(--recording-fill);
+	color: var(--recording-line);
+}
+
+figure {
+	margin: 0;
+}
+
+[recording] :host {
+	display: flex;
+}
+
+svg {
+	background: var(--recording-fill);
+	color: var(--recording-line);
+}
+
+svg * {
+	fill: var(--recording-fill);
+	stroke: var(--recording-line);
+}
+
+svg .tape-guide,
+svg .reel {
+	animation: infinite spinnygoweee linear;
+	transform-origin: center;
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+svg .take-up {
+	animation-duration: 1.5s;
+}
+
+svg .supply {
+	animation-duration: 2.5s;
+}
+
+@keyframes wobble {
+	from {
+		transform: skew(-0.1deg, 0.05deg);
+	}
+	50% {
+		transform: skew(0.1deg, -0.05deg);
+	}
+}
+
+svg .spool {
+	animation: infinite wobble linear 1.2s;
+}
+
+p {
+	font-size: 0.8rem;
+	margin: 0;
+}
+
+#message {
+	padding: 1em;
+	padding-top: 0;
+	margin-top: -1em;
+}
+
+#counter {
+	font-size: 0.8rem;
+	margin: 0;
+}
+
+@keyframes fadeaway {
+	to {
+		opacity: 0;
+	}
+}
+
+#counter span:last-child {
+	animation: fadeaway infinite 1.75s alternate ease-in-out;
+}
+
+#counter:empty:after {
+	content: " ";
+	display: block;
+	height: 1.15em;
+}

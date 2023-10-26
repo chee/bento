@@ -186,7 +186,8 @@ function startSelectingRegionWithFinger(event) {
 		/** @param {TouchEvent} event */
 		function (event) {
 			let lost = findFinger(finger, event.changedTouches)
-			if (lost) {
+			let missing = findFinger(finger, event.targetTouches)
+			if (lost && missing) {
 				let x = resolveMouseFromEvent(lost, bounds).x
 				Memory.drawingRegionEnd(memory, x)
 				window.removeEventListener("touchmove", move)
@@ -225,7 +226,9 @@ function startSelectingMixWithFinger(event) {
 	window.addEventListener("touchmove", move)
 	window.addEventListener(
 		"touchend",
-		() => window.removeEventListener("touchmove", move),
+		event =>
+			findFinger(finger, event.targetTouches) ||
+			window.removeEventListener("touchmove", move),
 		{once: true}
 	)
 }

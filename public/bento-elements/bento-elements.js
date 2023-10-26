@@ -23,6 +23,7 @@ import BentoScreen from "./screen.js"
 import BentoScreenSelector from "./screen-selector.js"
 import BentoGrid from "./grid.js"
 import BentoBox from "./box.js"
+import BentoTape from "./tape.js"
 
 export {
 	BentoGrid,
@@ -33,10 +34,15 @@ export {
 	BentoLayerSelector,
 	BentoLayerOptions,
 	BentoScreen,
-	BentoScreenSelector
+	BentoScreenSelector,
+	BentoTape
 }
 
 export function init() {
+	// todo maybe if i defined the element name as, say,
+	//    `static elementName = "bento-*"`
+	// on the component, then i could iterate through instead of
+	// naming them all here
 	customElements.define("bento-grid", BentoGrid)
 	customElements.define("bento-box", BentoBox)
 	customElements.define("bento-party", BentoParty)
@@ -45,4 +51,5 @@ export function init() {
 	customElements.define("bento-layer-options", BentoLayerOptions)
 	customElements.define("bento-screen", BentoScreen)
 	customElements.define("bento-screen-selector", BentoScreenSelector)
+	customElements.define("bento-tape", BentoTape)
 }

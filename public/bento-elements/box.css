@@ -1,3 +1,7 @@
+* {
+	touch-action: manipulation;
+}
+
 :host {
 	--box-fill: var(--box-off-fill);
 	--box-line: var(--box-off-line);

@@ -1,3 +1,6 @@
+* {
+	touch-action: manipulation;
+}
 :host {
 	background: var(--layer-selector-fill);
 	color: var(--master-controls-line);

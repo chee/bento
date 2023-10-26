@@ -1,3 +1,6 @@
+* {
+	touch-action: manipulation;
+}
 :host {
 	background: var(--screen-selector-fill);
 }

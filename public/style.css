@@ -175,6 +175,8 @@ bento-party {
 	/* disable bouncing */
 	overscroll-behavior: none;
 	scrollbar-color: var(--scrollbar-bg) var(--scrollbar-fg);
+	/* disable tappy zoom */
+	touch-action: manipulation;
 }
 
 html {

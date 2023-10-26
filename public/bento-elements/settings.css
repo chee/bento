@@ -1,3 +1,6 @@
+* {
+	touch-action: manipulation;
+}
 :host {
 	display: block;
 	height: 0;

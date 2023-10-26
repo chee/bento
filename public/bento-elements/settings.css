@@ -1,0 +1,30 @@
+:host {
+	display: block;
+	height: 0;
+	transition: height 0.1s linear;
+	overflow-y: scroll;
+	background: var(--settings-fill);
+	color: var(--settings-line);
+}
+
+:host([open]) {
+	height: 4em;
+}
+
+:host > div {
+	padding: 0.5em;
+	display: flex;
+	flex-direction: column;
+	row-gap: 0.25em;
+	align-items: center;
+}
+
+input {
+	border: 1px solid var(--master-controls-line);
+	text-transform: uppercase;
+}
+
+button {
+	cursor: pointer;
+	width: 10em;
+}

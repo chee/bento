@@ -17,6 +17,7 @@ export class BentoParty extends BentoElement {
 // events handled by the machine (the machine connects memory to components)
 import {BentoElement, BentoEvent} from "./base.js"
 import BentoMasterControls from "./master-controls.js"
+import BentoSettings from "./settings.js"
 import BentoLayerSelector from "./layer-selector.js"
 import BentoLayerOptions from "./layer-options.js"
 import BentoScreen from "./screen.js"
@@ -31,6 +32,7 @@ export {
 	BentoElement,
 	BentoEvent,
 	BentoMasterControls,
+	BentoSettings,
 	BentoLayerSelector,
 	BentoLayerOptions,
 	BentoScreen,
@@ -47,6 +49,7 @@ export function init() {
 	customElements.define("bento-box", BentoBox)
 	customElements.define("bento-party", BentoParty)
 	customElements.define("bento-master-controls", BentoMasterControls)
+	customElements.define("bento-settings", BentoSettings)
 	customElements.define("bento-layer-selector", BentoLayerSelector)
 	customElements.define("bento-layer-options", BentoLayerOptions)
 	customElements.define("bento-screen", BentoScreen)

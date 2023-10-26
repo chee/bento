@@ -1,5 +1,5 @@
 :host {
-	background: var(--layer-selector);
+	background: var(--layer-selector-fill);
 	color: var(--master-controls-line);
 
 	margin: 0;

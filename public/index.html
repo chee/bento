@@ -81,13 +81,18 @@
 
 
 
-	<bento-party theme="cherries">
+	<bento-party theme="cherries" loading>
 		<bento-machine>
-			<bento-master-controls></bento-master-controls>
-			<bento-layer-selector></bento-layer-selector>
-			<bento-layer-options></bento-layer-options>
-			<bento-screen></bento-screen>
-			<bento-grid autofocus></bento-grid>
+			<header>
+				<bento-master-controls></bento-master-controls>
+				<bento-settings></bento-settings>
+				<bento-layer-selector></bento-layer-selector>
+				<bento-layer-options></bento-layer-options>
+				<bento-screen></bento-screen>
+			</header>
+			<main>
+				<bento-grid autofocus></bento-grid>
+			</main>
 		</bento-machine>
 		<bento-tape></bento-tape>
 	</bento-party>

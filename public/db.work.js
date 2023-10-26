@@ -94,6 +94,26 @@ function save(id = "?") {
 	store.put(Memory.map(object, memory), id)
 }
 
+async function reset(id = "?", message) {
+	if (!db || !memory || !loaded) {
+		throw new Error("hey now! tried to reset before init")
+	}
+	let trans = db.transaction("pattern", "readwrite", {
+		// durability: "strict"
+	})
+	let store = trans.objectStore("pattern")
+	// TODO put Memory.map(new ArrayBuffer, Memory.fresh)
+	// console.log(Memory.map(new ArrayBuffer(Memory.size), memory))
+	store.delete(id)
+	await new Promise(yay => {
+		trans.oncomplete = yay
+	})
+
+	// store.put(Memory.fresh(memory))
+	// store.clear()
+	postMessage(message)
+}
+
 onmessage = async event => {
 	let message = event.data
 	if (message.type == "init") {
@@ -106,5 +126,9 @@ onmessage = async event => {
 
 	if (message.type == "save") {
 		save(message.id)
+	}
+
+	if (message.type == "reset") {
+		reset(message.id, message)
 	}
 }

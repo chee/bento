@@ -14,6 +14,8 @@ export default class BentoScreenSelector extends BentoElement {
 					this.announce("screen", {
 						screen: event.target.name
 					})
+				} else {
+					this.announce("open")
 				}
 			}
 		)

@@ -182,6 +182,18 @@ export function map(buffer, from) {
 	return memory
 }
 
+/*
+ * @returns {MemoryMap}
+ */
+// export function fresh() {
+// 	let fresh = map(new ArrayBuffer(size))
+// 	stepOn(fresh, 0, 0x0, true)
+// 	stepOn(fresh, 0, 0x4, true)
+// 	stepOn(fresh, 0, 0x8, true)
+// 	stepOn(fresh, 0, 0xc, true)
+// 	bpm(fresh, 120)
+// }
+
 /**
  * @param {MemoryMap} memory
  * @param {number} [val]

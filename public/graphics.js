@@ -46,7 +46,7 @@ function resolveMouse(
 				? 0
 				: clientXY.y > bounds.bottom
 				? screenElement.canvas.height
-				: (clientXY.y - bounds.top) * DPI * 1.2 // 🎩.🐰
+				: (clientXY.y - bounds.top) * DPI
 	}
 }
 
@@ -256,11 +256,8 @@ export async function init() {
 	screenWorker = new Worker("/screen.work.js", {type: "module"})
 	await customElements.whenDefined("bento-screen")
 	screenElement = document.querySelector("bento-screen")
-	// starring lindsey lohan
-	let parentBounds = screenElement.getBoundingClientRect()
-
-	screenElement.canvas.height = parentBounds.height * DPI
-	screenElement.canvas.width = parentBounds.width * DPI
+	screenElement.canvas.height = screenElement.height * DPI
+	screenElement.canvas.width = screenElement.width * DPI
 
 	let offscreen = screenElement.canvas.transferControlToOffscreen()
 

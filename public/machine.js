@@ -2,7 +2,7 @@ import * as sounds from "./sounds.js"
 import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
-// import * as db from "./db.js"
+import * as db from "./db.js"
 
 let party = document.querySelector("bento-party")
 // TODO move non ui stuff to, like, start.js
@@ -18,11 +18,16 @@ let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
 /** @type {import("./bento-elements/bento-elements.js").BentoScreen} */
 let screen = machine.querySelector("bento-screen")
+/** @type {import("./bento-elements/bento-elements.js").BentoSettings} */
+let settings = machine.querySelector("bento-settings")
 /** @type {import("./bento-elements/bento-elements.js").BentoTape} */
 let tape = party.querySelector("bento-tape")
-console.log({tape})
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
+party.removeAttribute("loading")
+setTimeout(() => {
+	screen.open = true
+})
 
 let fancyListeners = ["keydown", "click", "touchstart"]
 
@@ -35,6 +40,10 @@ async function getFancy() {
 		graphics.start(screen.canvas, buffer)
 		party.removeAttribute("fancy")
 	}
+	if (sounds.fancy() && graphics.fancy() && !db.loaded) {
+		db.load()
+	}
+
 	if (sounds.fancy() && graphics.fancy()) {
 		party.setAttribute("fancy", "fancy")
 	}
@@ -49,7 +58,7 @@ fancyListeners.map(async eventName =>
 async function init() {
 	await graphics.init()
 	await sounds.init(buffer)
-	// await db.init(buffer)
+	await db.init(buffer)
 
 	Memory.bpm(memory, master.bpm)
 	loop.layers(pidx => {
@@ -114,6 +123,7 @@ master.addEventListener(
 	event => {
 		if (event.detail.change == "bpm") {
 			Memory.bpm(memory, event.detail.value)
+			db.save()
 		}
 	}
 )
@@ -124,6 +134,7 @@ layerSelector.addEventListener(
 	event => {
 		if (event.detail.change == "layer") {
 			Memory.selectedLayer(memory, event.detail.value)
+			db.save()
 		}
 	}
 )
@@ -135,8 +146,10 @@ layerOptions.addEventListener(
 		let {change, value} = event.detail
 		if (change == "speed") {
 			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
+			db.save()
 		} else if (change == "length") {
 			Memory.layerLength(memory, Memory.selectedLayer(memory), value)
+			db.save()
 		}
 	}
 )
@@ -151,6 +164,7 @@ layerOptions.addEventListener(
 		party.setAttribute("recording", "recording")
 		let audio = await sounds.recordSound()
 		sounds.setSound(memory, Memory.selectedLayer(memory), audio)
+		db.save()
 	}
 )
 
@@ -164,12 +178,14 @@ screen.addEventListener(
 				Memory.selectedLayer(memory),
 				await sounds.decode(event.detail.file)
 			)
+			db.save()
 		} else if (event.detail.change == "reverse") {
 			Memory.stepReverse(
 				memory,
 				Memory.selectedLayer(memory),
 				Memory.selectedStep(memory)
 			)
+			db.save()
 		}
 	}
 )
@@ -187,22 +203,30 @@ grid.addEventListener(
 				Memory.selectedStep(memory, step)
 			} else if (change == "on") {
 				Memory.stepOn(memory, layer, step, true)
+				db.save()
 			} else if (change == "off") {
 				Memory.stepOn(memory, layer, step, false)
+				db.save()
 			} else if (change == "copy") {
 				let {from} = event.detail
 				Memory.copyStepWithinSelectedLayer(memory, +from, +step)
 				Memory.selectedStep(memory, +step)
+				db.save()
 			} else if (change == "quieter") {
 				Memory.stepQuieter(memory, layer, step)
+				db.save()
 			} else if (change == "louder") {
 				Memory.stepLouder(memory, layer, step)
+				db.save()
 			} else if (change == "pan-left") {
 				Memory.stepPanLeft(memory, layer, step)
+				db.save()
 			} else if (change == "pan-right") {
 				Memory.stepPanRight(memory, layer, step)
+				db.save()
 			} else if (change == "reverse") {
 				Memory.stepReverse(memory, layer, step)
+				db.save()
 			}
 		}
 	}
@@ -250,6 +274,32 @@ document.addEventListener(
 		box.wav = stepWaveformUrlCache[cachename]
 	}
 )
+
+machine.addEventListener("settings", event => {
+	settings.open = !settings.open
+	screen.open = !settings.open
+})
+
+screen.addEventListener("screen", event => {
+	settings.open = false
+	screen.open = true
+})
+
+screen.addEventListener("open", event => {
+	settings.open = false
+	screen.open = true
+})
+
+settings.addEventListener("reset", async event => {
+	let ok = window.confirm("this will delete the pattern from your disk. ok?")
+	if (ok) {
+		console.log({ok})
+		await db.reset()
+		// db.load()
+		// console.log("came back")
+		location.reload()
+	}
+})
 
 let featureflags = new URLSearchParams(location.search.slice(1))
 for (let [flag, value] of featureflags.entries()) {

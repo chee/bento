@@ -30,8 +30,7 @@ export async function load(id = getId(), now = true) {
 		id,
 		now
 	})
-	loaded = true
-	// haha
+	loaded = true // haha
 }
 
 export async function save(id = getId()) {
@@ -41,9 +40,18 @@ export async function save(id = getId()) {
 	})
 }
 
-globalThis.addEventListener("message", event => {
-	if (event.data.type == "save") {
-		console.info("got the message")
-		save()
-	}
-})
+export async function reset(id = getId()) {
+	let done = new Promise(yay =>
+		worker.addEventListener("message", event => {
+			console.log(event, event.data)
+			if (event.data.type == "reset" && event.data.id) {
+				yay()
+			}
+		})
+	)
+	worker.postMessage({
+		type: "reset",
+		id
+	})
+	return done
+}

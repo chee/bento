@@ -1,8 +1,12 @@
+:host {
+	background: var(--screen-selector-fill);
+}
+
 nav {
 	display: flex;
 	justify-content: space-evenly;
-	background: var(--screen-selector-fill);
 	color: var(--screen-selector-line);
+	background: var(--screen-selector-fill);
 	padding: 0.125em 0;
 }
 

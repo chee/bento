@@ -26,6 +26,8 @@ bento-party {
 	--master-controls-fill: var(--controls-fill);
 	--master-controls-line: var(--controls-line);
 	--master-controls-shadow-color: var(--machine-shadow-color);
+	--settings-fill: var(--master-controls-fill);
+	--settings-line: var(--master-controls-line);
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
 	--selected-layer-selector-fill: var(--prominent-fill);
@@ -81,7 +83,10 @@ bento-party {
 	--holy-dark: black;
 	--cherries-yellow: #ffd807;
 	--2013-body-grey: #333;
-	--orla-foster-2003-bermuda-cocktail-3: #3399ff;
+	--orla-foster-2003-bermuda-cocktail-number-3: #3399ff;
+
+	--settings-fill: var(--orla-foster-2003-bermuda-cocktail-number-3);
+	--settings-line: var(--holy-light);
 
 	--font-family: qp, iosevka, monaco, monospace;
 	--line: var(--cherries-dark);
@@ -105,7 +110,7 @@ bento-party {
 	--region-fill: var(--cherries-yellow);
 	--region-line: var(--2013-body-grey);
 	--drawing-region-fill: #00ff99ee;
-	--focus-outline: var(--orla-foster-2003-bermuda-cocktail-3);
+	--focus-outline: var(--orla-foster-2003-bermuda-cocktail-number-3);
 	--selected-box-outline: black;
 	--drop-target-outline: #00ffcc;
 }
@@ -175,6 +180,7 @@ bento-party {
 html {
 	font-size: 2.2em;
 	line-height: 1.15;
+	background: var(--page-fill);
 }
 
 body {
@@ -247,4 +253,14 @@ bento-tape {
 
 bento-party[recording] bento-tape {
 	display: flex;
+}
+
+bento-party[loading] bento-machine {
+	opacity: 0;
+}
+
+bento-party bento-machine {
+	opacity: 1;
+	transition: opacity 0.05s linear;
+	display: block;
 }

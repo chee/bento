@@ -49,6 +49,10 @@ export default class BentoScreen extends BentoElement {
 				}
 			}
 		)
+		this.shadow.addEventListener("open", () => {
+			console.log("everyone is ignoring me")
+			this.announce("open")
+		})
 
 		/* this runs once when drag enters the target's zone */
 		this.addEventListener("dragenter", async event => {
@@ -166,5 +170,31 @@ export default class BentoScreen extends BentoElement {
 				line: drawingRegionLine
 			}
 		}
+	}
+
+	get open() {
+		return !this.getAttribute("open")
+	}
+
+	set open(val) {
+		this.toggleAttribute("open", val)
+	}
+
+	get empx() {
+		let box = document.createElement("div")
+		box.style.width = "1em"
+		box.style.visibility = "hidden"
+		this.shadow.appendChild(box)
+		let empx = box.clientWidth
+		this.shadow.removeChild(box)
+		return empx
+	}
+
+	get width() {
+		return this.shadow.querySelector("figure").clientWidth
+	}
+
+	get height() {
+		return this.empx * 4
 	}
 }

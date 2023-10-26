@@ -189,7 +189,7 @@ function startSelectingRegionWithFinger(event) {
 		/** @param {TouchEvent} event */
 		function (event) {
 			let lost = findFinger(finger, event.changedTouches)
-			let missing = findFinger(finger, event.targetTouches)
+			let missing = !findFinger(finger, event.targetTouches)
 			if (lost && missing) {
 				let x = resolveMouseFromEvent(lost, bounds).x
 				Memory.drawingRegionEnd(memory, x)

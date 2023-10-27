@@ -142,7 +142,7 @@ export function fancy() {
 
 export async function pause() {
 	context.suspend()
-	iphoneSilenceElement.remove()
+	iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
 	alreadyFancy = false
 }
 

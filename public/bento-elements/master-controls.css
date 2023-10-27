@@ -98,7 +98,7 @@ button:disabled svg *,
 :host(:not([playing])) #pause svg *,
 :host(:not([playing])) #stop svg *,
 :host([playing]:not([paused])) #play svg *,
-:host([playing][paused]) svg * {
+:host([playing][paused]) #pause svg * {
 	fill: var(--dimmed-line);
 }
 
@@ -107,6 +107,6 @@ button:disabled,
 :host(:not([playing])) #pause,
 :host(:not([playing])) #stop,
 :host([playing]:not([paused])) #play,
-:host([playing][paused]) {
+:host([playing][paused]) #pause {
 	cursor: unset;
 }

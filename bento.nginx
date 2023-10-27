@@ -12,6 +12,7 @@ default_type text/plain;
 listen 443 ssl;
 listen [::]:443 ssl;
 http2 on;
+http3 on;
 add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;

@@ -327,15 +327,15 @@ machine.addEventListener("settings", event => {
 	screen.open = !settings.open
 })
 
-screen.addEventListener("screen", event => {
+function openScreen() {
 	settings.open = false
 	screen.open = true
-})
+}
 
-screen.addEventListener("open", event => {
-	settings.open = false
-	screen.open = true
-})
+screen.addEventListener("screen", openScreen)
+screen.addEventListener("open", openScreen)
+layerSelector.addEventListener("click", openScreen)
+grid.addEventListener("click", openScreen)
 
 function slugify(name = "") {
 	return name

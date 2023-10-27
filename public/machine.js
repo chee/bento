@@ -41,6 +41,7 @@ let settings = machine.querySelector("bento-settings")
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
+let poweroff = party.querySelector("bento-poweroff")
 let dialog = /** @type {HTMLDialogElement} */ (
 	document.getElementById("dialog")
 )
@@ -52,20 +53,10 @@ if (history.scrollRestoration) {
 	history.scrollRestoration = "manual"
 }
 
-let slug = slugify(db.getIdFromLocation())
-history.replaceState(
-	{slug},
-	"",
-	slug == "bento"
-		? "/" + location.search
-		: `/patterns/${slug}/` + location.search
-)
-nav.slug = slug
-
 async function getFancy() {
 	try {
 		if (!sounds.fancy()) {
-			await sounds.start(buffer)
+			await sounds.start()
 			party.removeAttribute("fancy")
 		}
 		if (sounds.fancy() && !graphics.fancy()) {
@@ -81,13 +72,20 @@ async function getFancy() {
 	} catch {}
 
 	if (party.hasAttribute("fancy")) {
-		dialog.close()
 		if (!settings.open) {
 			setTimeout(() => {
 				screen.open = true
 			}, 200)
 		}
-		fancyListeners.map(name => window.removeEventListener(name, getFancy))
+		let slug = slugify(db.getIdFromLocation())
+		history.replaceState(
+			{slug},
+			"",
+			slug == "bento"
+				? "/" + location.search
+				: `/patterns/${slug}/` + location.search
+		)
+		nav.slug = slug
 	}
 }
 
@@ -144,13 +142,6 @@ function update(_frame = 0) {
 await init()
 getFancy()
 update()
-setTimeout(() => {
-	if (!party.hasAttribute("fancy")) {
-		dialog.firstElementChild.innerHTML = `<p>press :) to start</p>`
-		dialog.lastElementChild.textContent = ":)"
-		dialog.showModal()
-	}
-}, 500)
 
 master.addEventListener("play", () => {
 	Memory.play(memory)

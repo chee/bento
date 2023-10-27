@@ -20,6 +20,8 @@
 	--prominent-line: var(--machine-fill);
 	--recording-fill: var(--prominent-fill);
 	--recording-line: var(--prominent-line);
+	--poweroff-fill: var(--recording-fill);
+	--poweroff-line: var(--recording-line);
 
 	/* =controls= */
 	--controls-fill: var(--machine-fill);
@@ -368,4 +370,50 @@ dialog button {
 	font-family: var(--font-family);
 	background: var(--fill);
 	margin: auto;
+}
+
+bento-party:not([fancy]) {
+	min-height: 100vh;
+	background: var(--poweroff-fill);
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+
+	--machine-line: var(--page-fill);
+}
+
+bento-poweroff {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: var(--poweroff-fill);
+	color: var(--poweroff-line);
+	z-index: 10;
+	text-align: center;
+	cursor: pointer;
+	height: 100%;
+	transition: 0.2s opacity;
+	align-items: center;
+	justify-content: center;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 2px 2px 5px var(--machine-shadow);
+}
+
+[fancy] bento-poweroff {
+	pointer-events: none;
+	opacity: 0;
+}
+
+bento-poweroff * {
+	margin: 0;
+}
+
+#power-icon {
+	font-size: 4em;
+	font-weight: bold;
 }

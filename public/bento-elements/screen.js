@@ -136,7 +136,7 @@ export default class BentoScreen extends BentoElement {
 	getStyles() {
 		let fill = this.getStyle("screen-fill")
 		let line = this.getStyle("screen-line")
-		let boxOnLine = this.getStyle("box-on-line")
+		let boxWavLine = this.getStyle("box-wav-line")
 		let boxOffLine = this.getStyle("box-off-line")
 		let fontFamily = this.getStyle("font-family")
 		let regionFill = this.getStyle("region-fill")
@@ -155,7 +155,7 @@ export default class BentoScreen extends BentoElement {
 			},
 			boxOn: {
 				fill: "transparent",
-				line: boxOnLine
+				line: boxWavLine
 			},
 			boxOff: {
 				fill: "transparent",

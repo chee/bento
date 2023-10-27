@@ -146,8 +146,17 @@ export async function pause() {
 	alreadyFancy = false
 }
 
+function ios() {
+	return (
+		navigator.platform.startsWith("iP") ||
+		(navigator.platform.startsWith("Mac") && navigator.maxTouchPoints)
+	)
+}
+
 export async function play() {
-	iphoneSilenceElement.play()
+	if (ios()) {
+		iphoneSilenceElement.play()
+	}
 	context.onstatechange = function () {
 		if (
 			// @ts-ignore-line listen this is a thing on ios, typescript. reality
@@ -157,6 +166,7 @@ export async function play() {
 			alreadyFancy = false
 			context.resume().then(() => {
 				alreadyFancy = true
+				iphoneSilenceElement.pause()
 			})
 		}
 	}

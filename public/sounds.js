@@ -8,6 +8,9 @@ let iphoneSilenceElement = document.querySelector("audio")
 /** @type {AudioWorkletNode[]} */
 let layers
 
+/** @type {Memory.MemoryMap} */
+let memory
+
 /**
  * normalize audio
  * @param {Float32Array} sound
@@ -140,16 +143,22 @@ export function fancy() {
 	return alreadyFancy
 }
 
-export async function pause() {
-	context.suspend()
-	iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
-	alreadyFancy = false
-}
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden && Memory.paused(memory)) {
+		context.suspend()
+		iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
+		alreadyFancy = false
+	} else {
+		play()
+	}
+})
+
+export async function pause() {}
 
 export async function play() {
 	context.onstatechange = function () {
 		if (
-			// @ts-ignore-line listen this is a thing on ios, typescript. reality
+			// @ts-ignore-line listen, this is a thing on ios, typescript. reality
 			// matters
 			context.state == "interrupted"
 		) {
@@ -160,8 +169,8 @@ export async function play() {
 		}
 	}
 	document.body.append(iphoneSilenceElement)
-	iphoneSilenceElement.play()
 	await context.resume()
+	iphoneSilenceElement.play()
 	alreadyFancy = true
 }
 
@@ -176,9 +185,12 @@ export async function start(buffer) {
 	}
 	alreadyFancy = true
 }
-
+/**
+ * @param {SharedArrayBuffer} buffer
+ * @return {Promise}
+ */
 export async function init(buffer) {
-	let memory = Memory.map(buffer)
+	memory = Memory.map(buffer)
 	setSound(memory, 0, kick)
 	setSound(memory, 1, snar)
 	setSound(memory, 2, hhat)

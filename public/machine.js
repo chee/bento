@@ -76,22 +76,23 @@ async function getFancy() {
 			db.load()
 		}
 		if (sounds.fancy() && graphics.fancy()) {
-			if (!party.hasAttribute("fancy")) {
-				dialog.close()
-				if (!settings.open) {
-					setTimeout(() => {
-						screen.open = true
-					}, 200)
-				}
-			}
-
 			party.setAttribute("fancy", "fancy")
 		}
 	} catch {}
+
+	if (party.hasAttribute("fancy")) {
+		dialog.close()
+		if (!settings.open) {
+			setTimeout(() => {
+				screen.open = true
+			}, 200)
+		}
+		fancyListeners.map(name => window.removeEventListener(name, getFancy))
+	}
 }
 
-fancyListeners.map(async eventName =>
-	window.addEventListener(eventName, getFancy, {
+fancyListeners.map(name =>
+	window.addEventListener(name, getFancy, {
 		passive: true
 	})
 )
@@ -153,7 +154,6 @@ setTimeout(() => {
 
 master.addEventListener("play", () => {
 	Memory.play(memory)
-	// todo check if this is needed
 	sounds.play()
 })
 

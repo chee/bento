@@ -9,8 +9,8 @@
 #  - root
 
 default_type text/plain;
-listen 443 ssl quic;
-listen [::]:443 ssl quic;
+listen 443 quic;
+listen [::]:443 quic;
 http2 on;
 http3 on;
 http3_hq on;

@@ -9,8 +9,8 @@
 #  - root
 
 default_type text/plain;
-listen 443 quic;
-listen [::]:443 quic;
+listen 443 ssl;
+listen [::]:443 ssl;
 http2 on;
 http3 on;
 http3_hq on;
@@ -21,7 +21,8 @@ add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;
 error_page 404 /404;
-expires epoch;
+expires off;
+Cache-Control: no-cache
 
 # this could be expressed better by somebody smarter than me
 location ~ ^/patterns/(?<name>[^/]+)$ {

@@ -13,7 +13,9 @@ export default class BentoTape extends BentoElement {
 	/** @type {number} */
 	interval
 	connectedCallback() {
-		let svg = document.querySelector("svg#tape")
+		let svg = /** @type {SVGElement} */ (document.querySelector("svg#tape"))
+		document.body.removeChild(svg)
+		svg.style.display = "block"
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
 			<p id="message">${BentoTape.defaultMessage}</p>
@@ -21,7 +23,6 @@ export default class BentoTape extends BentoElement {
 			<p id="counter">•</p>
 		`
 		this.attachStylesheet("tape")
-		document.body.removeChild(svg)
 	}
 
 	get recording() {

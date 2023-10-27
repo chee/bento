@@ -1,0 +1,48 @@
+#left svg {
+	transform: rotate(180deg);
+}
+
+:host {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	margin-bottom: 0.25em;
+	color: var(--page-line);
+	font-size: 16px;
+	justify-content: space-evenly;
+	align-items: center;
+	width: var(--total-width);
+}
+
+h1 {
+	padding: 0.25em 1em;
+	margin: auto;
+}
+
+button {
+	appearance: none;
+	background: var(--page-fill);
+	border: 1px solid var(--page-line);
+	width: 2em;
+	height: 1.5em;
+	cursor: pointer;
+	box-shadow: 1px 1px 2px var(--machine-shadow-color);
+	visibility: hidden;
+}
+
+button svg {
+	height: 1em;
+	width: 1em;
+}
+
+button svg * {
+	fill: var(--page-line);
+}
+
+[future-history] #right {
+	visibility: visible;
+}
+
+[negative-history] #left {
+	visibility: visible;
+}

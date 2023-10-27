@@ -121,27 +121,26 @@ class Bako extends AudioWorkletProcessor {
 				for (let i = 0; i < 128; i++) {
 					leftear[i] = rightear[i] = portionOfSound[i]
 					pan[i] = this.pan
-					reverb[i] = -0.2
+					reverb[i] = -0.92
+					// reverb[i] = -1
+					delay[i] = -1
 
-					if (this.dj == 0) {
-						hgain[i] = 0.5
-						lgain[i] = 0.5
-						lfreq[i] = 40000
-						hfreq[i] = 0
-					} else if (this.dj > 0) {
-						hgain[i] = 1
-						lgain[i] = -1
-						lfreq[i] = 40000
-						hfreq[i] = 20000 * this.dj // todo logarithms
-					} else if (this.dj < 0) {
-						hgain[i] = -1
-						lgain[i] = 1
-						hfreq[i] = 0
-						lfreq[i] = 15000 - 15000 * -this.dj
-					}
-					delay[i] = 0.5
-					delaytime[i] = 0.5
-					feedback[i] = 0.9
+					// if (this.dj == 0) {
+					// 	hgain[i] = 0.5
+					// 	lgain[i] = 0.5
+					// 	lfreq[i] = 40000
+					// 	hfreq[i] = 0
+					// } else if (this.dj > 0) {
+					// 	hgain[i] = 1
+					// 	lgain[i] = -1
+					// 	lfreq[i] = 40000
+					// 	hfreq[i] = 20000 * this.dj // todo logarithms
+					// } else if (this.dj < 0) {
+					// 	hgain[i] = -1
+					// 	lgain[i] = 1
+					// 	hfreq[i] = 0
+					// 	lfreq[i] = 15000 - 15000 * -this.dj
+					// }
 				}
 			}
 		}

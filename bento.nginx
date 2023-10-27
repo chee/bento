@@ -16,6 +16,7 @@ add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;
 error_page 404 /404;
 absolute_redirect off;
+expires off;
 
 # this could be expressed better by somebody smarter than me
 location ~ ^/patterns/(?<name>[^/]+)$ {

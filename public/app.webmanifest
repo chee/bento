@@ -2,7 +2,7 @@
 	"name": "bento",
 	"start_url": ".",
 	"description": "sampler and sequencer",
-	"display": "standalone",
+	"display": "minimal-ui",
 	"scope": "/",
 	"icons": [
 		{

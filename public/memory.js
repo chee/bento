@@ -180,7 +180,17 @@ export function map(buffer, from) {
 				array.set([from.master.at(Master.selectedLayer)], Master.selectedLayer)
 				array.set([from.master.at(Master.selectedStep)], Master.selectedStep)
 			} else {
-				array.set(from[arrayInfo.name])
+				try {
+					if (arrayInfo.name in from) {
+						array.set(from[arrayInfo.name])
+					} else {
+						console.warn(
+							`tried to copy ${arrayInfo.name} from an ${from.constructor.name} without one.`
+						)
+					}
+				} catch (error) {
+					console.error(error, arrayInfo, Object.keys(from))
+				}
 			}
 		}
 	}

@@ -145,6 +145,8 @@
 	--holy: white;
 	--grey: #595959;
 	--m8: #00efff;
+	--mix-pan-left: #903;
+	--mix-pan-right: #039;
 	--fill: var(--dark);
 	--line: var(--grey);
 	--machine-shadow-color: var(--fill);
@@ -184,6 +186,13 @@
 	--settings-button-line: black;
 	--region-fill: black;
 	--region-line: white;
+}
+
+[theme="mexican-pan"] {
+	--fill: #daf7a6;
+	--line: #ff5733;
+	--mix-pan-left: #006341;
+	--mix-pan-right: #c8102e;
 }
 
 /* =*= */
@@ -296,28 +305,6 @@ bento-party[recording] bento-tape {
 bento-party {
 	opacity: 1;
 	transition: opacity 0.5s linear;
-}
-
-bento-nav {
-	display: flex;
-	flex-direction: row;
-	width: 100%;
-	margin-bottom: 0.25em;
-	color: var(--page-line);
-}
-
-bento-nav h1 {
-	padding: 0;
-	font-size: 0.5rem;
-	margin: auto;
-}
-
-bento-nav button {
-	appearance: none;
-	background: var(--page-fill);
-	flex: 1;
-	border: 1px solid var(--page-line);
-	display: none;
 }
 
 #tape {

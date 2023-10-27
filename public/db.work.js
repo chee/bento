@@ -33,7 +33,9 @@ async function init(message) {
 						autoIncrement: false
 					})
 					for (let name in memory) {
-						store.createIndex(name, name, {unique: false})
+						try {
+							store.createIndex(name, name, {unique: false})
+						} catch {}
 					}
 					store.createIndex("id", "id", {
 						unique: true
@@ -55,7 +57,7 @@ async function init(message) {
 	})
 }
 
-async function load({id = "?"}) {
+async function load({id = "bento"}) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to load before init")
 	}
@@ -79,7 +81,7 @@ async function load({id = "?"}) {
 	}
 }
 
-async function exists({id = "?"}) {
+async function exists({id = "bento"}) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to check existence before init")
 	}
@@ -104,7 +106,7 @@ async function exists({id = "?"}) {
 	}
 }
 
-async function save({id = "?"}) {
+async function save({id = "bento"}) {
 	if (!db || !memory || !loaded) {
 		throw new Error("hey now! tried to save before init")
 	}
@@ -120,7 +122,7 @@ async function save({id = "?"}) {
 	})
 }
 
-async function reset({id = "?"}) {
+async function reset({id = "bento"}) {
 	if (!db || !memory || !loaded) {
 		throw new Error("hey now! tried to reset before init")
 	}

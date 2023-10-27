@@ -7,7 +7,7 @@ export function getIdFromLocation() {
 	return (
 		(typeof window != "undefined" &&
 			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
-		"?"
+		"bento"
 	)
 }
 

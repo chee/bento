@@ -24,7 +24,7 @@ themeObserver.observe(root, {
 let machine = document.querySelector("bento-machine")
 /** @type {import("./bento-elements/bento-elements.js").BentoMasterControls} */
 let master = document.querySelector("bento-master-controls")
-/** @type {HTMLElement} */
+/** @type {import("./bento-elements/bento-elements.js").BentoNav} */
 let nav = document.querySelector("bento-nav")
 /** @type {import("./bento-elements/bento-elements.js").BentoLayerSelector} */
 let layerSelector = machine.querySelector("bento-layer-selector")
@@ -41,19 +41,26 @@ let settings = machine.querySelector("bento-settings")
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
-/** @type {HTMLDialogElement} */
-let dialog = document.getElementById("dialog")
+let dialog = /** @type {HTMLDialogElement} */ (
+	document.getElementById("dialog")
+)
 root.removeAttribute("loading")
 
 let fancyListeners = ["keydown", "click", "touchstart"]
 
-let slug = slugify(db.getIdFromLocation())
-window.history.pushState({slug}, "", `${location.pathname}${location.search}`)
-
-function updateNav() {
-	nav.querySelector("h1").textContent = history.state.slug || "bento"
+if (history.scrollRestoration) {
+	history.scrollRestoration = "manual"
 }
-updateNav()
+
+let slug = slugify(db.getIdFromLocation())
+history.replaceState(
+	{slug},
+	"",
+	slug == "bento"
+		? "/" + location.search
+		: `/patterns/${slug}/` + location.search
+)
+nav.slug = slug
 
 async function getFancy() {
 	try {
@@ -78,10 +85,6 @@ async function getFancy() {
 			}
 		}
 	} catch {}
-	if (!party.hasAttribute("fancy")) {
-		dialog.firstElementChild.innerHTML = `<p>say ok to start to play</p>`
-		dialog.showModal()
-	}
 }
 
 fancyListeners.map(async eventName =>
@@ -107,14 +110,6 @@ async function init() {
 	})
 }
 
-let dj = /** @type {HTMLInputElement} */ (document.getElementById("dj"))
-dj.oninput = e => {
-	memory.stepDjs.set(
-		[Number(dj.value)],
-		Memory.selectedLayer(memory) * Memory.NUMBER_OF_LAYERS +
-			Memory.selectedStep(memory)
-	)
-}
 function update(_frame = 0) {
 	let selectedLayer = Memory.selectedLayer(memory)
 	let bpm = Memory.bpm(memory)
@@ -126,9 +121,7 @@ function update(_frame = 0) {
 	// layerOptions.length = Memory.layerLength(memory, selectedLayer)
 
 	let selectedStep = Memory.selectedStep(memory)
-	let d = Memory.getSelectedStepDetails(memory)
 
-	dj.value = d.dj.toString()
 	loop.steps(sidx => {
 		let box = boxes[sidx]
 		box.selected = sidx == selectedStep
@@ -147,6 +140,13 @@ function update(_frame = 0) {
 await init()
 getFancy()
 update()
+setTimeout(() => {
+	if (!party.hasAttribute("fancy")) {
+		dialog.firstElementChild.innerHTML = `<p>press :) to start</p>`
+		dialog.lastElementChild.textContent = ":)"
+		dialog.showModal()
+	}
+}, 500)
 
 master.addEventListener("play", () => {
 	Memory.play(memory)
@@ -350,18 +350,18 @@ settings.addEventListener("reset", async event => {
 	let ok = window.confirm("this will delete the pattern from your disk. ok?")
 
 	if (ok) {
-		console.log({ok})
 		await db.reset()
 		location.reload()
 	}
 })
 
 addEventListener("popstate", async event => {
-	let slug = history.state.slug || "?"
+	let slug = history.state?.slug || "bento"
 	await db.load(slug)
-	nav.querySelector("h1").textContent = history.state.slug || "bento"
+	nav.slug = slug
 })
 
+// todo port window.confirm to dialog
 async function saveAs(defaultName = "") {
 	let name = window.prompt("enter a name", defaultName)
 	if (name) {
@@ -380,12 +380,13 @@ async function saveAs(defaultName = "") {
 				}
 			}
 			await db.save(slug)
-			window.history.pushState(
+
+			history.pushState(
 				{slug},
 				"",
-				`/patterns/${slug}/${location.search}`
+				slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 			)
-			updateNav()
+			nav.slug = slug
 			screen.open = true
 			settings.open = false
 		}

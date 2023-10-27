@@ -8,7 +8,7 @@
 		"typescript": "^5.0.0"
 	},
 	"scripts": {
-		"start": "deno run --allow-read --allow-net file_server.ts public -p 54321 --cors"
+		"start": "deno run --allow-read --allow-net ./start.ts public -p 54321 --cors"
 	},
 	"dependencies": {
 		"@types/audioworklet": "^0.0.50"

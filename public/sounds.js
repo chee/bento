@@ -153,6 +153,16 @@ function ios() {
 	)
 }
 
+document.addEventListener("visibilitychange", () => {
+	if (document.hidden) {
+		iphoneSilenceElement.pause()
+		// context.suspend()
+	} else {
+		iphoneSilenceElement.play()
+		// context.resume()
+	}
+})
+
 export async function play() {
 	if (ios()) {
 		iphoneSilenceElement.play()

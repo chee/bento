@@ -16,6 +16,7 @@ http3 on;
 http3_hq on;
 quic_retry on;
 ssl_early_data on;
+add_header Alt-Svc 'h3=":$server_port"; ma=86400' always;
 add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;

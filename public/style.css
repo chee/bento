@@ -14,6 +14,7 @@
 	/* =machine= */
 	--machine-fill: var(--page-fill);
 	--machine-line: var(--page-line);
+	--machine-border-width: 1px;
 	--machine-shadow-color: var(--page-fill);
 	--prominent-fill: var(--machine-line);
 	--prominent-line: var(--machine-fill);
@@ -30,7 +31,7 @@
 	--settings-line: var(--master-controls-line);
 	--settings-button-fill: var(--settings-line);
 	--settings-button-line: var(--settings-fill);
-	--settings-button-shadow-color: var(--machine-shadow-color);
+	--settings-button-shadow-color: var(--master-controls-shadow-color);
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
 	--selected-layer-selector-fill: var(--prominent-fill);
@@ -50,7 +51,7 @@
 	--screen-selector-line: var(--screen-line);
 	--screen-selector-button-fill: var(--screen-fill);
 	--screen-selector-button-line: var(--screen-line);
-	--screen-selector-button-shadow-color: transparent;
+	--screen-selector-button-shadow-color: var(--machine-shadow-color);
 	--selected-screen-selector-button-fill: var(--screen-line);
 	--selected-screen-selector-button-line: var(--screen-fill);
 
@@ -59,19 +60,21 @@
 	--grid-line: var(--machine-line);
 
 	/* =box= */
+	--box-border-width: var(--machine-border-width);
 	--box-on-fill: var(--prominent-fill);
 	--box-on-line: var(--prominent-line);
+	--box-wav-line: var(--box-on-line);
 	--box-off-fill: var(--grid-fill);
 	--box-off-line: var(--grid-line);
 	--selected-box-outline: var(--focus-outline);
 	--box-shadow-color: var(--machine-shadow-color);
 	/* :3d_glasses_emoji: */
-	--mix-pan-left: red;
-	--mix-quiet: white;
-	--mix-pan-right: blue;
-	--box-mix-pan-left: var(--mix-pan-left);
-	--box-mix-quiet: var(--mix-quiet);
-	--box-mix-pan-right: var(--mix-pan-right);
+	--pan-left-mix: red;
+	--quiet-mix: white;
+	--pan-right-mix: blue;
+	--box-pan-left-mix: var(--pan-left-mix);
+	--box-quiet-mix: var(--quiet-mix);
+	--box-pan-right-mix: var(--pan-right-mix);
 	/* *END-OF-PUBLIC-API* */
 
 	background: var(--page-fill);
@@ -145,8 +148,8 @@
 	--holy: white;
 	--grey: #595959;
 	--m8: #00efff;
-	--mix-pan-left: #903;
-	--mix-pan-right: #039;
+	--pan-left-mix: #903;
+	--pan-right-mix: #039;
 	--fill: var(--dark);
 	--line: var(--grey);
 	--machine-shadow-color: var(--fill);
@@ -175,8 +178,8 @@
 	--prominent-line: black;
 	--screen-fill: white;
 	--screen-line: black;
-	--mix-pan-left: #f99;
-	--mix-pan-right: #99f;
+	--pan-left-mix: #f99;
+	--pan-right-mix: #99f;
 	--selected-layer-selector-fill: black;
 	--selected-layer-selector-line: white;
 	--layer-options-fill: white;
@@ -188,14 +191,41 @@
 	--region-line: white;
 }
 
-[theme="mexican-pan"] {
+[theme="mexpan"] {
 	--fill: #daf7a6;
 	--line: #ff5733;
-	--mix-pan-left: #006341;
-	--mix-pan-right: #c8102e;
+	--pan-left-mix: #006341;
+	--pan-right-mix: #c8102e;
 }
 
-/* =*= */
+[theme="plan9"] {
+	--font-family: fs, monospace;
+	--fill: #737573;
+	--line: black;
+	--machine-fill: #fdffec;
+	--machine-line: #64afb1;
+	--machine-shadow-color: transparent;
+	--machine-border-width: 4px;
+	--region-fill: #99994b;
+	--drawing-region-fill: #f0eea9;
+	--region-line: black;
+	--prominent-fill: #ffffec;
+	--prominent-line: #000;
+	--controls-line: #000;
+	--pan-right-mix: #02019a;
+	--button-border-radius: 0;
+	--box-off-line: #aeefec;
+	--box-off-fill: #ffffec;
+	--box-on-fill: white;
+	--box-on-line: #64afb1;
+	--box-wav-line: #000;
+	--quiet-mix: #fdffec;
+	--master-controls-shadow-color: transparent;
+	--box-shadow-color: transparent;
+}
+
+/* ====*==== */
+
 @font-face {
 	font-family: qp;
 	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
@@ -206,6 +236,12 @@
 	font-family: qp;
 	src: url("/fonts/iosevka-qp-light.ttf") format("truetype");
 	font-weight: light;
+	display: swap;
+}
+
+@font-face {
+	font-family: fs;
+	src: url("/fonts/fs.woff");
 	display: swap;
 }
 
@@ -251,7 +287,7 @@ bento-party {
 bento-machine {
 	background: var(--machine-fill);
 	color: var(--machine-line);
-	border: 1px solid currentColor;
+	border: var(--machine-border-width) solid currentColor;
 	margin: 0;
 	width: var(--total-width);
 	position: relative;

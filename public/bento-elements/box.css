@@ -10,7 +10,7 @@
 	height: var(--box-size);
 	width: var(--box-size);
 	transition: background 0.022s ease-in-out;
-	border: 1px solid;
+	border: var(--box-border-width) solid;
 	position: relative;
 	box-shadow: 1px 1px 4px 0px var(--box-shadow-color);
 	clip-path: url(#squircle);
@@ -90,7 +90,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 100%
+		var(--box-pan-left-mix) 100%
 	);
 }
 
@@ -98,7 +98,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 84%
+		var(--box-pan-left-mix) 84%
 	);
 }
 
@@ -106,7 +106,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 69%
+		var(--box-pan-left-mix) 69%
 	);
 }
 
@@ -114,7 +114,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 47%
+		var(--box-pan-left-mix) 47%
 	);
 }
 
@@ -122,7 +122,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 39%
+		var(--box-pan-left-mix) 39%
 	);
 }
 
@@ -130,7 +130,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-left) 22%
+		var(--box-pan-left-mix) 22%
 	);
 }
 
@@ -138,7 +138,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 100%
+		var(--box-pan-right-mix) 100%
 	);
 }
 
@@ -146,7 +146,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 84%
+		var(--box-pan-right-mix) 84%
 	);
 }
 
@@ -154,7 +154,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 69%
+		var(--box-pan-right-mix) 69%
 	);
 }
 
@@ -162,7 +162,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 47%
+		var(--box-pan-right-mix) 47%
 	);
 }
 
@@ -170,7 +170,7 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 39%
+		var(--box-pan-right-mix) 39%
 	);
 }
 
@@ -178,45 +178,45 @@ img {
 	--box-fill: color-mix(
 		in srgb,
 		var(--box-on-fill),
-		var(--box-mix-pan-right) 22%
+		var(--box-pan-right-mix) 22%
 	);
 }
 
 :host([on][quiet="1"]) {
-	background: color-mix(in srgb, var(--box-fill) 96%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 96%, var(--box-quiet-mix));
 }
 :host([on][quiet="2"]) {
-	background: color-mix(in srgb, var(--box-fill) 88%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 88%, var(--box-quiet-mix));
 }
 :host([on][quiet="3"]) {
-	background: color-mix(in srgb, var(--box-fill) 81%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 81%, var(--box-quiet-mix));
 }
 :host([on][quiet="4"]) {
-	background: color-mix(in srgb, var(--box-fill) 69%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 69%, var(--box-quiet-mix));
 }
 :host([on][quiet="5"]) {
-	background: color-mix(in srgb, var(--box-fill) 63%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 63%, var(--box-quiet-mix));
 }
 :host([on][quiet="6"]) {
-	background: color-mix(in srgb, var(--box-fill) 55%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 55%, var(--box-quiet-mix));
 }
 :host([on][quiet="7"]) {
-	background: color-mix(in srgb, var(--box-fill) 47%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 47%, var(--box-quiet-mix));
 }
 :host([on][quiet="8"]) {
-	background: color-mix(in srgb, var(--box-fill) 39%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 39%, var(--box-quiet-mix));
 }
 :host([on][quiet="9"]) {
-	background: color-mix(in srgb, var(--box-fill) 29%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 29%, var(--box-quiet-mix));
 }
 :host([on][quiet="10"]) {
-	background: color-mix(in srgb, var(--box-fill) 22%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 22%, var(--box-quiet-mix));
 }
 :host([on][quiet="11"]) {
-	background: color-mix(in srgb, var(--box-fill) 13%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 13%, var(--box-quiet-mix));
 }
 :host([on][quiet="12"]) {
-	background: color-mix(in srgb, var(--box-fill) 5%, var(--box-mix-quiet));
+	background: color-mix(in srgb, var(--box-fill) 5%, var(--box-quiet-mix));
 }
 
 :host([drop-target]) {

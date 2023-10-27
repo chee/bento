@@ -19,10 +19,11 @@ ssl_early_data on;
 add_header Alt-Svc 'h3=":$server_port"; ma=86400' always;
 add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
+add_header 'Cache-Control' 'no-cache';
 index index.html;
 error_page 404 /404;
 expires off;
-Cache-Control: no-cache
+
 
 # this could be expressed better by somebody smarter than me
 location ~ ^/patterns/(?<name>[^/]+)$ {

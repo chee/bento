@@ -21,7 +21,7 @@ add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
 index index.html;
 error_page 404 /404;
-expires 0;
+expires epoch;
 
 # this could be expressed better by somebody smarter than me
 location ~ ^/patterns/(?<name>[^/]+)$ {

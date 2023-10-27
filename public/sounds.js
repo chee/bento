@@ -174,11 +174,7 @@ export async function play() {
 	alreadyFancy = true
 }
 
-/**
- * @param {SharedArrayBuffer} buffer
- * @return {Promise}
- */
-export async function start(buffer) {
+export async function start() {
 	await play()
 	if (alreadyFancy) {
 		return
@@ -205,74 +201,83 @@ export async function init(buffer) {
 				outputChannelCount: [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 			})
 	)
-	let layerParams = []
-	layers.forEach((l, i) => {
-		layerParams[i] = {}
-		l.parameters.forEach((p, n, r) => {
-			layerParams[i][n] = {
-				param: p,
-				parent: r
-			}
-		})
-	})
 
-	let lowpasses = loop.layers(
-		() =>
-			new BiquadFilterNode(context, {
-				type: "lowpass"
-			})
-	)
-	let highpasses = loop.layers(
-		() =>
-			new BiquadFilterNode(context, {
-				type: "highpass"
-			})
-	)
-	// these will have their
-	let lowpassGains = loop.layers(() => context.createGain())
-	let highpassGains = loop.layers(() => context.createGain())
-	let pans = loop.layers(() => context.createStereoPanner())
 	let analyzer = context.createAnalyser()
 
-	let delaySends = loop.layers(() => context.createGain())
-	let delays = loop.layers(() => context.createDelay())
-	let feedbacks = loop.layers(() => context.createGain())
-	let reverbs = loop.layers(() => createReverb(ps1))
-	let reverbSends = loop.layers(() => context.createGain())
 	loop.layers(idx => {
 		let layer = layers[idx]
-		layer.connect(pans[idx].pan, constants.Output.Pan)
-		layer.connect(lowpassGains[idx].gain, constants.Output.LowPassGain)
-		layer.connect(highpassGains[idx].gain, constants.Output.HighPassGain)
-		layer.connect(lowpasses[idx].frequency, constants.Output.LowPassFrequency)
-		layer.connect(
-			highpasses[idx].frequency,
-			constants.Output.HighPassFrequency
-		)
-		layer.connect(lowpasses[idx].Q, constants.Output.LowPassQ)
-		layer.connect(highpasses[idx].Q, constants.Output.HighPassQ)
-		layer.connect(reverbSends[idx].gain, constants.Output.ReverbSend)
-		layer.connect(delaySends[idx].gain, constants.Output.DelaySend)
-		layer.connect(delays[idx].delayTime, constants.Output.DelayTime)
-		layer.connect(delays[idx].delayTime, constants.Output.DelayTime)
-		layer.connect(feedbacks[idx].gain, constants.Output.DelayFeedback)
-		delays[idx].connect(feedbacks[idx])
-		feedbacks[idx].connect(delays[idx])
+		let lowpassGain = new GainNode(context, {gain: 0.5})
+		let lowpass = new BiquadFilterNode(context, {
+			type: "lowpass",
+			frequency: 40000
+		})
+		let highpassGain = new GainNode(context, {gain: 0.5})
+		let highpass = new BiquadFilterNode(context, {
+			type: "highpass",
+			frequency: 0
+		})
+		let pan = new StereoPannerNode(context)
+		let delaySend = new GainNode(context, {gain: 0})
+		let delay = new DelayNode(context, {delayTime: 0})
+		let feedback = new GainNode(context, {gain: 0})
+		let reverbSend = new GainNode(context, {gain: 0})
+		let reverb = createReverb(ps1)
 
-		reverbSends[idx].connect(reverbs[idx])
+		layer.connect(pan.pan, constants.Output.Pan)
 
-		layer.connect(lowpassGains[idx], constants.Output.Sound)
-		layer.connect(highpassGains[idx], constants.Output.Sound)
-		lowpassGains[idx].connect(lowpasses[idx])
-		highpassGains[idx].connect(highpasses[idx])
-		lowpasses[idx].connect(pans[idx])
-		highpasses[idx].connect(pans[idx])
-		pans[idx].connect(reverbSends[idx])
-		pans[idx].connect(delaySends[idx])
-		delays[idx].connect(context.destination)
-		feedbacks[idx].connect(context.destination)
-		reverbs[idx].connect(context.destination)
-		pans[idx].connect(context.destination)
-		pans[idx].connect(analyzer)
+		layer.connect(lowpassGain.gain, constants.Output.LowPassGain)
+		layer.connect(lowpass.frequency, constants.Output.LowPassFrequency)
+		layer.connect(lowpass.Q, constants.Output.LowPassQ)
+
+		layer.connect(highpassGain.gain, constants.Output.HighPassGain)
+		layer.connect(highpass.frequency, constants.Output.HighPassFrequency)
+		layer.connect(highpass.Q, constants.Output.HighPassQ)
+
+		layer.connect(reverbSend.gain, constants.Output.ReverbSend)
+
+		layer.connect(delaySend.gain, constants.Output.DelaySend)
+		layer.connect(delay.delayTime, constants.Output.DelayTime)
+		layer.connect(feedback.gain, constants.Output.DelayFeedback)
+
+		layer.connect(lowpassGain, constants.Output.Sound)
+		layer.connect(highpassGain, constants.Output.Sound)
+
+		/*
+		 * both filters always connected, gain set to 0.5 when "off"
+		 */
+		lowpassGain.connect(lowpass)
+		highpassGain.connect(highpass)
+
+		/*
+		 * input level to reverb controlled by gain in worker
+		 */
+		reverbSend.connect(reverb)
+
+		/* delay connected to feedback, feedback connected to delay */
+		delaySend.connect(delay)
+		delay.connect(feedback)
+		feedback.connect(delay)
+
+		/* filters->pan */
+		lowpass.connect(pan)
+		highpass.connect(pan)
+
+		/* pan->sends */
+		pan.connect(reverbSend)
+		pan.connect(delaySend)
+
+		/* sends->dac */
+		delay.connect(context.destination)
+		feedback.connect(context.destination)
+		reverb.connect(context.destination)
+
+		/* pan->dac */
+		pan.connect(context.destination)
+
+		/* everything connected to the analyzer too  */
+		delay.connect(analyzer)
+		feedback.connect(analyzer)
+		reverb.connect(analyzer)
+		pan.connect(analyzer)
 	})
 }

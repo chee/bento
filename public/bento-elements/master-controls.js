@@ -7,7 +7,6 @@ import {BentoElement} from "./base.js"
  * @param {string} label
  */
 
-
 export default class BentoMasterControls extends BentoElement {
 	static icons = {
 		play: `<svg viewBox="-5 -5 522 522" xmlns="http://www.w3.org/2000/svg">
@@ -101,7 +100,7 @@ export default class BentoMasterControls extends BentoElement {
 			label: "Open the settings"
 		})
 		settingsButton.addEventListener("click", () => {
-			this.announce("settings")
+			this.announce("toggle-settings")
 		})
 		fieldset.appendChild(settingsButton)
 	}

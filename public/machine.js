@@ -76,13 +76,16 @@ async function getFancy() {
 			db.load()
 		}
 		if (sounds.fancy() && graphics.fancy()) {
-			party.setAttribute("fancy", "fancy")
-			dialog.close()
-			if (!settings.open) {
-				setTimeout(() => {
-					screen.open = true
-				}, 200)
+			if (!party.hasAttribute("fancy")) {
+				dialog.close()
+				if (!settings.open) {
+					setTimeout(() => {
+						screen.open = true
+					}, 200)
+				}
 			}
+
+			party.setAttribute("fancy", "fancy")
 		}
 	} catch {}
 }
@@ -322,12 +325,16 @@ document.addEventListener(
 	}
 )
 
-machine.addEventListener("settings", event => {
+machine.addEventListener("toggle-settings", event => {
 	settings.open = !settings.open
-	screen.open = !settings.open
+	setTimeout(() => {
+		screen.open = !settings.open
+	})
 })
 
-function openScreen() {
+function openScreen(event) {
+	console.log(event)
+	console.log("being asked to open screen", event)
 	settings.open = false
 	screen.open = true
 }

@@ -173,7 +173,7 @@ export default class BentoScreen extends BentoElement {
 	}
 
 	get open() {
-		return !this.getAttribute("open")
+		return this.hasAttribute("open")
 	}
 
 	set open(val) {

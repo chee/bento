@@ -50,7 +50,6 @@ export default class BentoScreen extends BentoElement {
 			}
 		)
 		this.shadow.addEventListener("open", () => {
-			console.log("everyone is ignoring me")
 			this.announce("open")
 		})
 

@@ -24,6 +24,7 @@
 	--poweroff-line: var(--recording-line);
 
 	/* =controls= */
+	--button-border-radius: 0;
 	--controls-fill: var(--machine-fill);
 	--controls-line: var(--machine-line);
 	--master-controls-fill: var(--controls-fill);
@@ -36,11 +37,11 @@
 	--settings-button-shadow-color: var(--master-controls-shadow-color);
 	--layer-selector-fill: var(--controls-fill);
 	--layer-selector-line: var(--controls-line);
+	--layer-selector-border-radius: var(--button-border-radius);
 	--selected-layer-selector-fill: var(--prominent-fill);
 	--selected-layer-selector-line: var(--prominent-line);
 	--layer-options-fill: var(--selected-layer-selector-fill);
 	--layer-options-line: var(--selected-layer-selector-line);
-	--button-border-radius: 4px;
 
 	/* =screen= */
 	--screen-fill: var(--prominent-fill);
@@ -126,6 +127,8 @@
 	--focus-outline: var(--orla-foster-2003-bermuda-cocktail-number-3);
 	--selected-box-outline: black;
 	--drop-target-outline: #00ffcc;
+	--button-border-radius: 4px;
+	--layer-selector-border-radius: 24px;
 }
 
 [theme="night"] {
@@ -186,7 +189,6 @@
 	--selected-layer-selector-line: white;
 	--layer-options-fill: white;
 	--layer-options-line: black;
-	--button-border-radius: 0px;
 	--settings-button-fill: white;
 	--settings-button-line: black;
 	--region-fill: black;
@@ -215,7 +217,6 @@
 	--prominent-line: #000;
 	--controls-line: #000;
 	--pan-right-mix: #02019a;
-	--button-border-radius: 0;
 	--box-off-line: #aeefec;
 	--box-off-fill: #ffffec;
 	--box-on-fill: white;
@@ -231,20 +232,20 @@
 @font-face {
 	font-family: qp;
 	src: url("/fonts/iosevka-qp-regular.ttf") format("truetype");
-	display: swap;
+	font-display: swap;
 }
 
 @font-face {
 	font-family: qp;
 	src: url("/fonts/iosevka-qp-light.ttf") format("truetype");
-	font-weight: light;
-	display: swap;
+	font-display: swap;
+	font-weight: 200;
 }
 
 @font-face {
 	font-family: fs;
 	src: url("/fonts/fs.woff");
-	display: swap;
+	font-display: swap;
 }
 
 * {

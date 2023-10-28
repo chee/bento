@@ -324,8 +324,6 @@ machine.addEventListener("toggle-settings", event => {
 })
 
 function openScreen(event) {
-	console.log(event)
-	console.log("being asked to open screen", event)
 	settings.open = false
 	screen.open = true
 }

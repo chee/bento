@@ -1,7 +1,7 @@
 export const Output = {
 	Sound: 0,
 	Pan: 1,
-	ReverbSend: 2,
+	ReverbInputLevel: 2,
 	LowPassGain: 3,
 	HighPassGain: 4,
 	LowPassFrequency: 5,
@@ -10,5 +10,8 @@ export const Output = {
 	HighPassQ: 8,
 	DelayTime: 9,
 	DelayFeedback: 10,
-	DelayInputLevel: 11
+	DelayInputLevel: 11,
+	BypassFilter: 12
 }
+
+export const NUMBER_OF_CONTROL_OUTPUTS = Object.keys(Output).length

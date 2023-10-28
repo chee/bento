@@ -47,25 +47,32 @@ function alter(stepDetails) {
 }
 
 class Bako extends AudioWorkletProcessor {
-	static parameterDescriptors = [
-		{
-			name: "pan",
-			defaultValue: 0,
-			minValue: -1,
-			maxValue: 1
-		}
-	]
 	constructor(options) {
 		super()
-		let memory = Memory.map(options.processorOptions.buffer)
+		let {buffer, layerNumber} = options.processorOptions
+		if (!buffer || layerNumber == null) {
+			let msg = "failed to instantiate Bako, missing processorOption"
+			console.error(msg, {
+				buffer: typeof buffer,
+				layerNumber
+			})
+			throw new Error(msg)
+		}
+		let memory = Memory.map(buffer)
 		this.memory = memory
-		this.layerNumber = options.processorOptions.layerNumber
+		this.layerNumber = layerNumber
 		this.point = 0
 		this.lastStep = -1
 		/** @type {import("./memory.js").StepDetails} */
 		this.alteredSound = null
 		this.tick = 0
 		this.pan = 0
+		this.reverb = 0
+		this.djFrequency = 0
+		this.djQ = 0
+		this.delay = 0
+		this.feedback = 0
+		this.delayTime = 0
 	}
 
 	// :)
@@ -77,6 +84,48 @@ class Bako extends AudioWorkletProcessor {
 	process(_inputs, outputs, parameters) {
 		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
+		let [delayTime] = outputs[consts.Output.DelayTime]
+		let [feedback] = outputs[consts.Output.DelayFeedback]
+		let [delay] = outputs[consts.Output.DelayInputLevel]
+		let [pan] = outputs[consts.Output.Pan]
+		let [reverb] = outputs[consts.Output.ReverbInputLevel]
+		let [lgain] = outputs[consts.Output.LowPassGain]
+		let [hgain] = outputs[consts.Output.HighPassGain]
+		let [lfreq] = outputs[consts.Output.LowPassFrequency]
+		let [hfreq] = outputs[consts.Output.HighPassFrequency]
+		let [lq] = outputs[consts.Output.LowPassQ]
+		let [hq] = outputs[consts.Output.HighPassQ]
+
+		for (let i = 0; i < 128; i++) {
+			delay[i] = this.delay
+			delayTime[i] = this.delayTime
+			feedback[i] = this.feedback
+			pan[i] = this.pan
+			reverb[i] = this.reverb
+			lq[i] = this.djQ
+			hq[i] = this.djQ
+
+			if (this.djFrequency == 0) {
+				// todo figure out how to use constantsourcenode and if it's
+				// possible to do all this logic in the DjFilter node and only
+				// require outputs for `freq' and `q'
+				hgain[i] = 0
+				lgain[i] = 0
+				lfreq[i] = sampleRate / 2
+				hfreq[i] = 0
+			} else if (this.djFrequency > 0) {
+				hgain[i] = 1
+				lgain[i] = -1
+				lfreq[i] = sampleRate / 2
+				hfreq[i] = 20000 * this.dj // todo curve
+			} else if (this.djFrequency < 0) {
+				hgain[i] = -1
+				lgain[i] = 1
+				hfreq[i] = 0
+				lfreq[i] = 15000 - 15000 * -this.dj
+			}
+		}
+
 		if (Memory.playing(memory) && Memory.paused(memory)) {
 			// todo keep returning the fx param vals
 			return true
@@ -120,43 +169,10 @@ class Bako extends AudioWorkletProcessor {
 				)
 				this.point += 128
 				let [leftear, rightear] = outputs[consts.Output.Sound]
-				let [pan] = outputs[consts.Output.Pan]
-				let [reverb] = outputs[consts.Output.ReverbSend]
-				// let [lgain] = outputs[consts.Output.LowPassGain]
-				// let [hgain] = outputs[consts.Output.HighPassGain]
-				// let [lfreq] = outputs[consts.Output.LowPassFrequency]
-				// let [hfreq] = outputs[consts.Output.HighPassFrequency]
-				// let [lq] = outputs[consts.Output.LowPassQ]
-				// let [hq] = outputs[consts.Output.HighPassQ]
-				// let [delayTime] = outputs[consts.Output.DelayTime]
-				// let [feedback] = outputs[consts.Output.DelayFeedback]
-				// let [delay] = outputs[consts.Output.DelayInputLevel]
 
 				for (let i = 0; i < 128; i++) {
+					// todo stereo
 					leftear[i] = rightear[i] = portionOfSound[i]
-					pan[i] = this.pan
-					reverb[i] = 0
-
-					// delay[i] = 0.2
-					// delayTime[i] = 0.67
-					// feedback[i] = 0.5
-
-					// if (this.dj == 0) {
-					// 	hgain[i] = 0.5
-					// 	lgain[i] = 0.5
-					// 	lfreq[i] = 40000
-					// 	hfreq[i] = 0
-					// } else if (this.dj > 0) {
-					// 	hgain[i] = 1
-					// 	lgain[i] = -1
-					// 	lfreq[i] = 40000
-					// 	hfreq[i] = 20000 * this.dj // todo logarithms
-					// } else if (this.dj < 0) {
-					// 	hgain[i] = -1
-					// 	lgain[i] = 1
-					// 	hfreq[i] = 0
-					// 	lfreq[i] = 15000 - 15000 * -this.dj
-					// }
 				}
 			}
 		}

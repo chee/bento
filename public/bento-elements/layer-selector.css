@@ -45,6 +45,8 @@ label {
 	width: 100%;
 	text-align: center;
 	position: relative;
+	border-radius: var(--layer-selector-border-radius)
+		var(--layer-selector-border-radius) 0 0;
 }
 
 label.checked:not(:last-child) {

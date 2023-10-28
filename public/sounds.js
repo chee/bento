@@ -2,6 +2,8 @@ import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as constants from "./sounds.const.js"
 import Delay from "./sounds/delay.js"
+import Reverb from "./sounds/reverb.js"
+import DjFilter from "./sounds/dj-filter.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -183,81 +185,47 @@ export async function init(buffer) {
 	setSound(memory, 2, hhat)
 	setSound(memory, 3, open)
 
-	layers = loop.layers(
-		layerNumber =>
-			new AudioWorkletNode(context, "bako", {
-				processorOptions: {buffer, layerNumber},
-				channelCount: 2,
-				numberOfOutputs: 12,
-				outputChannelCount: [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-			})
-	)
-
 	let analyzer = context.createAnalyser()
+	analyzer.fftSize = 2048
+	// let analysis = new Float32Array(analyzer.fftSize)
 
 	loop.layers(idx => {
-		let layer = layers[idx]
-		let lowpassGain = new GainNode(context, {gain: 0.5})
-		let lowpass = new BiquadFilterNode(context, {
-			type: "lowpass",
-			frequency: 40000
-		})
-		let highpassGain = new GainNode(context, {gain: 0.5})
-		let highpass = new BiquadFilterNode(context, {
-			type: "highpass",
-			frequency: 0
+		let layer = new AudioWorkletNode(context, "bako", {
+			processorOptions: {buffer, layerNumber: idx},
+			channelCount: 2,
+			numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS,
+			outputChannelCount: [
+				2,
+				...Array(constants.NUMBER_OF_CONTROL_OUTPUTS).fill(1)
+			]
 		})
 		let pan = new StereoPannerNode(context)
-		let delay = new Delay(context)
-		let reverbSend = new GainNode(context, {gain: 0})
-		let reverb = createReverb(ps1)
-
 		layer.connect(pan.pan, constants.Output.Pan)
 
-		layer.connect(lowpassGain.gain, constants.Output.LowPassGain)
-		layer.connect(lowpass.frequency, constants.Output.LowPassFrequency)
-		layer.connect(lowpass.Q, constants.Output.LowPassQ)
+		let filter = new DjFilter(context, {layer})
+		let delay = new Delay(context, {layer})
+		let reverb = new Reverb(context, {layer, ir: ps1})
 
-		layer.connect(highpassGain.gain, constants.Output.HighPassGain)
-		layer.connect(highpass.frequency, constants.Output.HighPassFrequency)
-		layer.connect(highpass.Q, constants.Output.HighPassQ)
+		/* bako -> filter */
+		layer.connect(filter.in, constants.Output.Sound)
 
-		layer.connect(reverbSend.gain, constants.Output.ReverbSend)
-
-		delay.connectLayerParams(layer)
-
-		layer.connect(lowpassGain, constants.Output.Sound)
-		layer.connect(highpassGain, constants.Output.Sound)
-
-		/*
-		 * both filters always connected, gain set to 0.5 when "off"
-		 */
-		lowpassGain.connect(lowpass)
-		highpassGain.connect(highpass)
-
-		/*
-		 * input level to reverb controlled by gain in worker
-		 */
-		reverbSend.connect(reverb)
-
-		/* filters->pan */
-		lowpass.connect(pan)
-		highpass.connect(pan)
-
-		/* pan->sends */
-		pan.connect(reverbSend)
-		delay.connectInput(pan)
-
-		/* sends->dac */
-		delay.connectOutput(context.destination)
-		reverb.connect(context.destination)
+		/* filter->pan */
+		filter.out.connect(pan)
 
 		/* pan->dac */
 		pan.connect(context.destination)
 
-		/* everything connected to the analyzer too  */
-		delay.connectOutput(analyzer)
-		reverb.connect(analyzer)
+		// /* pan->sends */
+		pan.connect(reverb.in)
+		pan.connect(delay.in)
+
+		// /* sends->dac */
+		delay.out.connect(context.destination)
+		reverb.out.connect(context.destination)
+
+		// /* everything that goes out is connected to the analyzer too  */
 		pan.connect(analyzer)
+		delay.out.connect(analyzer)
+		reverb.out.connect(analyzer)
 	})
 }

@@ -1,6 +1,12 @@
 import * as Memory from "./memory.js"
 import * as consts from "./sounds.const.js"
 
+/** the curve used to make the gain more satisfying */
+let qcurve = new Float32Array(Memory.DYNAMIC_RANGE)
+for (let i = 0; i < qcurve.length; i++) {
+	qcurve[i] = 1 - Math.sin((i / (Memory.DYNAMIC_RANGE + 1)) * Math.PI * 0.5)
+}
+
 /**
  * @param {import("./memory.js").StepDetails} stepDetails
  * @returns {import("./memory.js").StepDetails}
@@ -20,13 +26,9 @@ function alter(stepDetails) {
 
 	if (quiet || attack || release || reversed) {
 		let output = new Float32Array(sound.length)
-		// quiet is a number from 0-12
-		// TODO make this non-linear using some kind of math
-		let gm = 1 * ((13 - quiet) / 12)
 		for (let i = 0; i < sound.length; i++) {
 			let targetIndex = reversed ? sound.length - i : i
-			output[targetIndex] = sound[i] * gm
-			// TODO apply envelope
+			output[targetIndex] = sound[i] * qcurve[quiet]
 		}
 		sound = output
 	}
@@ -87,8 +89,8 @@ class Bako extends AudioWorkletProcessor {
 			if (stepDetails.on) {
 				this.point = 0
 				this.alteredSound = alter(stepDetails)
-				this.pan = stepDetails.pan / 6
-				this.dj = stepDetails.dj
+				this.pan = stepDetails.pan / 6 || 0
+				this.dj = stepDetails.dj || 0
 			}
 		}
 
@@ -121,8 +123,7 @@ class Bako extends AudioWorkletProcessor {
 				for (let i = 0; i < 128; i++) {
 					leftear[i] = rightear[i] = portionOfSound[i]
 					pan[i] = this.pan
-					reverb[i] = -0.92
-					// reverb[i] = -1
+					reverb[i] = 0
 					delay[i] = -1
 
 					// if (this.dj == 0) {

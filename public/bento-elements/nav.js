@@ -30,6 +30,7 @@ export default class BentoNav extends BentoElement {
 		right.id = "right"
 		right.innerHTML = BentoNav.icons.arrow
 		this.shadow.append(left, this.#slug, right)
+		this.#slug.innerHTML = "&nbsp;"
 		this.attachStylesheet("nav")
 		left.addEventListener("click", () => {
 			this.back()

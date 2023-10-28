@@ -342,7 +342,7 @@ bento-party[recording] bento-tape {
 
 bento-party {
 	opacity: 1;
-	transition: opacity 0.5s linear;
+	transition: opacity 0.2s linear;
 }
 
 #tape {
@@ -374,19 +374,18 @@ dialog button {
 
 bento-party:not([fancy]) {
 	min-height: 100vh;
-	background: var(--poweroff-fill);
+	/* background: var(--poweroff-fill); */
 	position: absolute;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	left: 0;
-
-	--machine-line: var(--page-fill);
+	--machine-shadow-color: transparent;
 }
 
 bento-poweroff {
 	position: absolute;
-	top: 0;
+	top: 1.5em;
 	left: 0;
 	right: 0;
 	bottom: 0;
@@ -395,15 +394,14 @@ bento-poweroff {
 	z-index: 10;
 	text-align: center;
 	cursor: pointer;
-	height: 100%;
 	transition: 0.2s opacity;
 	align-items: center;
 	justify-content: center;
 	display: flex;
 	flex-direction: column;
-	box-shadow: 2px 2px 5px var(--machine-shadow);
 }
 
+[loading] bento-poweroff,
 [fancy] bento-poweroff {
 	pointer-events: none;
 	opacity: 0;
@@ -416,4 +414,19 @@ bento-poweroff * {
 #power-icon {
 	font-size: 4em;
 	font-weight: bold;
+	animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(0.92);
+	}
+
+	63% {
+		transform: scale(1);
+	}
+
+	100% {
+		transform: scale(0.9199);
+	}
 }

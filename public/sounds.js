@@ -128,7 +128,7 @@ export function setSound(memory, layerNumber, sound) {
 }
 
 let ps1 = await context.decodeAudioData(
-	await (await fetch("/sounds/ps1h.flac")).arrayBuffer()
+	await (await fetch("/sounds/ps1d.flac")).arrayBuffer()
 )
 
 let alreadyFancy = false

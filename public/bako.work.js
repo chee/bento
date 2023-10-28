@@ -25,6 +25,7 @@ function alter(stepDetails) {
 	let {
 		// TODO take 2 channel for l + r and apply pan curves in here
 		sound: originalSound,
+
 		region,
 		soundLength,
 		reversed,
@@ -73,7 +74,6 @@ class Bako extends AudioWorkletProcessor {
 		this.delay = 0
 		this.feedback = 0
 		this.delayTime = 0
-		console.log(this.layerNumber)
 	}
 
 	logSometimes(...args) {
@@ -145,13 +145,14 @@ class Bako extends AudioWorkletProcessor {
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		let layerNumber = this.layerNumber
 		let speed = Memory.layerSpeed(memory, layerNumber)
-		let numberOfActiveGrids = Memory.layerGridLength(memory, layerNumber)
-		//let gridLength = Memory.gridLength(memory, layerNumber, gridNumber)
-		let gridLength = 16
+		let numberOfActiveGrids = Memory.numberOfGridsInLayer(memory, layerNumber)
+		// let gridLength = Memory.numberOfStepsInGrid(memory, layerNumber, gridNumber)
+		let numberOfActiveSteps = 16
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 
 		let currentStep =
-			((this.tick / samplesPerStep) | 0) % (numberOfActiveGrids * gridLength)
+			((this.tick / samplesPerStep) | 0) %
+			(numberOfActiveGrids * numberOfActiveSteps)
 
 		if (currentStep != this.lastStep) {
 			Memory.currentStep(memory, layerNumber, currentStep)

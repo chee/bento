@@ -273,8 +273,8 @@ body {
 
 bento-party {
 	--number-of-boxes: 4;
-	--box-size: 2em;
-	--box-gap: 0.25em;
+	--box-size: 2rem;
+	--box-gap: 0.25rem;
 	--total-width: calc(
 		(var(--box-size) * var(--number-of-boxes)) +
 			(var(--box-gap) * (var(--number-of-boxes) * 2))

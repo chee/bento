@@ -1,0 +1,67 @@
+:host {
+	--dot-on-fill: var(--box-on-fill);
+	--dot-off-fill: var(--machine-fill);
+	opacity: 0.5;
+	position: relative;
+}
+
+:host([selected]) {
+	--dot-on-fill: var(--box-on-fill);
+	--dot-off-fill: var(--box-off-fill);
+	opacity: 1;
+}
+
+:host([playing])::after {
+	content: "";
+	width: 2px;
+	height: 2px;
+	border-radius: 2px;
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	background: var(--machine-line);
+}
+
+button {
+	cursor: pointer;
+	appearance: none;
+	border: none;
+	background: none;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+
+	--dot-size: calc(var(--box-size) / 16);
+	row-gap: var(--dot-size);
+	column-gap: var(--dot-size);
+	padding: calc(var(--dot-size));
+}
+
+bento-dot {
+	margin-top: var(--dot-size);
+	width: var(--dot-size);
+	height: var(--dot-size);
+	margin: 0;
+	border-radius: 2px;
+	background: transparent;
+	position: relative;
+	--dot-fill: var(--dot-off-fill);
+	--dot-inverse-fill: var(--dot-on-fill);
+	background: var(--dot-fill);
+}
+
+bento-dot[on] {
+	--dot-fill: var(--dot-on-fill);
+	--dot-inverse-fill: var(--dot-off-fill);
+}
+
+[playing]:after {
+	content: "";
+	height: 2px;
+	width: 2px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	border-radius: 100%;
+	background: var(--dot-inverse-fill);
+}

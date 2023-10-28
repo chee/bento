@@ -106,7 +106,8 @@ async function init() {
 	Memory.bpm(memory, master.bpm)
 	loop.layers(pidx => {
 		Memory.layerSpeed(memory, pidx, 1)
-		Memory.layerGridLength(memory, pidx, 4)
+		Memory.numberOfStepsInGrid(memory, pidx, 16)
+		Memory.numberOfGridsInLayer(memory, pidx, 1)
 	})
 
 	loop.gridSteps(sidx => {
@@ -123,11 +124,14 @@ function update(_frame = 0) {
 	master.toggleAttribute("paused", Memory.paused(memory))
 	layerSelector.selected = selectedLayer
 	layerOptions.speed = Memory.layerSpeed(memory, selectedLayer)
-	// layerOptions.length = Memory.layerLength(memory, selectedLayer)
+	// layerOptions.length = Memory.numberOfStepsInGrid(memory, selectedLayer)
 
-	let selectedStep = Memory.selectedStep(memory)
-	let selectedGrid = Memory.selectedGrid(memory)
+	let selectedUiStep = Memory.selectedUiStep(memory)
+	let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
+	let currentStep = Memory.currentStep(memory, selectedLayer)
 	gridSelector.selected = selectedGrid
+	gridSelector.grids = Memory.getLayerGridStepOns(memory, selectedLayer)
+	gridSelector.playing = currentStep
 
 	loop.gridSteps(uiStep => {
 		/*
@@ -136,10 +140,11 @@ function update(_frame = 0) {
 		 * this is so confusing i'm crying my eyes out
 		 */
 		let actualStep = selectedGrid * Memory.STEPS_PER_GRID + uiStep
-		let currentStep = Memory.currentStep(memory, selectedLayer)
+
 		let box = boxes[uiStep]
-		box.selected = uiStep == selectedStep
+		box.selected = uiStep == selectedUiStep
 		box.on = Memory.stepOn(memory, selectedLayer, actualStep)
+		// todo move playing to be a property of the grid
 		box.playing = currentStep == actualStep
 		box.quiet = Memory.stepQuiet(memory, selectedLayer, actualStep)
 		box.pan = Memory.stepPan(memory, selectedLayer, actualStep)
@@ -198,7 +203,7 @@ layerOptions.addEventListener(
 			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
 			db.save()
 		} else if (change == "length") {
-			Memory.layerGridLength(memory, Memory.selectedLayer(memory), value)
+			Memory.numberOfStepsInGrid(memory, Memory.selectedLayer(memory), value)
 			db.save()
 		}
 	}
@@ -210,8 +215,30 @@ gridSelector.addEventListener(
 	event => {
 		let {change, value} = event.detail
 		if (change == "grid") {
-			Memory.selectedGrid(memory, value)
+			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), value)
 			db.save()
+		}
+	}
+)
+
+gridSelector.addEventListener(
+	"new",
+	/** @param {import("./bento-elements/base.js").BentoEvent} event */
+	event => {
+		let {type, value} = event.detail
+		if (type == "grid") {
+			let selectedLayer = Memory.selectedLayer(memory)
+			let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
+			let currentNumberOfGrids = Memory.numberOfGridsInLayer(
+				memory,
+				selectedLayer
+			)
+			let newNumberOfGrids = value + currentNumberOfGrids
+			Memory.numberOfGridsInLayer(memory, selectedLayer, newNumberOfGrids)
+			for (let i = currentNumberOfGrids; i < newNumberOfGrids; i++) {
+				Memory.copyGridWithinSelectedLayer(memory, selectedGrid, i)
+			}
+			Memory.layerSelectedGrid(memory, selectedLayer, newNumberOfGrids - 1)
 		}
 	}
 )
@@ -242,11 +269,8 @@ screen.addEventListener(
 			)
 			db.save()
 		} else if (event.detail.change == "reverse") {
-			Memory.stepReverse(
-				memory,
-				Memory.selectedLayer(memory),
-				Memory.selectedStep(memory)
-			)
+			let layer = Memory.selectedLayer(memory)
+			Memory.stepReverse(memory, layer, Memory.getActualSelectedStep(memory))
 			db.save()
 		}
 	}
@@ -260,11 +284,11 @@ grid.addEventListener(
 		let {box, change} = event.message
 		if (box != null) {
 			let layer = Memory.selectedLayer(memory)
-			let selectedGrid = Memory.selectedGrid(memory)
+			let selectedGrid = Memory.layerSelectedGrid(memory, layer)
 			let uiStep = box
 			let step = selectedGrid * Memory.STEPS_PER_GRID + uiStep
 			if (change == "selected") {
-				Memory.selectedStep(memory, uiStep)
+				Memory.selectedUiStep(memory, uiStep)
 			} else if (change == "on") {
 				Memory.stepOn(memory, layer, step, true)
 				db.save()
@@ -273,8 +297,8 @@ grid.addEventListener(
 				db.save()
 			} else if (change == "copy") {
 				let {from} = event.detail
-				Memory.copyStepWithinSelectedLayer(memory, +from, +step)
-				Memory.selectedStep(memory, step)
+				Memory.copyStepWithinSelectedLayerAndGrid(memory, +from, +uiStep)
+				Memory.selectedUiStep(memory, step)
 				db.save()
 			} else if (change == "quieter") {
 				Memory.stepQuieter(memory, layer, step)

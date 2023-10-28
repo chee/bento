@@ -15,6 +15,7 @@ import BentoScreenSelector from "./screen-selector.js"
 import BentoGrid from "./grid.js"
 import BentoBox from "./box.js"
 import BentoGridSelector from "./grid-selector.js"
+import BentoMiniGrid from "./mini-grid.js"
 import BentoTape from "./tape.js"
 import BentoNav from "./nav.js"
 
@@ -31,7 +32,8 @@ export {
 	BentoScreenSelector,
 	BentoGrid,
 	BentoBox,
-	BentoGridSelector
+	BentoGridSelector,
+	BentoMiniGrid as BentoGridSelectorBox
 }
 
 export function init() {
@@ -50,6 +52,8 @@ export function init() {
 	customElements.define("bento-screen-selector", BentoScreenSelector)
 	customElements.define("bento-grid", BentoGrid)
 	customElements.define("bento-box", BentoBox)
+
+	customElements.define("bento-mini-grid", BentoMiniGrid)
 	customElements.define("bento-grid-selector", BentoGridSelector)
 	customElements.define(
 		"bento-party",

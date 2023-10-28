@@ -49,7 +49,7 @@ export function steps(fn) {
  * @param {(stepIdx: number) => T} fn
  * @returns {T[]}
  */
-export function grid(fn) {
+export function grids(fn) {
 	return range(GRIDS_PER_LAYER).map(index => fn(index))
 }
 

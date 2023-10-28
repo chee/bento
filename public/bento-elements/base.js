@@ -40,9 +40,9 @@ export class BentoElement extends HTMLElement {
 	 * @param {boolean} state
 	 */
 	toggleAttribute(name, state) {
-		if (state) {
+		if (state && !this.hasAttribute(name)) {
 			this.setAttribute(name, name)
-		} else {
+		} else if (!state && this.hasAttribute(name)) {
 			this.removeAttribute(name)
 		}
 		return state

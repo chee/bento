@@ -4,8 +4,18 @@ import * as consts from "./sounds.const.js"
 /** the curve used to make the gain more satisfying */
 let qcurve = new Float32Array(Memory.DYNAMIC_RANGE)
 for (let i = 0; i < qcurve.length; i++) {
-	qcurve[i] = 1 - Math.sin((i / (Memory.DYNAMIC_RANGE + 1)) * Math.PI * 0.5)
+	qcurve[i] = 1 - Math.sin((i / (qcurve.length + 1)) * Math.PI * 0.5)
 }
+
+// let lcurve = new Float32Array(Memory.DYNAMIC_RANGE / 2)
+// for (let i = 0; i < lcurve.length; i++) {
+// 	lcurve[i] = 1 - Math.sin((i / (lcurve.length + 1)) * Math.PI * 0.5)
+// }
+
+// let rcurve = new Float32Array(Memory.DYNAMIC_RANGE / 2)
+// for (let i = 0; i < lcurve.length; i++) {
+// 	lcurve[i] = 1 - Math.cos((i / (lcurve.length + 1)) * Math.PI * 0.5)
+// }
 
 /**
  * @param {import("./memory.js").StepDetails} stepDetails
@@ -13,6 +23,7 @@ for (let i = 0; i < qcurve.length; i++) {
  */
 function alter(stepDetails) {
 	let {
+		// TODO take 2 channel for l + r and apply pan curves in here
 		sound: originalSound,
 		region,
 		soundLength,
@@ -67,6 +78,7 @@ class Bako extends AudioWorkletProcessor {
 		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {
+			// todo keep returning the fx param vals
 			return true
 		} else if (!Memory.playing(memory)) {
 			this.lastStep = -1
@@ -110,21 +122,24 @@ class Bako extends AudioWorkletProcessor {
 				let [leftear, rightear] = outputs[consts.Output.Sound]
 				let [pan] = outputs[consts.Output.Pan]
 				let [reverb] = outputs[consts.Output.ReverbSend]
-				let [lgain] = outputs[consts.Output.LowPassGain]
-				let [hgain] = outputs[consts.Output.HighPassGain]
-				let [lfreq] = outputs[consts.Output.LowPassFrequency]
-				let [hfreq] = outputs[consts.Output.HighPassFrequency]
-				let [lq] = outputs[consts.Output.LowPassQ]
-				let [hq] = outputs[consts.Output.HighPassQ]
-				let [delaytime] = outputs[consts.Output.DelayTime]
-				let [feedback] = outputs[consts.Output.DelayFeedback]
-				let [delay] = outputs[consts.Output.DelaySend]
+				// let [lgain] = outputs[consts.Output.LowPassGain]
+				// let [hgain] = outputs[consts.Output.HighPassGain]
+				// let [lfreq] = outputs[consts.Output.LowPassFrequency]
+				// let [hfreq] = outputs[consts.Output.HighPassFrequency]
+				// let [lq] = outputs[consts.Output.LowPassQ]
+				// let [hq] = outputs[consts.Output.HighPassQ]
+				// let [delayTime] = outputs[consts.Output.DelayTime]
+				// let [feedback] = outputs[consts.Output.DelayFeedback]
+				// let [delay] = outputs[consts.Output.DelayInputLevel]
 
 				for (let i = 0; i < 128; i++) {
 					leftear[i] = rightear[i] = portionOfSound[i]
 					pan[i] = this.pan
 					reverb[i] = 0
-					delay[i] = -1
+
+					// delay[i] = 0.2
+					// delayTime[i] = 0.67
+					// feedback[i] = 0.5
 
 					// if (this.dj == 0) {
 					// 	hgain[i] = 0.5

@@ -10,5 +10,5 @@ export const Output = {
 	HighPassQ: 8,
 	DelayTime: 9,
 	DelayFeedback: 10,
-	DelaySend: 11
+	DelayInputLevel: 11
 }

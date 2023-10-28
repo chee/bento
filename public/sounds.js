@@ -1,6 +1,7 @@
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as constants from "./sounds.const.js"
+import Delay from "./sounds/delay.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -124,16 +125,6 @@ export function setSound(memory, layerNumber, sound) {
 	Memory.sound(memory, layerNumber, sound)
 }
 
-/**
- * Create a convolver from an audio buffer
- * @param {AudioBuffer} audiobuffer
- */
-function createReverb(audiobuffer) {
-	let convolver = context.createConvolver()
-	convolver.buffer = audiobuffer
-	return convolver
-}
-
 let ps1 = await context.decodeAudioData(
 	await (await fetch("/sounds/ps1h.flac")).arrayBuffer()
 )
@@ -217,9 +208,7 @@ export async function init(buffer) {
 			frequency: 0
 		})
 		let pan = new StereoPannerNode(context)
-		let delaySend = new GainNode(context, {gain: 0})
-		let delay = new DelayNode(context, {delayTime: 0})
-		let feedback = new GainNode(context, {gain: 0})
+		let delay = new Delay(context)
 		let reverbSend = new GainNode(context, {gain: 0})
 		let reverb = createReverb(ps1)
 
@@ -235,9 +224,7 @@ export async function init(buffer) {
 
 		layer.connect(reverbSend.gain, constants.Output.ReverbSend)
 
-		layer.connect(delaySend.gain, constants.Output.DelaySend)
-		layer.connect(delay.delayTime, constants.Output.DelayTime)
-		layer.connect(feedback.gain, constants.Output.DelayFeedback)
+		delay.connectLayerParams(layer)
 
 		layer.connect(lowpassGain, constants.Output.Sound)
 		layer.connect(highpassGain, constants.Output.Sound)
@@ -253,30 +240,23 @@ export async function init(buffer) {
 		 */
 		reverbSend.connect(reverb)
 
-		/* delay connected to feedback, feedback connected to delay */
-		delaySend.connect(delay)
-		delay.connect(feedback)
-		feedback.connect(delay)
-
 		/* filters->pan */
 		lowpass.connect(pan)
 		highpass.connect(pan)
 
 		/* pan->sends */
 		pan.connect(reverbSend)
-		pan.connect(delaySend)
+		delay.connectInput(pan)
 
 		/* sends->dac */
-		delay.connect(context.destination)
-		feedback.connect(context.destination)
+		delay.connectOutput(context.destination)
 		reverb.connect(context.destination)
 
 		/* pan->dac */
 		pan.connect(context.destination)
 
 		/* everything connected to the analyzer too  */
-		delay.connect(analyzer)
-		feedback.connect(analyzer)
+		delay.connectOutput(analyzer)
 		reverb.connect(analyzer)
 		pan.connect(analyzer)
 	})

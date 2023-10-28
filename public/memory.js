@@ -872,6 +872,8 @@ export function getLayerGridStepOns(memory, layer) {
  version: number
  region: Region
  step: number
+ uiStep: number
+ grid: number
  attack: number
  release: number
  pitch: number
@@ -879,7 +881,6 @@ export function getLayerGridStepOns(memory, layer) {
  pan: number
  on: boolean
  reversed: boolean
-
 }} StepDetails
 
  */
@@ -921,7 +922,9 @@ export function getStepDetails(memory, layer, step) {
 		step,
 		on,
 		reversed,
-		version
+		version,
+		grid: Math.floor(step / STEPS_PER_GRID),
+		uiStep: step % STEPS_PER_GRID
 		// djFreq,
 		// djQ,
 		// delay,

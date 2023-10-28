@@ -347,11 +347,13 @@ document.addEventListener(
 	async ({detail}) => {
 		/** @type {ImageBitmap} */
 		let bmp = detail.bmp
-		let {layer, step, cachename} = detail
+		let {layer, uiStep, grid, cachename} = detail
 		if (layer != Memory.selectedLayer(memory)) return
+		if (grid != Memory.layerSelectedGrid(memory, layer)) return
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
-		let box = boxes[step % Memory.STEPS_PER_GRID]
+
+		let box = boxes[uiStep]
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)

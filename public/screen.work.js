@@ -48,7 +48,7 @@ function fillRegion(start, end, fill) {
 
 /**
  * @typedef {Object} DrawSampleLineArguments
- * @prop {import("./graphics").StyleMap} style
+ * @prop {import("./graphics").StyleM} style
  * @prop {Float32Array} array
  * @prop {number} x
  * @prop {number} xm
@@ -172,7 +172,7 @@ function postBitmap(memory, context, layer, step) {
 	let on = stepDetails.on
 	let style = styles.boxOn
 	let color = style.line
-	let cachename = `s${start}e${end}r${reversed}v${version}p${layer}o${on}c${color}`
+	let cachename = `s${start}e${end}r${reversed}v${version}l${layer}o${on}c${color}g${stepDetails.grid}`
 
 	if (!bitmapCache[cachename]) {
 		let beforeheight = context.canvas.height
@@ -192,11 +192,13 @@ function postBitmap(memory, context, layer, step) {
 		context.canvas.height = beforeheight
 		context.canvas.width = beforewidth
 	}
+
 	globalThis.postMessage({
 		type: "waveform",
 		bmp: bitmapCache[cachename],
 		layer,
-		step,
+		uiStep: stepDetails.uiStep,
+		grid: stepDetails.grid,
 		cachename
 	})
 }
@@ -208,12 +210,12 @@ function postBitmap(memory, context, layer, step) {
  * @param {OffscreenCanvasRenderingContext2D} context
  */
 function postAllBitmaps(memory, context) {
-	let pidx = Memory.selectedLayer(memory)
+	let layerNumber = Memory.selectedLayer(memory)
 	// todo send for current grid
-	for (let sidx = 0; sidx < Memory.STEPS_PER_GRID; sidx++) {
-		// if (Memory.stepOn(memory, pidx, sidx)) {
-		postBitmap(memory, context, pidx, sidx)
-		// }
+	for (let stepNumber = 0; stepNumber < Memory.STEPS_PER_LAYER; stepNumber++) {
+		if (Memory.stepOn(memory, layerNumber, stepNumber)) {
+			postBitmap(memory, context, layerNumber, stepNumber)
+		}
 	}
 }
 
@@ -434,7 +436,11 @@ function update(frame = 0, force = false) {
 	// silly and would be v slow
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too
-	if (!same(soundDetails, lastSoundDetails) || styles != lastStyles) {
+	if (
+		!same(soundDetails, lastSoundDetails) ||
+		styles != lastStyles ||
+		lastStepDetails.grid != lastSoundDetails.grid
+	) {
 		if (!regionIsBeingDrawn) {
 			postAllBitmaps(memory, context)
 		}

@@ -1,4 +1,9 @@
-import {NUMBER_OF_LAYERS, NUMBER_OF_STEPS} from "./memory.js"
+import {
+	LAYERS_PER_MACHINE,
+	GRIDS_PER_LAYER,
+	STEPS_PER_GRID,
+	STEPS_PER_LAYER
+} from "./memory.js"
 
 /**
  * Create a range from `start` to `end` by `step`.
@@ -25,7 +30,7 @@ export function range(start, end, step = 1) {
  * @returns {T[]}
  */
 export function layers(fn) {
-	return range(NUMBER_OF_LAYERS).map(index => fn(index))
+	return range(LAYERS_PER_MACHINE).map(index => fn(index))
 }
 
 /**
@@ -35,5 +40,25 @@ export function layers(fn) {
  * @returns {T[]}
  */
 export function steps(fn) {
-	return range(NUMBER_OF_STEPS).map(index => fn(index))
+	return range(STEPS_PER_LAYER).map(index => fn(index))
+}
+
+/**
+ * loop over the number of steps
+ * @template {any} T
+ * @param {(stepIdx: number) => T} fn
+ * @returns {T[]}
+ */
+export function grid(fn) {
+	return range(GRIDS_PER_LAYER).map(index => fn(index))
+}
+
+/**
+ * loop over the number of steps
+ * @template {any} T
+ * @param {(stepIdx: number) => T} fn
+ * @returns {T[]}
+ */
+export function gridSteps(fn) {
+	return range(STEPS_PER_GRID).map(index => fn(index))
 }

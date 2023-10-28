@@ -33,6 +33,9 @@ let layerOptions = machine.querySelector("bento-layer-options")
 /** @type {import("./bento-elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
+/** @type {import("./bento-elements/bento-elements.js").BentoGridSelector} */
+let gridSelector = machine.querySelector("bento-grid-selector")
+
 /** @type {import("./bento-elements/bento-elements.js").BentoScreen} */
 let screen = machine.querySelector("bento-screen")
 /** @type {import("./bento-elements/bento-elements.js").BentoSettings} */
@@ -41,10 +44,9 @@ let settings = machine.querySelector("bento-settings")
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
-let poweroff = party.querySelector("bento-poweroff")
-let dialog = /** @type {HTMLDialogElement} */ (
-	document.getElementById("dialog")
-)
+// let dialog = /** @type {HTMLDialogElement} */ (
+// 	document.getElementById("dialog")
+// )
 root.removeAttribute("loading")
 
 let fancyListeners = ["keydown", "click", "touchstart"]
@@ -100,13 +102,14 @@ async function init() {
 	await sounds.init(buffer)
 	await db.init(buffer)
 
+	// todo move this logic to memory.fresh
 	Memory.bpm(memory, master.bpm)
 	loop.layers(pidx => {
 		Memory.layerSpeed(memory, pidx, 1)
-		Memory.layerLength(memory, pidx, 16)
+		Memory.layerGridLength(memory, pidx, 4)
 	})
 
-	loop.steps(sidx => {
+	loop.gridSteps(sidx => {
 		let selectedLayer = Memory.selectedLayer(memory)
 		Memory.stepOn(memory, selectedLayer, sidx, boxes[sidx].on)
 	})
@@ -123,17 +126,23 @@ function update(_frame = 0) {
 	// layerOptions.length = Memory.layerLength(memory, selectedLayer)
 
 	let selectedStep = Memory.selectedStep(memory)
+	let selectedGrid = Memory.selectedGrid(memory)
+	gridSelector.selected = selectedGrid
 
-	loop.steps(sidx => {
-		let box = boxes[sidx]
-		box.selected = sidx == selectedStep
+	loop.gridSteps(uiStep => {
+		/*
+		 * okay so there is the UI step which is always 0x0 to 0xf
+		 * and then the actual step which is 0x0 to 0x40
+		 * this is so confusing i'm crying my eyes out
+		 */
+		let actualStep = selectedGrid * Memory.STEPS_PER_GRID + uiStep
 		let currentStep = Memory.currentStep(memory, selectedLayer)
-		box.playing = sidx == currentStep
-		box.on = Memory.stepOn(memory, selectedLayer, sidx)
-		box.quiet = Memory.stepQuiet(memory, selectedLayer, sidx)
-		box.pan = Memory.stepPan(memory, selectedLayer, sidx)
-
-		// box.hidden = sidx >= layerLength
+		let box = boxes[uiStep]
+		box.selected = uiStep == selectedStep
+		box.on = Memory.stepOn(memory, selectedLayer, actualStep)
+		box.playing = currentStep == actualStep
+		box.quiet = Memory.stepQuiet(memory, selectedLayer, actualStep)
+		box.pan = Memory.stepPan(memory, selectedLayer, actualStep)
 	})
 
 	requestAnimationFrame(update)
@@ -189,7 +198,19 @@ layerOptions.addEventListener(
 			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
 			db.save()
 		} else if (change == "length") {
-			Memory.layerLength(memory, Memory.selectedLayer(memory), value)
+			Memory.layerGridLength(memory, Memory.selectedLayer(memory), value)
+			db.save()
+		}
+	}
+)
+
+gridSelector.addEventListener(
+	"change",
+	/** @param {import("./bento-elements/base.js").BentoEvent} event */
+	event => {
+		let {change, value} = event.detail
+		if (change == "grid") {
+			Memory.selectedGrid(memory, value)
 			db.save()
 		}
 	}
@@ -238,10 +259,12 @@ grid.addEventListener(
 	event => {
 		let {box, change} = event.message
 		if (box != null) {
-			let step = box
 			let layer = Memory.selectedLayer(memory)
+			let selectedGrid = Memory.selectedGrid(memory)
+			let uiStep = box
+			let step = selectedGrid * Memory.STEPS_PER_GRID + uiStep
 			if (change == "selected") {
-				Memory.selectedStep(memory, step)
+				Memory.selectedStep(memory, uiStep)
 			} else if (change == "on") {
 				Memory.stepOn(memory, layer, step, true)
 				db.save()
@@ -251,7 +274,7 @@ grid.addEventListener(
 			} else if (change == "copy") {
 				let {from} = event.detail
 				Memory.copyStepWithinSelectedLayer(memory, +from, +step)
-				Memory.selectedStep(memory, +step)
+				Memory.selectedStep(memory, step)
 				db.save()
 			} else if (change == "quieter") {
 				Memory.stepQuieter(memory, layer, step)
@@ -304,7 +327,7 @@ document.addEventListener(
 		if (layer != Memory.selectedLayer(memory)) return
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
-		let box = boxes[step]
+		let box = boxes[step % Memory.STEPS_PER_GRID]
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)

@@ -73,6 +73,13 @@ class Bako extends AudioWorkletProcessor {
 		this.delay = 0
 		this.feedback = 0
 		this.delayTime = 0
+		console.log(this.layerNumber)
+	}
+
+	logSometimes(...args) {
+		if (!((this.tick / 128) % 100)) {
+			console.info(...args)
+		}
 	}
 
 	// :)
@@ -127,7 +134,6 @@ class Bako extends AudioWorkletProcessor {
 		}
 
 		if (Memory.playing(memory) && Memory.paused(memory)) {
-			// todo keep returning the fx param vals
 			return true
 		} else if (!Memory.playing(memory)) {
 			this.lastStep = -1
@@ -137,12 +143,15 @@ class Bako extends AudioWorkletProcessor {
 		this.tick += 128
 		let bpm = Memory.bpm(memory)
 		let samplesPerBeat = (60 / bpm) * sampleRate
-		// TODO do i need to use `this'? or can i let above the class
 		let layerNumber = this.layerNumber
 		let speed = Memory.layerSpeed(memory, layerNumber)
-		let length = Memory.layerLength(memory, layerNumber)
+		let numberOfActiveGrids = Memory.layerGridLength(memory, layerNumber)
+		//let gridLength = Memory.gridLength(memory, layerNumber, gridNumber)
+		let gridLength = 16
 		let samplesPerStep = samplesPerBeat / (4 * speed)
-		let currentStep = ((this.tick / samplesPerStep) | 0) % length
+
+		let currentStep =
+			((this.tick / samplesPerStep) | 0) % (numberOfActiveGrids * gridLength)
 
 		if (currentStep != this.lastStep) {
 			Memory.currentStep(memory, layerNumber, currentStep)
@@ -151,7 +160,7 @@ class Bako extends AudioWorkletProcessor {
 				this.point = 0
 				this.alteredSound = alter(stepDetails)
 				this.pan = stepDetails.pan / 6 || 0
-				this.dj = stepDetails.dj || 0
+				// this.dj = stepDetails.dj || 0
 			}
 		}
 

@@ -2,8 +2,10 @@
 	"name": "bento",
 	"start_url": ".",
 	"description": "sampler and sequencer",
-	"display": "minimal-ui",
+	"display": "fullscreen",
 	"scope": "/",
+	"theme_color": "#cc3366",
+	"background_color": "#ffe9ed",
 	"icons": [
 		{
 			"src": "icons/maskable_icon.png",

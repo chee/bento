@@ -1,24 +1,33 @@
 // ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
 // let NUMBER_OF_LAYERS = number_of_samplers + number_of_synths
-export const NUMBER_OF_LAYERS = 4
-export const NUMBER_OF_STEPS = 16
+export const LAYERS_PER_MACHINE = 4
+export const GRIDS_PER_LAYER = 4
+export const STEPS_PER_GRID = 16
+export const STEPS_PER_LAYER = GRIDS_PER_LAYER * STEPS_PER_GRID
 export const QUANTUM = 128
 export const DYNAMIC_RANGE = 12
-export const LAYER_NUMBER_OFFSET = 4 - (NUMBER_OF_LAYERS % 4)
+/* for a time when there are an odd number of layers */
+export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 
 export let arrays = [
 	{name: "master", type: Uint8Array, size: 16},
+	/* the 0x1-0x4 grid-length of a given layer  */
 	{
 		name: "layerLengths",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
-	{name: "frame", type: Float32Array, size: QUANTUM},
+	/* the 0x1-0x10 step-length of an individual grid  */
+	{
+		name: "layerGridLengths",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER
+	},
 	{
 		name: "soundLengths",
 		type: Uint32Array,
-		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
@@ -26,73 +35,84 @@ export let arrays = [
 	{
 		name: "soundVersions",
 		type: Int32Array,
-		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	{
 		name: "layerSpeeds",
 		type: Float32Array,
-		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	{
 		name: "currentSteps",
 		type: Uint8Array,
-		size: NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	{
 		name: "stepOns",
 		type: Uint8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepReverseds",
 		type: Uint8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepPitches",
 		type: Int8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepQuiets",
 		type: Uint8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepPans",
 		type: Int8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepAttacks",
 		type: Uint8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepReleases",
 		type: Uint8Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepStarts",
 		type: Uint32Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS * 2
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
 		name: "stepEnds",
 		type: Uint32Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	{
-		name: "stepDjs",
+		name: "stepDjFreqs",
 		type: Float32Array,
-		size: (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET) * NUMBER_OF_STEPS
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
+	{
+		name: "stepDelayTimes",
+		type: Float32Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+	},
+	{
+		name: "stepDelayGains",
+		type: Float32Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+	},
+
 	{name: "drawingRegion", type: Float32Array, size: 4},
 	{
 		name: "layerSounds",
 		type: Float32Array,
-		size: SOUND_SIZE * (NUMBER_OF_LAYERS + LAYER_NUMBER_OFFSET)
+		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)
 	},
 	{name: "mouse", type: Float32Array, size: 2},
 	{name: "theme", type: Uint8Array, size: 8}
@@ -110,7 +130,8 @@ const Master = {
 	selectedLayer: 1,
 	selectedStep: 2,
 	playing: 3,
-	paused: 4
+	paused: 4,
+	selectedGrid: 5
 }
 
 /**
@@ -136,6 +157,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @typedef {Object} MemoryMap
  * @prop {Uint8Array} MemoryMap.master
  * @prop {Uint8Array} MemoryMap.layerLengths
+ * @prop {Uint8Array} MemoryMap.layerGridLengths
  * @prop {Float32Array} MemoryMap.frame
  * @prop {Uint32Array} MemoryMap.soundLengths
  * @prop {Uint32Array} MemoryMap.soundVersions
@@ -153,7 +175,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
  * @prop {Uint32Array} MemoryMap.stepEnds
  * @prop {Float32Array} MemoryMap.drawingRegion
  * @prop {Float32Array} MemoryMap.mouse
- * @prop {Float32Array} MemoryMap.stepDjs
+ * @prop {Float32Array} MemoryMap.stepDjFreqs
  */
 
 /**
@@ -172,13 +194,16 @@ export function map(buffer, from) {
 			))
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 		if (from) {
+			// TODO export some kind of `Memory.ALWAYS_FRESH_FIELDS`
 			if (arrayInfo.name == "currentSteps") continue
 			if (arrayInfo.name == "drawingRegion") continue
+			// maybe move play/paused out so master can be completely ignored
 			if (arrayInfo.name == "master") {
 				array.set([from.master.at(Master.bpm)], Master.bpm)
 				// not playing or paused
 				array.set([from.master.at(Master.selectedLayer)], Master.selectedLayer)
 				array.set([from.master.at(Master.selectedStep)], Master.selectedStep)
+				array.set([from.master.at(Master.selectedGrid)], Master.selectedGrid)
 			} else {
 				try {
 					if (arrayInfo.name in from) {
@@ -223,6 +248,18 @@ export function selectedLayer(memory, val) {
 
 /**
  * @param {MemoryMap} memory
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function selectedGrid(memory, val) {
+	if (typeof val == "number") {
+		memory.master.set([val], Master.selectedGrid)
+	}
+	return memory.master.at(Master.selectedGrid)
+}
+
+/**
+ * @param {MemoryMap} memory
  * @param {number} layer
  * @param {number} [val]
  * @returns {number}
@@ -240,11 +277,11 @@ export function currentStep(memory, layer, val) {
  * @param {number} [val]
  * @returns {number}
  */
-export function layerLength(memory, layer, val) {
+export function layerGridLength(memory, layer, val) {
 	if (typeof val == "number") {
-		memory.layerLengths.set([val], layer)
+		memory.layerGridLengths.set([val], layer)
 	}
-	return memory.layerLengths.at(layer)
+	return memory.layerGridLengths.at(layer)
 }
 
 /**
@@ -269,7 +306,7 @@ export function layerSpeed(memory, layer, val) {
  */
 export function stepOn(memory, layer, step, val) {
 	let {stepOns} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "boolean") {
 		stepOns.set([Number(val)], at)
@@ -287,7 +324,7 @@ export function stepOn(memory, layer, step, val) {
  */
 export function stepReversed(memory, layer, step, val) {
 	let {stepReverseds} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "boolean") {
 		stepReverseds.set([Number(val)], at)
@@ -314,7 +351,7 @@ export function stepReverse(memory, layer, step) {
  */
 export function stepAttack(memory, layer, step, val) {
 	let {stepAttacks} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
 		stepAttacks.set([val], at)
@@ -332,7 +369,7 @@ export function stepAttack(memory, layer, step, val) {
  */
 export function stepRelease(memory, layer, step, val) {
 	let {stepReleases} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
 		stepReleases.set([val], at)
@@ -350,7 +387,7 @@ export function stepRelease(memory, layer, step, val) {
  */
 export function stepPitch(memory, layer, step, val) {
 	let {stepPitches} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
 		stepPitches.set([val], at)
@@ -372,7 +409,7 @@ export function stepPitch(memory, layer, step, val) {
  */
 export function stepQuiet(memory, layer, step, val) {
 	let {stepQuiets} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
 		stepQuiets.set([Math.clamp(0, val, DYNAMIC_RANGE)], at)
@@ -414,7 +451,7 @@ export function stepLouder(memory, layer, step) {
  */
 export function stepPan(memory, layer, step, val) {
 	let {stepPans} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
 		stepPans.set(
@@ -450,7 +487,7 @@ export function stepPanRight(memory, layer, step) {
  */
 export function toggleStep(memory, layer, step) {
 	let {stepOns} = memory
-	let at = layer * NUMBER_OF_STEPS + step
+	let at = layer * STEPS_PER_LAYER + step
 	stepOns.set([stepOns.at(at) ^ 1], at)
 }
 
@@ -497,7 +534,7 @@ export function pause(memory) {
 export function stop(memory) {
 	memory.master.set([0], Master.playing)
 	memory.master.set([0], Master.paused)
-	memory.currentSteps.set(Array(NUMBER_OF_LAYERS).fill(0))
+	memory.currentSteps.set(Array(LAYERS_PER_MACHINE).fill(0))
 }
 
 /**
@@ -677,7 +714,7 @@ export function regionIsBeingDrawn(memory) {
  * @returns {Region}
  */
 export function stepRegion(memory, layer, step, region) {
-	let offset = layer * NUMBER_OF_STEPS + step
+	let offset = layer * STEPS_PER_LAYER + step
 	if (typeof region !== "undefined") {
 		let {start, end} = region
 		memory.stepStarts.set([start], offset)
@@ -694,8 +731,8 @@ export function stepRegion(memory, layer, step, region) {
  * @param {number} layer
  */
 export function clearRegions(memory, layer) {
-	// memory.stepStarts.set(Array(NUMBER_OF_STEPS).fill(0), layer)
-	// memory.stepEnds.set(Array(NUMBER_OF_STEPS).fill(0), layer)
+	// memory.stepStarts.set(Array(STEPS_PER_LAYER).fill(0), layer)
+	// memory.stepEnds.set(Array(STEPS_PER_LAYER).fill(0), layer)
 }
 
 /**
@@ -734,7 +771,8 @@ export function mouse(memory, point) {
  */
 export function selectedStepDrawingRegion(memory, region) {
 	let layer = selectedLayer(memory)
-	let step = selectedStep(memory)
+	let grid = selectedGrid(memory)
+	let step = grid * STEPS_PER_GRID + selectedStep(memory)
 	return stepRegion(memory, layer, step, region)
 }
 
@@ -788,7 +826,7 @@ export function getSoundDetails(memory, layer) {
  pan: number
  on: boolean
  reversed: boolean
- dj: number
+
 }} StepDetails
 
  */
@@ -810,8 +848,12 @@ export function getStepDetails(memory, layer, step) {
 	let pitch = stepPitch(memory, layer, step)
 	let on = stepOn(memory, layer, step)
 	let reversed = stepReversed(memory, layer, step)
+	// let djFreq = stepDjFreqs.at(layer, step)
+	// let djQ = stepDjQs.at(layer, step)
+	// let delay = stepDelayGains.at(layer, step)
+	// let delayTime = stepDelayTimes.at(layer, step)
+	// let reverb = stepReverbs.at(layer, step)
 	let version = memory.soundVersions.at(layer)
-	let dj = memory.stepDjs.at(layer * NUMBER_OF_LAYERS + step)
 
 	return {
 		sound: snd,
@@ -826,8 +868,12 @@ export function getStepDetails(memory, layer, step) {
 		step,
 		on,
 		reversed,
-		version,
-		dj
+		version
+		// djFreq,
+		// djQ,
+		// delay,
+		// delayTime,
+		// reverb
 	}
 }
 
@@ -836,7 +882,12 @@ export function getStepDetails(memory, layer, step) {
  * @returns {StepDetails}
  */
 export function getSelectedStepDetails(memory) {
-	return getStepDetails(memory, selectedLayer(memory), selectedStep(memory))
+	let grid = selectedGrid(memory)
+	return getStepDetails(
+		memory,
+		selectedLayer(memory),
+		grid * STEPS_PER_GRID + selectedStep(memory)
+	)
 }
 
 /**
@@ -847,8 +898,8 @@ export function getSelectedStepDetails(memory) {
  */
 export function copyStepWithinSelectedLayer(memory, from, to) {
 	let layer = selectedLayer(memory)
-
-	let fromDetails = getStepDetails(memory, layer, from)
+	let grid = selectedGrid(memory)
+	let fromDetails = getStepDetails(memory, layer, grid * STEPS_PER_GRID + from)
 
 	stepRegion(memory, layer, to, fromDetails.region)
 	stepQuiet(memory, layer, to, fromDetails.quiet)

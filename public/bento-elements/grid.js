@@ -12,6 +12,7 @@ export default class BentoGrid extends BentoElement {
 `
 	/** @type {BentoBox[]} */
 	boxes = []
+
 	parseLayer(layer = "") {
 		return layer
 			.trim()
@@ -33,7 +34,7 @@ export default class BentoGrid extends BentoElement {
 		this.attachStylesheet("grid")
 
 		customElements.whenDefined("bento-box").then(() => {
-			loop.steps(stepIdx => {
+			loop.gridSteps(stepIdx => {
 				let box = /** @type {BentoBox} */ (document.createElement("bento-box"))
 				this.boxes.push(box)
 				box.selected = stepIdx == 0
@@ -57,6 +58,8 @@ export default class BentoGrid extends BentoElement {
 						...event.detail,
 						box: index
 					})
+				} else {
+					this.announce("change", event.detail)
 				}
 			}
 		)

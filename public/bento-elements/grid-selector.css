@@ -1,0 +1,7 @@
+:host {
+	display: flex;
+}
+
+button.selected {
+	background: orange;
+}

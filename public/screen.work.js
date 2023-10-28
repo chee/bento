@@ -209,7 +209,8 @@ function postBitmap(memory, context, layer, step) {
  */
 function postAllBitmaps(memory, context) {
 	let pidx = Memory.selectedLayer(memory)
-	for (let sidx = 0; sidx < Memory.NUMBER_OF_STEPS; sidx++) {
+	// todo send for current grid
+	for (let sidx = 0; sidx < Memory.STEPS_PER_GRID; sidx++) {
 		// if (Memory.stepOn(memory, pidx, sidx)) {
 		postBitmap(memory, context, pidx, sidx)
 		// }

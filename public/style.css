@@ -79,7 +79,10 @@
 	--box-quiet-mix: var(--quiet-mix);
 	--box-pan-right-mix: var(--pan-right-mix);
 	/* *END-OF-PUBLIC-API* */
+	background: var(--page-fill);
+}
 
+body {
 	background: var(--page-fill);
 }
 

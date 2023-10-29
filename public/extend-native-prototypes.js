@@ -8,6 +8,11 @@ Object.defineProperties(Array.prototype, {
 			}
 			return chunks
 		}
+	},
+	random: {
+		value() {
+			return this[(Math.random() * this.length) | 0]
+		}
 	}
 })
 

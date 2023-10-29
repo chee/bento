@@ -9,4 +9,5 @@ interface Math {
 
 interface Array<T> {
 	chunk: (size: number) => T[][]
+	random: () => T
 }

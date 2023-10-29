@@ -14,14 +14,14 @@ let memory
 /** @param {SharedArrayBuffer} sab */
 export async function init(sab) {
 	memory = Memory.map(sab)
-	await new Promise((yay, _boo) => {
+	await new Promise((yay, boo) => {
 		try {
 			// indexedDB.deleteDatabase("bento")
 			let open = indexedDB.open("bento", 3)
 			open.onerror = _event => {
 				// we don't mind, you just get the old no-save experience
 				console.error("🮲🮳", open.error)
-				yay()
+				boo()
 			}
 
 			// migrate here

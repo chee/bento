@@ -1,7 +1,4 @@
 import * as Memory from "./memory.js"
-// TODO put this in a worker and use Atomics.notify in memory to indicate that a
-// change has occured
-
 /** @type {IDBDatabase} */
 let db
 /** @type {Memory.MemoryMap} */
@@ -22,7 +19,8 @@ async function init(message) {
 			let open = indexedDB.open("bento", 2)
 			open.onerror = _event => {
 				// we don't mind, you just get the old no-save experience
-				console.error("🮲🮳")
+				console.error("🮲🮳", open.error)
+				yay()
 			}
 
 			// migrate here

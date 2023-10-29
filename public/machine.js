@@ -3,6 +3,7 @@ import * as graphics from "./graphics.js"
 import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as db from "./db.js"
+import Ask from "./ask.js"
 
 /** @type {import("./bento-elements/bento-elements.js").BentoElement} */
 let party = document.querySelector("bento-party")
@@ -44,9 +45,12 @@ let settings = machine.querySelector("bento-settings")
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
-// let dialog = /** @type {HTMLDialogElement} */ (
-// 	document.getElementById("dialog")
-// )
+let dialog = /** @type {HTMLDialogElement} */ (
+	document.getElementById("dialog")
+)
+
+let ask = new Ask(dialog)
+
 root.removeAttribute("loading")
 
 let fancyListeners = ["keydown", "click", "touchstart"]
@@ -79,7 +83,7 @@ async function getFancy() {
 				screen.open = true
 			}, 200)
 		}
-		let slug = slugify(db.getIdFromLocation())
+		let slug = db.slugify(db.getSlugFromLocation())
 		history.replaceState(
 			{slug},
 			"",
@@ -298,7 +302,7 @@ grid.addEventListener(
 			} else if (change == "copy") {
 				let {from} = event.detail
 				Memory.copyStepWithinSelectedLayerAndGrid(memory, +from, +uiStep)
-				Memory.selectedUiStep(memory, step)
+				Memory.selectedUiStep(memory, +uiStep)
 				db.save()
 			} else if (change == "quieter") {
 				Memory.stepQuieter(memory, layer, step)
@@ -372,7 +376,7 @@ machine.addEventListener("toggle-settings", event => {
 	})
 })
 
-function openScreen(event) {
+function openScreen() {
 	settings.open = false
 	screen.open = true
 }
@@ -382,17 +386,10 @@ screen.addEventListener("open", openScreen)
 layerSelector.addEventListener("click", openScreen)
 grid.addEventListener("click", openScreen)
 
-function slugify(name = "") {
-	return name
-		.toLowerCase()
-		.replace(/[^a-z0-9+=~@]/g, "-")
-		.replace(/-:[:a-z0-9]+:$/g, "")
-		.replace(/-+/g, "-")
-		.replace(/(^\-|\-$)/, "")
-}
-
-settings.addEventListener("reset", async event => {
-	let ok = window.confirm("this will delete the pattern from your disk. ok?")
+settings.addEventListener("reset", async () => {
+	let ok = await ask.confirm(
+		"this will delete the current pattern from your disk FOREVER. ok?"
+	)
 
 	if (ok) {
 		await db.reset()
@@ -400,24 +397,27 @@ settings.addEventListener("reset", async event => {
 	}
 })
 
-addEventListener("popstate", async event => {
+addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	await db.load(slug)
 	nav.slug = slug
 })
 
-// todo port window.confirm to dialog
-async function saveAs(defaultName = "") {
-	let name = window.prompt("enter a name", defaultName)
+async function saveAs(/** @type {string} */ name) {
 	if (name) {
-		let slug = slugify(name)
-		if (slug == db.getIdFromLocation()) {
-			window.alert(`you are looking at ${slug} right now! bento autosaves btw`)
+		name = await ask.prompt("enter a name")
+	}
+	if (name) {
+		let slug = db.slugify(name)
+		if (slug == db.getSlugFromLocation()) {
+			await ask.alert(
+				`you are looking at ${slug} right now!<br> bento autosaves btw`
+			)
 			return
 		}
 		if (slug) {
 			if (await db.exists(slug)) {
-				let ok = window.confirm(
+				let ok = ask.confirm(
 					`already pattern called ${slug}. this wil overwrite. ok?`
 				)
 				if (!ok) {
@@ -438,9 +438,39 @@ async function saveAs(defaultName = "") {
 	}
 }
 
-async function load(defaultName = "") {
+async function load() {
 	let names = await db.getPatternNames()
-	db.load(names)
+	let slug = await ask.select("select a pattern", ...names)
+	if (slug) {
+		await db.load(slug)
+		history.pushState(
+			{slug},
+			"",
+			slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
+		)
+		nav.slug = slug
+		screen.open = true
+		settings.open = false
+	}
+}
+
+async function renamePattern() {
+	let currentSlug = db.getSlugFromLocation()
+	await saveAs()
+	db.reset(currentSlug)
+}
+
+async function newPattern() {
+	let slug = db.generateRandomSlug()
+	history.pushState(
+		{slug},
+		"",
+		slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
+	)
+	await db.load()
+	nav.slug = slug
+	screen.open = true
+	settings.open = false
 }
 
 settings.addEventListener("load-pattern", async event => {
@@ -449,6 +479,10 @@ settings.addEventListener("load-pattern", async event => {
 
 settings.addEventListener("save-as", async event => {
 	await saveAs()
+})
+
+settings.addEventListener("rename-pattern", async event => {
+	await renamePattern()
 })
 
 let featureflags = new URLSearchParams(location.search.slice(1))

@@ -10,12 +10,9 @@ import * as Memory from "./memory.js"
 let db
 /** @type {Memory.MemoryMap} */
 let memory
-/** @type {SharedArrayBuffer} */
-let sharedarraybuffer
 
 /** @param {SharedArrayBuffer} sab */
 export async function init(sab) {
-	sharedarraybuffer = sab
 	memory = Memory.map(sab)
 	await new Promise((yay, _boo) => {
 		try {
@@ -28,20 +25,24 @@ export async function init(sab) {
 			}
 
 			// migrate here
-			open.onupgradeneeded = _event => {
+			open.onupgradeneeded = event => {
 				db = open.result
 				try {
-					let store = db.createObjectStore("pattern", {
-						autoIncrement: false
-					})
-					for (let name in memory) {
-						try {
-							store.createIndex(name, name, {unique: false})
-						} catch {}
+					if (event.newVersion == 2) {
+						let store = db.createObjectStore("pattern", {
+							autoIncrement: false
+						})
+						for (let name in memory) {
+							try {
+								store.createIndex(name, name, {unique: false})
+							} catch {
+								console.debug(`tried to create already existing ${name}`)
+							}
+						}
+						store.createIndex("id", "id", {
+							unique: true
+						})
 					}
-					store.createIndex("id", "id", {
-						unique: true
-					})
 				} catch (error) {
 					// if they exist it's fine, idk what else can happen
 					console.error("woh-oh alert!!!! ", error)

@@ -1,15 +1,4 @@
-// TODO put this in a worker and use Atomics.notify in memory to indicate that a
-// change has occured
-
 export let loaded = false
-
-export function getIdFromLocation() {
-	return (
-		(typeof window != "undefined" &&
-			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
-		"bento"
-	)
-}
 
 let worker = new Worker("/db.work.js", {type: "module"})
 /**
@@ -55,7 +44,7 @@ export async function init(sab) {
 	})
 }
 
-export async function load(id = getIdFromLocation()) {
+export async function load(id = getSlugFromLocation()) {
 	await post({
 		type: "load",
 		id
@@ -63,24 +52,57 @@ export async function load(id = getIdFromLocation()) {
 	loaded = true // haha
 }
 
-export async function exists(id = getIdFromLocation()) {
+export async function exists(id = getSlugFromLocation()) {
 	return await post({
 		type: "exists",
 		id
 	})
 }
 
-export async function save(id = getIdFromLocation()) {
+export async function save(id = getSlugFromLocation()) {
 	return post({
 		type: "save",
 		id
 	})
 }
 
-export async function reset(id = getIdFromLocation()) {
+export async function reset(id = getSlugFromLocation()) {
 	return post({type: "reset", id})
 }
 
 export async function getPatternNames() {
 	return post({type: "getPatternNames"})
+}
+
+export function getSlugFromLocation() {
+	return (
+		(typeof window != "undefined" &&
+			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
+		"bento"
+	)
+}
+
+function randomWord() {
+	let vowels = "aeiou".split("")
+	let consonants = "bcdfghjklmnpqrstvwxyz".split("")
+	return (
+		consonants.random() +
+		vowels.random() +
+		consonants.random() +
+		vowels.random() +
+		consonants.random()
+	)
+}
+
+export function generateRandomSlug() {
+	return randomWord() + "-" + randomWord()
+}
+
+export function slugify(name = "") {
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9+=~@]/g, "-")
+		.replace(/-:[:a-z0-9]+:$/g, "")
+		.replace(/-+/g, "-")
+		.replace(/(^\-|\-$)/, "")
 }

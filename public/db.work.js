@@ -1,6 +1,8 @@
+export let loaded = false
+
+import {DB_VERSION} from "./db.const.js"
 import * as Memory from "./memory.js"
-// TODO put this in a worker and use Atomics.notify in memory to indicate that a
-// change has occured
+import migrations from "./migrations.js"
 
 /** @type {IDBDatabase} */
 let db
@@ -8,47 +10,48 @@ let db
 let memory
 
 /** @type {SharedArrayBuffer} */
-let buffer
-
-let loaded = false
+let sharedarraybuffer
 
 /** @param {Object & {buffer: SharedArrayBuffer}} message */
-async function init(message) {
-	buffer = message.buffer
-	memory = Memory.map(buffer)
+export async function init(message) {
+	sharedarraybuffer = message.buffer
+
+	memory = Memory.map(sharedarraybuffer)
+
 	await new Promise((yay, _boo) => {
 		try {
-			// indexedDB.deleteDatabase("bento")
+			indexedDB.deleteDatabase("bento")
 			let open = indexedDB.open("bento", 2)
+
+			// let open = indexedDB.open("bento", DB_VERSION)
 			open.onerror = _event => {
 				// we don't mind, you just get the old no-save experience
-				console.error("🮲🮳")
+				// throw new Error(open.error)
+				throw open.error
 			}
 
+			/** @type Promise[] */
+			// let migrationPromises = []
+
 			// migrate here
-			open.onupgradeneeded = _event => {
+			open.onupgradeneeded = event => {
+				console.info(
+					`db upgrade required: ${event.oldVersion} ${event.newVersion}`
+				)
 				db = open.result
-				try {
-					let store = db.createObjectStore("pattern", {
-						autoIncrement: false
-					})
-					for (let name in memory) {
-						try {
-							store.createIndex(name, name, {unique: false})
-						} catch {}
-					}
-					store.createIndex("id", "id", {
-						unique: true
-					})
-				} catch (error) {
-					// if they exist it's fine, idk what else can happen
-					console.error("woh-oh alert!!!! ", error)
+
+				for (let migrate of migrations.slice(
+					event.oldVersion,
+					event.newVersion
+				)) {
+					migrate(open.transaction, open.result)
 				}
 			}
 
 			// now we're talking
 			open.onsuccess = _event => {
 				db = open.result
+				// await Promise.all(migrationPromises)
 				yay(db)
 			}
 		} catch (error) {
@@ -57,7 +60,7 @@ async function init(message) {
 	})
 }
 
-async function load({id = "bento"}) {
+export async function load(id = getSlugFromLocation()) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to load before init")
 	}
@@ -71,7 +74,7 @@ async function load({id = "bento"}) {
 		})
 
 		if (object) {
-			Memory.map(buffer, object)
+			Memory.copy(object, memory)
 		}
 	} catch (error) {
 		console.error("i'm so sorry", error)
@@ -81,7 +84,7 @@ async function load({id = "bento"}) {
 	}
 }
 
-async function exists({id = "bento"}) {
+export async function exists(id = getSlugFromLocation()) {
 	if (!db || !memory) {
 		throw new Error("hey now! tried to check existence before init")
 	}
@@ -106,7 +109,7 @@ async function exists({id = "bento"}) {
 	}
 }
 
-async function save({id = "bento"}) {
+export async function save(id = getSlugFromLocation()) {
 	if (!db || !memory || !loaded) {
 		throw new Error("hey now! tried to save before init")
 	}
@@ -114,15 +117,19 @@ async function save({id = "bento"}) {
 		// durability: "strict"
 	})
 	let store = trans.objectStore("pattern")
-	let object = new ArrayBuffer(Memory.size)
-	// object.id = id
-	store.put(Memory.map(object, memory), id)
+	let localbuffer = new ArrayBuffer(Memory.size)
+
+	let localmap = Memory.map(localbuffer)
+	Memory.copy(memory, localmap)
+	localmap.master.set([DB_VERSION], Memory.Master.dbVersion)
+	store.put(localmap, id)
+
 	await new Promise(yay => {
 		trans.oncomplete = yay
 	})
 }
 
-async function reset({id = "bento"}) {
+export async function reset(id = getSlugFromLocation()) {
 	if (!db || !memory || !loaded) {
 		throw new Error("hey now! tried to reset before init")
 	}
@@ -141,7 +148,7 @@ async function reset({id = "bento"}) {
 	// store.clear()
 }
 
-async function getPatternNames() {
+export async function getPatternNames() {
 	if (!db || !memory || !loaded) {
 		throw new Error("what! tried to getPatternNames before init??")
 	}
@@ -157,15 +164,35 @@ async function getPatternNames() {
 	return names.result
 }
 
-let fn = {reset, save, exists, init, load, getPatternNames}
+export function getSlugFromLocation() {
+	return (
+		(typeof window != "undefined" &&
+			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
+		"bento"
+	)
+}
 
-onmessage = async event => {
-	let message = event.data
+function randomWord() {
+	let vowels = "aeiou".split("")
+	let consonants = "bcdfghjklmnpqrstvwxyz".split("")
+	return (
+		consonants.random() +
+		vowels.random() +
+		consonants.random() +
+		vowels.random() +
+		consonants.random()
+	)
+}
 
-	if (fn[message.type]) {
-		postMessage({
-			...message,
-			result: await fn[message.type](message)
-		})
-	}
+export function generateRandomSlug() {
+	return randomWord() + "-" + randomWord()
+}
+
+export function slugify(name = "") {
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9+=~@]/g, "-")
+		.replace(/-:[:a-z0-9]+:$/g, "")
+		.replace(/-+/g, "-")
+		.replace(/(^\-|\-$)/, "")
 }

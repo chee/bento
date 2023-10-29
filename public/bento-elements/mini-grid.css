@@ -11,15 +11,8 @@
 	opacity: 1;
 }
 
-:host([playing])::after {
-	content: "";
-	width: 2px;
-	height: 2px;
-	border-radius: 2px;
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	background: var(--machine-line);
+:host([playing]) {
+	border-bottom: 1px solid;
 }
 
 button {

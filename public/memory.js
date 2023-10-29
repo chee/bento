@@ -1,3 +1,6 @@
+import {DB_VERSION} from "./db.const.js"
+import {migrateStepLocations} from "./migrations.js"
+
 // ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
 // let NUMBER_OF_LAYERS = number_of_samplers + number_of_synths
@@ -10,24 +13,63 @@ export const DYNAMIC_RANGE = 12
 /* for a time when there are an odd number of layers */
 export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 
+/**
+ * @typedef {
+	Uint8ArrayConstructor
+	| Int8ArrayConstructor
+	| Uint32ArrayConstructor
+	| Float32ArrayConstructor
+	| Int32ArrayConstructor
+} TypedArrayConstructor
+ */
+
+/**
+ * @typedef {Object} MemoryArrayInfo
+ * @prop {string} name
+ * @prop {TypedArrayConstructor} type
+ * @prop {number} size
+ * @prop {Record<number, import("./migrations").MigrationInfo[]>} [migrations]
+ * @prop {boolean} [saveable]
+ * @prop {number[]} [default]
+ */
+
+/** @type {MemoryArrayInfo[]} */
 export let arrays = [
-	{name: "master", type: Uint8Array, size: 16},
+	{
+		name: "master",
+		type: Uint8Array,
+		size: 16,
+		default: [120, 0, 0, 0, 0]
+	},
 	/* the 0x1-GRIDS_PER_LAYER grid-length of a given layer  */
 	{
 		name: "numberOfGridsInLayers",
 		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		migrations: {
+			3: [{type: "add"}]
+		}
 	},
 	/* the 0x1-0x10 step-length of an individual grid  */
 	{
 		name: "numberOfStepsInGrids",
 		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		migrations: {
+			3: [
+				{
+					type: "rename",
+					from: "layerLength",
+					to: "numberOfStepsInGrids"
+				}
+			]
+		}
 	},
 	{
 		name: "soundLengths",
 		type: Uint32Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		migrations: {2: [{type: "add"}]}
 	},
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
@@ -35,94 +77,206 @@ export let arrays = [
 	{
 		name: "soundVersions",
 		type: Int32Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		migrations: {2: [{type: "add"}]}
 	},
 	{
 		name: "layerSelectedGrids",
 		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		migrations: {2: [{type: "add"}]}
 	},
 	{
 		name: "layerSpeeds",
 		type: Float32Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		migrations: {2: [{type: "add"}]}
 	},
 	{
 		name: "currentSteps",
 		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		saveable: false,
+		migrations: {2: [{type: "add"}]}
 	},
 	{
 		name: "stepOns",
 		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepReverseds",
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepPitches",
-		type: Int8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepQuiets",
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepPans",
-		type: Int8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepAttacks",
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
-	},
-	{
-		name: "stepReleases",
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
 	},
 	{
 		name: "stepStarts",
 		type: Uint32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
 	},
 	{
 		name: "stepEnds",
 		type: Uint32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepReverseds",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepPitches",
+		type: Int8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepQuiets",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepPans",
+		type: Int8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepAttacks",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
+	},
+	{
+		name: "stepReleases",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			2: [{type: "add"}],
+			3: [
+				{
+					type: "data",
+					migrate: migrateStepLocations
+				}
+			]
+		}
 	},
 	{
 		name: "stepDjFreqs",
-		type: Float32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {
+			3: [{type: "add"}]
+		}
+	},
+	{
+		name: "stepDjQs",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {3: [{type: "add"}]}
+	},
+	{
+		name: "stepReverbGains",
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {3: [{type: "add"}]}
 	},
 	{
 		name: "stepDelayTimes",
-		type: Float32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {3: [{type: "add"}]}
 	},
 	{
 		name: "stepDelayGains",
-		type: Float32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		migrations: {3: [{type: "add"}]}
 	},
 
-	{name: "drawingRegion", type: Float32Array, size: 4},
+	{
+		name: "drawingRegion",
+		type: Float32Array,
+		size: 4,
+		migrations: {2: [{type: "add"}]},
+		saveable: false
+	},
 	{
 		name: "layerSounds",
 		type: Float32Array,
-		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)
+		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET),
+		migrations: {2: [{type: "add"}]}
 	},
-	{name: "mouse", type: Float32Array, size: 2},
-	{name: "theme", type: Uint8Array, size: 8}
-	// TODO what size is this? is it the same on every platform? hahaha
-	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},
+	{
+		name: "mouse",
+		type: Float32Array,
+		size: 2,
+		migrations: {2: [{type: "add"}]}
+	}
 ]
 
 /**
@@ -130,12 +284,13 @@ export let arrays = [
  * @readonly
  * @enum {number}
  */
-const Master = {
+export const Master = {
 	bpm: 0,
 	selectedLayer: 1,
 	selectedUiStep: 2,
 	playing: 3,
-	paused: 4
+	paused: 4,
+	dbVersion: 5
 }
 
 /**
@@ -185,48 +340,65 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
 
 /**
  * @param {SharedArrayBuffer | ArrayBuffer} buffer
- * @param {MemoryMap} [from]
  * @returns {MemoryMap}
  */
-export function map(buffer, from) {
+export function map(buffer) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 	for (let arrayInfo of arrays) {
-		// todo handle the offset needing to be a multiple of BYTES_PER_ELEMENT
-		let array = (memory[arrayInfo.name] =
-			/** @type {typeof arrayInfo.type.prototype} */ (
-				new arrayInfo.type(buffer, offset, arrayInfo.size)
-			))
+		memory[arrayInfo.name] = /** @type {typeof arrayInfo.type.prototype} */ (
+			new arrayInfo.type(buffer, offset, arrayInfo.size)
+		)
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
-		if (from) {
-			// TODO export some kind of `Memory.ALWAYS_FRESH_FIELDS`
-			if (arrayInfo.name == "currentSteps") continue
-			if (arrayInfo.name == "drawingRegion") continue
-			// maybe move play/paused out so master can be completely ignored
-			if (arrayInfo.name == "master") {
-				array.set([from.master.at(Master.bpm)], Master.bpm)
-				// not playing or paused
-				array.set([from.master.at(Master.selectedLayer)], Master.selectedLayer)
-				array.set(
-					[from.master.at(Master.selectedUiStep)],
-					Master.selectedUiStep
-				)
-			} else {
-				try {
-					if (arrayInfo.name in from) {
-						array.set(from[arrayInfo.name])
-					} else {
-						console.warn(
-							`tried to copy ${arrayInfo.name} from an ${from.constructor.name} without one.`
-						)
-					}
-				} catch (error) {
-					console.error(error, arrayInfo, Object.keys(from))
-				}
-			}
-		}
 	}
 	return memory
+}
+
+/**
+ * @param {MemoryMap} fromMap
+ * @param {MemoryMap} toMap
+ * @returns {void}
+ */
+export function copy(fromMap, toMap, fields = Object.keys(toMap)) {
+	let fromDbVersion = fromMap.master.at(Master.dbVersion)
+	for (let name of fields) {
+		let arrayInfo = arrays.find(ai => ai.name == name)
+		if (arrayInfo) {
+			if (arrayInfo.saveable === false) {
+				continue
+			}
+			let data = fromMap[arrayInfo.name]
+			if (fromDbVersion != DB_VERSION) {
+				console.debug(`migrating from ${fromDbVersion} to ${DB_VERSION}`)
+				console.log(arrayInfo.migrations)
+				if (arrayInfo.migrations) {
+					for (let i = fromDbVersion || DB_VERSION - 1; i < DB_VERSION; i++) {
+						let migrations = arrayInfo.migrations[i + 1] || []
+						for (let migration of migrations) {
+							if (migration.type == "data") {
+								console.log(`running ${i} migration on ${arrayInfo.name}`)
+								console.log(data.constructor)
+								data = migration.migrate(data)
+							} else if (migration.type == "add") {
+								data = new arrayInfo.type(arrayInfo.size)
+							}
+						}
+					}
+				}
+			}
+			try {
+				toMap[arrayInfo.name].set(data)
+			} catch (error) {
+				console.error(`failed to copy ${arrayInfo.name}`)
+				throw error
+			}
+		} else {
+			console.error(`Cannot copy "${name}" to buffer because i don't know how`)
+		}
+	}
+	/* bring over certain bpm, selected layer and selected ui step */
+	toMap.master.set(fromMap.master.subarray(0, 2))
+	toMap.master.set([DB_VERSION], Master.dbVersion)
 }
 
 /*
@@ -952,12 +1124,6 @@ export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
 	let layer = selectedLayer(memory)
 	let grid = layerSelectedGrid(memory, layer)
 	let fromDetails = getStepDetails(memory, layer, grid * STEPS_PER_GRID + from)
-
-	console.log(
-		`i think you want to copy from ${grid * STEPS_PER_GRID + from} to ${
-			grid * STEPS_PER_GRID + to
-		} correct?`
-	)
 
 	stepRegion(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.region)
 	stepQuiet(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.quiet)

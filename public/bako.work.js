@@ -69,6 +69,7 @@ class Bako extends AudioWorkletProcessor {
 		this.tick = 0
 		this.pan = 0
 		this.reverb = 0
+		this.pitch = 0
 		this.djFrequency = 0
 		this.djQ = 0
 		this.delay = 0
@@ -102,6 +103,7 @@ class Bako extends AudioWorkletProcessor {
 		let [hfreq] = outputs[consts.Output.HighPassFrequency]
 		let [lq] = outputs[consts.Output.LowPassQ]
 		let [hq] = outputs[consts.Output.HighPassQ]
+		let [pitch] = outputs[consts.Output.Pitch]
 
 		for (let i = 0; i < 128; i++) {
 			delay[i] = this.delay
@@ -111,6 +113,7 @@ class Bako extends AudioWorkletProcessor {
 			reverb[i] = this.reverb
 			lq[i] = this.djQ
 			hq[i] = this.djQ
+			pitch[i] = this.pitch
 
 			if (this.djFrequency == 0) {
 				// todo figure out how to use constantsourcenode and if it's

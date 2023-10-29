@@ -104,7 +104,7 @@ fancyListeners.map(name =>
 async function init() {
 	await graphics.init()
 	await sounds.init(buffer)
-	db.init(buffer)
+	await db.init(buffer)
 
 	// todo move this logic to memory.fresh
 	Memory.bpm(memory, master.bpm)

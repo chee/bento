@@ -26,6 +26,9 @@ export async function init(sab) {
 
 			// migrate here
 			open.onupgradeneeded = event => {
+				console.debug(
+					`migration requires from ${event.oldVersion} to ${event.newVersion}`
+				)
 				db = open.result
 				try {
 					if (event.newVersion == 2) {
@@ -62,7 +65,8 @@ export async function init(sab) {
 
 export async function load(id = "bento") {
 	if (!db || !memory) {
-		throw new Error("hey now! tried to load before init")
+		console.error("hey now! tried to load before init")
+		return
 	}
 	try {
 		let trans = db.transaction("pattern", "readonly")

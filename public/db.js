@@ -1,78 +1,164 @@
 export let loaded = false
-
-let worker = new Worker("/db.work.js", {type: "module"})
 /**
  * @typedef {Object} Message
  * @prop {string} type
  * @prop {string} [id]
  */
 
-/**
- * @template {Message & {hash?: string} & Record<string, any>} Msg
- * @param {Msg} message
- */
-async function post(message, timeout = 760) {
-	let hash = Math.random().toString(16).slice(2, 10)
-	message.hash = hash
+import * as Memory from "./memory.js"
+/** @type {IDBDatabase} */
+let db
+/** @type {Memory.MemoryMap} */
+let memory
+/** @type {SharedArrayBuffer} */
+let sharedarraybuffer
 
-	let done = new Promise((yay, boo) => {
-		worker.addEventListener("message", event => {
-			let msg = event.data
-			if (
-				msg.type == message.type &&
-				msg.id == message.id &&
-				msg.hash == message.hash
-			) {
-				yay(msg.result)
-			}
-		})
-		setTimeout(boo, timeout)
-	})
-	worker.postMessage(message)
-	return done
-}
-
-/**
- * get started
- *
- * @param {SharedArrayBuffer} sab
- * @returns {Promise}
- */
+/** @param {SharedArrayBuffer} sab */
 export async function init(sab) {
-	return post({
-		type: "init",
-		buffer: sab
+	sharedarraybuffer = sab
+	memory = Memory.map(sab)
+	await new Promise((yay, _boo) => {
+		try {
+			// indexedDB.deleteDatabase("bento")
+			let open = indexedDB.open("bento", 3)
+			open.onerror = _event => {
+				// we don't mind, you just get the old no-save experience
+				console.error("🮲🮳", open.error)
+				yay()
+			}
+
+			// migrate here
+			open.onupgradeneeded = _event => {
+				db = open.result
+				try {
+					let store = db.createObjectStore("pattern", {
+						autoIncrement: false
+					})
+					for (let name in memory) {
+						try {
+							store.createIndex(name, name, {unique: false})
+						} catch {}
+					}
+					store.createIndex("id", "id", {
+						unique: true
+					})
+				} catch (error) {
+					// if they exist it's fine, idk what else can happen
+					console.error("woh-oh alert!!!! ", error)
+				}
+			}
+
+			// now we're talking
+			open.onsuccess = _event => {
+				db = open.result
+				yay(db)
+			}
+		} catch (error) {
+			console.info("why is everyone bullying me :(", error)
+		}
 	})
 }
 
-export async function load(id = getSlugFromLocation()) {
-	await post({
-		type: "load",
-		id
-	})
-	loaded = true // haha
+export async function load(id = "bento") {
+	if (!db || !memory) {
+		throw new Error("hey now! tried to load before init")
+	}
+	try {
+		let trans = db.transaction("pattern", "readonly")
+		let store = trans.objectStore("pattern")
+		let object = await new Promise((yay, boo) => {
+			let get = store.get(id)
+			get.onsuccess = () => yay(get.result)
+			get.onerror = error => boo(error)
+		})
+
+		if (object) {
+			Memory.copy(object, memory)
+		}
+	} catch (error) {
+		console.error("i'm so sorry", error)
+	} finally {
+		/** um */
+		loaded = true
+	}
 }
 
-export async function exists(id = getSlugFromLocation()) {
-	return await post({
-		type: "exists",
-		id
+export async function exists(id = "bento") {
+	if (!db || !memory) {
+		throw new Error("hey now! tried to check existence before init")
+	}
+	try {
+		let trans = db.transaction("pattern", "readonly")
+		let store = trans.objectStore("pattern")
+		let object = await new Promise((yay, boo) => {
+			let get = store.get(id)
+			get.onsuccess = () => yay(get.result)
+			get.onerror = error => boo(error)
+		})
+		if (object) {
+			return true
+		} else {
+			return false
+		}
+	} catch (error) {
+		console.error("i'm so sorry", error)
+	} finally {
+		/** um */
+		loaded = true
+	}
+}
+
+export async function save(id = "bento") {
+	if (!db || !memory || !loaded) {
+		throw new Error("hey now! tried to save before init")
+	}
+	let trans = db.transaction("pattern", "readwrite", {
+		// durability: "strict"
+	})
+	let store = trans.objectStore("pattern")
+	let object = new ArrayBuffer(Memory.size)
+	let map = Memory.map(object)
+	// object.id = id
+	Memory.copy(memory, map)
+	store.put(map, id)
+	await new Promise(yay => {
+		trans.oncomplete = yay
 	})
 }
 
-export async function save(id = getSlugFromLocation()) {
-	return post({
-		type: "save",
-		id
+export async function reset(id = "bento") {
+	if (!db || !memory || !loaded) {
+		throw new Error("hey now! tried to reset before init")
+	}
+	let trans = db.transaction("pattern", "readwrite", {
+		// durability: "strict"
 	})
-}
+	let store = trans.objectStore("pattern")
+	// TODO put Memory.map(new ArrayBuffer, Memory.fresh)
+	// console.log(Memory.map(new ArrayBuffer(Memory.size), memory))
+	store.delete(id)
+	await new Promise(yay => {
+		trans.oncomplete = yay
+	})
 
-export async function reset(id = getSlugFromLocation()) {
-	return post({type: "reset", id})
+	// store.put(Memory.fresh(memory))
+	// store.clear()
 }
 
 export async function getPatternNames() {
-	return post({type: "getPatternNames"})
+	if (!db || !memory || !loaded) {
+		throw new Error("what! tried to getPatternNames before init??")
+	}
+	let trans = db.transaction("pattern", "readonly", {
+		// durability: "strict"
+	})
+	let store = trans.objectStore("pattern")
+	let names = store.getAllKeys()
+	await new Promise(yay => {
+		trans.oncomplete = yay
+	})
+
+	return names.result
 }
 
 export function getSlugFromLocation() {

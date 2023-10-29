@@ -11,7 +11,7 @@ export const DYNAMIC_RANGE = 12
 export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 
 export let arrays = [
-	{name: "master", type: Uint8Array, size: 16},
+	{name: "master", type: Uint8Array, size: 16, default: [120]},
 	/* the 0x1-GRIDS_PER_LAYER grid-length of a given layer  */
 	{
 		name: "numberOfGridsInLayers",
@@ -22,7 +22,8 @@ export let arrays = [
 	{
 		name: "numberOfStepsInGrids",
 		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		defaultFill: 16
 	},
 	{
 		name: "soundLengths",
@@ -45,7 +46,8 @@ export let arrays = [
 	{
 		name: "layerSpeeds",
 		type: Float32Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		defaultFill: 1
 	},
 	{
 		name: "currentSteps",
@@ -55,7 +57,8 @@ export let arrays = [
 	{
 		name: "stepOns",
 		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
 	},
 	{
 		name: "stepReverseds",
@@ -121,8 +124,6 @@ export let arrays = [
 	},
 	{name: "mouse", type: Float32Array, size: 2},
 	{name: "theme", type: Uint8Array, size: 8}
-	// TODO what size is this? is it the same on every platform? hahaha
-	//{name: "waveforms", type: Uint8ClampedArray, size: NUMBER_OF_LAYERS *},
 ]
 
 /**
@@ -139,7 +140,7 @@ const Master = {
 }
 
 /**
- * Location of item in the actively draawn region
+ * Location of item in the actively drawn region
  * @readonly
  * @enum {number}
  */
@@ -185,10 +186,9 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
 
 /**
  * @param {SharedArrayBuffer | ArrayBuffer} buffer
- * @param {MemoryMap} [from]
  * @returns {MemoryMap}
  */
-export function map(buffer, from) {
+export function map(buffer) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 	for (let arrayInfo of arrays) {
@@ -197,36 +197,57 @@ export function map(buffer, from) {
 			/** @type {typeof arrayInfo.type.prototype} */ (
 				new arrayInfo.type(buffer, offset, arrayInfo.size)
 			))
-		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
-		if (from) {
-			// TODO export some kind of `Memory.ALWAYS_FRESH_FIELDS`
-			if (arrayInfo.name == "currentSteps") continue
-			if (arrayInfo.name == "drawingRegion") continue
-			// maybe move play/paused out so master can be completely ignored
-			if (arrayInfo.name == "master") {
-				array.set([from.master.at(Master.bpm)], Master.bpm)
-				// not playing or paused
-				array.set([from.master.at(Master.selectedLayer)], Master.selectedLayer)
-				array.set(
-					[from.master.at(Master.selectedUiStep)],
-					Master.selectedUiStep
-				)
-			} else {
-				try {
-					if (arrayInfo.name in from) {
-						array.set(from[arrayInfo.name])
-					} else {
-						console.warn(
-							`tried to copy ${arrayInfo.name} from an ${from.constructor.name} without one.`
-						)
-					}
-				} catch (error) {
-					console.error(error, arrayInfo, Object.keys(from))
-				}
-			}
+		if (arrayInfo.default) {
+			array.set(arrayInfo.default)
+		} else if (arrayInfo.defaultFill) {
+			array.set(Array(arrayInfo.size).fill(arrayInfo.defaultFill))
 		}
+		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 	}
 	return memory
+}
+
+/**
+ * @param {MemoryMap} fromMap
+ * @param {MemoryMap} toMap
+ */
+export function copy(
+	fromMap,
+	toMap,
+	fields = new Set([...Object.keys(toMap), ...Object.keys(fromMap)])
+) {
+	for (let arrayInfo of arrays) {
+		let {name} = arrayInfo
+		if (fields.has(name)) {
+			// TODO mark fields as `saveable' or something
+			if (name == "currentSteps") continue
+			if (name == "drawingRegion") continue
+			// maybe move play/paused out so master can be completely ignored
+			if (name == "master") {
+				bpm(toMap, bpm(fromMap))
+				selectedLayer(toMap, selectedLayer(fromMap))
+				selectedUiStep(toMap, selectedUiStep(fromMap))
+				continue
+			}
+			try {
+				if (!(name in fromMap)) {
+					console.warn(`can't copy ${name} from a safe which does not have it`)
+					continue
+				}
+				if (!(name in toMap)) {
+					console.warn(`can't copy ${name} to a safe which does not have it`)
+					continue
+				}
+				toMap[name].set(fromMap[name])
+			} catch (error) {
+				console.error(`error loading ${name} from safe`, error)
+			}
+		} else {
+			console.debug(
+				`skipping ${arrayInfo.name} because it is not in the fields array`
+			)
+		}
+	}
 }
 
 /*

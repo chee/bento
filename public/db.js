@@ -11,11 +11,11 @@ let worker = new Worker("/db.work.js", {type: "module"})
  * @template {Message & {hash?: string} & Record<string, any>} Msg
  * @param {Msg} message
  */
-async function post(message) {
+async function post(message, timeout = 760) {
 	let hash = Math.random().toString(16).slice(2, 10)
 	message.hash = hash
-	// todo timeout
-	let done = new Promise(yay => {
+
+	let done = new Promise((yay, boo) => {
 		worker.addEventListener("message", event => {
 			let msg = event.data
 			if (
@@ -26,6 +26,7 @@ async function post(message) {
 				yay(msg.result)
 			}
 		})
+		setTimeout(boo, timeout)
 	})
 	worker.postMessage(message)
 	return done

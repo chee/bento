@@ -30,25 +30,21 @@ export async function init(sab) {
 					`migration requires from ${event.oldVersion} to ${event.newVersion}`
 				)
 				db = open.result
-				try {
-					if (event.newVersion == 2) {
-						let store = db.createObjectStore("pattern", {
-							autoIncrement: false
-						})
-						for (let name in memory) {
-							try {
-								store.createIndex(name, name, {unique: false})
-							} catch {
-								console.debug(`tried to create already existing ${name}`)
-							}
-						}
-						store.createIndex("id", "id", {
-							unique: true
-						})
+				let store
+				if (db.objectStoreNames.contains("pattern")) {
+					store = open.transaction.objectStore("pattern")
+				} else {
+					store = db.createObjectStore("pattern", {
+						autoIncrement: false
+					})
+				}
+				for (let name in memory) {
+					if (!store.indexNames.contains(name)) {
+						store.createIndex(name, name, {unique: false})
 					}
-				} catch (error) {
-					// if they exist it's fine, idk what else can happen
-					console.error("woh-oh alert!!!! ", error)
+				}
+				if (!store.indexNames.contains("id")) {
+					store.createIndex("id", "id", {unique: true})
 				}
 			}
 

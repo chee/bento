@@ -17,7 +17,7 @@ export async function init(sab) {
 	await new Promise((yay, boo) => {
 		try {
 			// indexedDB.deleteDatabase("bento")
-			let open = indexedDB.open("bento", 3)
+			let open = indexedDB.open("bento", 4)
 			open.onerror = _event => {
 				// we don't mind, you just get the old no-save experience
 				console.error("🮲🮳", open.error)

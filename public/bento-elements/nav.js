@@ -23,21 +23,9 @@ export default class BentoNav extends BentoElement {
 	#slug = document.createElement("h1")
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
-		let left = document.createElement("button")
-		left.id = "left"
-		left.innerHTML = BentoNav.icons.arrow
-		let right = document.createElement("button")
-		right.id = "right"
-		right.innerHTML = BentoNav.icons.arrow
-		this.shadow.append(left, this.#slug, right)
+		this.shadow.append(this.#slug)
 		this.#slug.innerHTML = "&nbsp;"
 		this.attachStylesheet("nav")
-		left.addEventListener("click", () => {
-			this.back()
-		})
-		right.addEventListener("click", () => {
-			this.forward()
-		})
 	}
 
 	back() {
@@ -56,10 +44,10 @@ export default class BentoNav extends BentoElement {
 
 	/** @type {string} */
 	get slug() {
-		return this.#slug.textContent || "bento"
+		return (this.#slug.textContent || "bento").replaceAll("-", " ")
 	}
 
 	set slug(slug) {
-		this.#slug.textContent = slug || "bento"
+		this.#slug.textContent = (slug || "bento").replaceAll("-", " ")
 	}
 }

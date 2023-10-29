@@ -41,21 +41,31 @@ export default class BentoMasterControls extends BentoElement {
 			type: "button",
 			label: "duplicate pattern"
 		})
+		this.createButton({
+			name: "load-pattern",
+			type: "button",
+			label: "load pattern"
+		})
+		this.createButton({
+			name: "new-pattern",
+			type: "button",
+			label: "new pattern"
+		})
+		this.createButton({
+			name: "rename-pattern",
+			type: "button",
+			label: "rename pattern"
+		})
 		// this.createButton({
 		// 	name: "choose-theme",
 		// 	type: "button",
 		// 	label: "choose theme"
 		// })
-		// this.createButton({
-		// 	name: "load-pattern",
-		// 	type: "button",
-		// 	label: "load pattern"
-		// })
 		this.createButton(
 			{
 				name: "reset",
 				type: "button",
-				label: "clear pattern"
+				label: "delete pattern"
 			},
 			this.shadow.firstElementChild
 		)

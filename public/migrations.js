@@ -39,10 +39,10 @@ export default [
 			delete map.layerLengths
 		}
 
-		map.stepOns.set(scaleStepsForGrids(map.stepOns))
-		map.stepPans.set(scaleStepsForGrids(map.stepPans))
-		map.stepQuiets.set(scaleStepsForGrids(map.stepQuiets))
-		map.stepReverseds.set(scaleStepsForGrids(map.stepReverseds))
+		map.stepOns = scaleStepsForGrids(map.stepOns)
+		map.stepPans = scaleStepsForGrids(map.stepPans)
+		map.stepQuiets = scaleStepsForGrids(map.stepQuiets)
+		map.stepReverseds = scaleStepsForGrids(map.stepReverseds)
 		return map
 	}
 ]

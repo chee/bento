@@ -1,14 +1,9 @@
 /* data migrations */
 export function scaleStepsForGrids(/** @type Uint8Array */ array) {
-	if (array.length != 64) {
-		console.log(array.length)
-		return array
-	}
 	let layera = array.subarray(0, 15)
 	let layerb = array.subarray(16, 31)
 	let layerc = array.subarray(32, 47)
 	let layerd = array.subarray(48, 64)
-	console.log({layera, layerb, layerc, layerd})
 	// can't reuse any info from the outside object because it
 	// might change but this function must never
 	let stepsPerLayer = 128

@@ -34,8 +34,8 @@ export default [
 	map => map,
 	// 2 to 3
 	map => {
-		if (map.layerLengths) {
-			map.numberOfStepsInGrids = map.layerLengths
+		if ("layerLengths" in map) {
+			map.numberOfStepsInGrids = /**@type {Uint8Array}*/ (map.layerLengths)
 			delete map.layerLengths
 		}
 

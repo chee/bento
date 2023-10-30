@@ -46,9 +46,6 @@ export default [
 			delete map.layerLengths
 		}
 		return map
-	},
-	// 3 to 4
-	map => {
 		map.stepOns.set(scaleStepsForGrids(map.stepOns))
 		map.stepPans.set(scaleStepsForGrids(map.stepPans))
 		map.stepQuiets.set(scaleStepsForGrids(map.stepQuiets))

@@ -20,7 +20,7 @@ export async function init(sab) {
 		// indexedDB.deleteDatabase("bento")
 		let open = indexedDB.open("bento", DB_VERSION)
 
-		open.onblocked = open.onerror = _event => {
+		open.onerror = _event => {
 			// we don't mind, you just get the old no-save experience
 			console.error("🮲🮳", open.error)
 			boo(open.error)

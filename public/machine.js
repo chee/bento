@@ -103,8 +103,15 @@ fancyListeners.map(name =>
 
 async function init() {
 	await graphics.init()
+	// todo only add the default sounds if the db init failed
 	await sounds.init(buffer)
-	await db.init(buffer)
+	try {
+		await db.init(buffer)
+	} catch (error) {
+		console.error("why is everyone bullying me :(", error)
+		console.error("failed to load db, nevertheless:")
+		console.error(error)
+	}
 
 	// todo move this logic to memory.fresh
 	Memory.bpm(memory, master.bpm)

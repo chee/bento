@@ -1,3 +1,5 @@
+import {DB_VERSION} from "./db.js"
+import migrations from "./migrations.js"
 // ~4.75 seconds at 44.1khz
 export const SOUND_SIZE = 2 ** 16 * 4
 // let NUMBER_OF_LAYERS = number_of_samplers + number_of_synths
@@ -58,6 +60,10 @@ export let arrays = [
 		name: "stepOns",
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		// let 4onthefloor = 0x8888
+		//                    .toString(2)
+		//                    .split("")
+		//	                   .map(Number)
 		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
 	},
 	{
@@ -136,7 +142,8 @@ const Master = {
 	selectedLayer: 1,
 	selectedUiStep: 2,
 	playing: 3,
-	paused: 4
+	paused: 4,
+	dbversion: 5
 }
 
 /**
@@ -192,29 +199,70 @@ export function map(buffer) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 	for (let arrayInfo of arrays) {
-		// todo handle the offset needing to be a multiple of BYTES_PER_ELEMENT
-		let array = (memory[arrayInfo.name] =
-			/** @type {typeof arrayInfo.type.prototype} */ (
-				new arrayInfo.type(buffer, offset, arrayInfo.size)
-			))
-		if (arrayInfo.default) {
-			array.set(arrayInfo.default)
-		} else if (arrayInfo.defaultFill) {
-			array.set(Array(arrayInfo.size).fill(arrayInfo.defaultFill))
-		}
+		memory[arrayInfo.name] = /** @type {typeof arrayInfo.type.prototype} */ (
+			new arrayInfo.type(buffer, offset, arrayInfo.size)
+		)
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 	}
 	return memory
 }
 
-/**
- * @param {MemoryMap} fromMap
- * @param {MemoryMap} toMap
+/*
+ * load and save are very similar procedures and it is extremely tempting to make
+ * them the same function, but they are not the same.
  */
-export function copy(
-	fromMap,
-	toMap,
-	fields = new Set([...Object.keys(toMap), ...Object.keys(fromMap)])
+
+/**
+ * @param {MemoryMap} memory
+ * @param {MemoryMap} safe
+ */
+export function load(memory, safe, fields = new Set(Object.keys(safe))) {
+	let savedDbVersion = safe.master?.at(Master.dbversion) || 0
+	for (let migrate of migrations.slice(savedDbVersion, DB_VERSION)) {
+		safe = migrate(safe)
+	}
+	for (let arrayInfo of arrays) {
+		let {name} = arrayInfo
+		if (fields.has(name)) {
+			// TODO mark fields as `saveable' or something
+			if (name == "currentSteps") continue
+			if (name == "drawingRegion") continue
+			// maybe move play/paused out so master can be completely ignored
+			if (name == "master") {
+				bpm(memory, bpm(safe))
+				selectedLayer(memory, selectedLayer(safe))
+				selectedUiStep(memory, selectedUiStep(safe))
+				continue
+			}
+			try {
+				if (!(name in memory)) {
+					console.warn(`can't copy ${name} from a safe which does not have it`)
+					continue
+				}
+				if (!(name in safe)) {
+					console.warn(`can't copy ${name} to a safe which does not have it`)
+					continue
+				}
+
+				memory[name].set(safe[name])
+			} catch (error) {
+				console.error(`error loading ${name} from safe`, error)
+			}
+		} else {
+			console.debug(
+				`skipping ${arrayInfo.name} because it is not in the fields array`
+			)
+		}
+	}
+}
+/**
+ * @param {MemoryMap} memory
+ * @param {MemoryMap} safe
+ */
+export function save(
+	memory,
+	safe,
+	fields = new Set([...Object.keys(safe), ...Object.keys(memory)])
 ) {
 	for (let arrayInfo of arrays) {
 		let {name} = arrayInfo
@@ -224,21 +272,22 @@ export function copy(
 			if (name == "drawingRegion") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
-				bpm(toMap, bpm(fromMap))
-				selectedLayer(toMap, selectedLayer(fromMap))
-				selectedUiStep(toMap, selectedUiStep(fromMap))
+				bpm(safe, bpm(memory))
+				selectedLayer(safe, selectedLayer(memory))
+				selectedUiStep(safe, selectedUiStep(memory))
+				safe.master.set([DB_VERSION], Master.dbversion)
 				continue
 			}
 			try {
-				if (!(name in fromMap)) {
+				if (!(name in memory)) {
 					console.warn(`can't copy ${name} from a safe which does not have it`)
 					continue
 				}
-				if (!(name in toMap)) {
+				if (!(name in safe)) {
 					console.warn(`can't copy ${name} to a safe which does not have it`)
 					continue
 				}
-				toMap[name].set(fromMap[name])
+				safe[name].set(memory[name])
 			} catch (error) {
 				console.error(`error loading ${name} from safe`, error)
 			}
@@ -973,12 +1022,6 @@ export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
 	let layer = selectedLayer(memory)
 	let grid = layerSelectedGrid(memory, layer)
 	let fromDetails = getStepDetails(memory, layer, grid * STEPS_PER_GRID + from)
-
-	console.log(
-		`i think you want to copy from ${grid * STEPS_PER_GRID + from} to ${
-			grid * STEPS_PER_GRID + to
-		} correct?`
-	)
 
 	stepRegion(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.region)
 	stepQuiet(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.quiet)

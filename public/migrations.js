@@ -38,12 +38,12 @@ export default [
 			map.numberOfStepsInGrids = /**@type {Uint8Array}*/ (map.layerLengths)
 			delete map.layerLengths
 		}
-		map.numberOfGridsInLayers.set([1, 1, 1, 1])
 
 		map.stepOns = scaleStepsForGrids(map.stepOns)
 		map.stepPans = scaleStepsForGrids(map.stepPans)
 		map.stepQuiets = scaleStepsForGrids(map.stepQuiets)
 		map.stepReverseds = scaleStepsForGrids(map.stepReverseds)
+
 		return map
 	}
 ]

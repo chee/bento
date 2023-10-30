@@ -259,11 +259,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
  * @param {MemoryMap} memory
  * @param {MemoryMap} safe
  */
-export function save(
-	memory,
-	safe,
-	fields = new Set([...Object.keys(safe), ...Object.keys(memory)])
-) {
+export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 	for (let arrayInfo of arrays) {
 		let {name} = arrayInfo
 		if (fields.has(name)) {
@@ -280,11 +276,11 @@ export function save(
 			}
 			try {
 				if (!(name in memory)) {
-					console.warn(`can't copy ${name} from a safe which does not have it`)
+					console.warn(`can't save ${name} to a safe which does not have it`)
 					continue
 				}
 				if (!(name in safe)) {
-					console.warn(`can't copy ${name} to a safe which does not have it`)
+					console.warn(`can't save ${name} to a safe which does not have it`)
 					continue
 				}
 				safe[name].set(memory[name])
@@ -1013,7 +1009,7 @@ export function getSelectedStepDetails(memory) {
 }
 
 /**
- * copy one step's copyable details to another
+ * save one step's copyable details to another
  * @param {MemoryMap} memory
  * @param {number} from
  * @param {number} to

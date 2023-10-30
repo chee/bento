@@ -1,32 +1,50 @@
-export default function createPitchShifter(
-	/** @type {AudioContext} */
-	context
-) {
-	let feedbackGain = new GainNode(context)
-	let feedbackDelay = new DelayNode(context)
-	let delay = new DelayNode(context, {maxDelayTime: 1})
-	let sawtooth = new OscillatorNode(context, {
-		type: "sawtooth"
-	})
-}
+import * as constants from "../sounds.const.js"
+import BentoAudioNode from "./node.js"
 
-export default class PitchShiftNode extends AudioNode {
-	get numberOfInputs() {
-		return 1
-	}
-	get numberOfOutputs() {
-		return 1
-	}
-	get channelCount() {
-		return 2
-	}
-	get feedback() {}
-	constructor(context, options) {
-		super()
-		this.context = context
-		this.feedbackGain = new GainNode(context)
-		this.delay1 = new DelayNode(context)
-		this.delay2 = new DelayNode(context)
-		this.osc1 = new OscillatorNode(context)
+export default class BentoPitchShifter extends BentoAudioNode {
+	constructor(
+		/** @type {AudioContext} */
+		context,
+		{
+			/** @type {AudioWorkletNode} */
+			layer
+		} = {layer: undefined}
+	) {
+		super(context)
+		this.in = new GainNode(context, {
+			gain: 0
+		})
+		this.out = new GainNode(context, {
+			gain: 1
+		})
+
+		let delay1 = new DelayNode(context, {maxDelayTime: 1, delayTime: 0.1})
+		let delay2 = new DelayNode(context, {maxDelayTime: 1, delayTime: 0.1})
+		let osc1 = new OscillatorNode(context, {
+			type: "sawtooth",
+			frequency: 0.01,
+			detune: 1
+		})
+
+		let osc2 = new OscillatorNode(context, {type: "sawtooth", frequency: 0.01})
+
+		let delay = new DelayNode(context)
+		this.time = delay.delayTime
+		let feedback = new DelayNode(context, {delayTime: 0})
+		let ws = 0.05
+
+		this.in.connect(delay1)
+		this.in.connect(delay2)
+		osc1.connect(delay1.delayTime)
+		osc2.connect(delay2.delayTime)
+		feedback.connect(this.in)
+		delay1.connect(this.out)
+		delay2.connect(this.out)
+
+		// if (layer) {
+		// 	layer.connect(this.in.gain, constants.Output.DelayInputLevel)
+		// 	layer.connect(this.time, constants.Output.DelayTime)
+		// 	layer.connect(this.feedback, constants.Output.DelayFeedback)
+		// }
 	}
 }

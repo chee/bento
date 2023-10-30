@@ -411,7 +411,7 @@ addEventListener("popstate", async () => {
 })
 
 async function saveAs(/** @type {string} */ name) {
-	if (name) {
+	if (!name) {
 		name = await ask.prompt("enter a name")
 	}
 	if (name) {
@@ -447,7 +447,10 @@ async function saveAs(/** @type {string} */ name) {
 
 async function load() {
 	let names = await db.getPatternNames()
-	let slug = await ask.select("select a pattern", ...names)
+	let slug = await ask.select(
+		"select a pattern",
+		...names.map(n => ("" + n).replaceAll("-", " "))
+	)
 	if (slug) {
 		await db.load(slug)
 		history.pushState(
@@ -486,6 +489,10 @@ settings.addEventListener("load-pattern", async event => {
 
 settings.addEventListener("save-as", async event => {
 	await saveAs()
+})
+
+settings.addEventListener("new-pattern", async event => {
+	await newPattern()
 })
 
 settings.addEventListener("rename-pattern", async event => {

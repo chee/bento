@@ -244,7 +244,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 					continue
 				}
 
-				memory[name].set(safe[name])
+				memory[name].set(safe[name].subarray(0, memory[name].length))
 			} catch (error) {
 				console.error(`error loading ${name} from safe`, error)
 			}

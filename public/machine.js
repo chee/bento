@@ -187,7 +187,6 @@ layerSelector.addEventListener(
 	event => {
 		if (event.detail.change == "layer") {
 			Memory.selectedLayer(memory, event.detail.value)
-			db.save()
 		}
 	}
 )
@@ -214,7 +213,6 @@ gridSelector.addEventListener(
 		let {change, value} = event.detail
 		if (change == "grid") {
 			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), value)
-			db.save()
 		}
 	}
 )
@@ -237,6 +235,7 @@ gridSelector.addEventListener(
 				Memory.copyGridWithinSelectedLayer(memory, selectedGrid, i)
 			}
 			Memory.layerSelectedGrid(memory, selectedLayer, newNumberOfGrids - 1)
+			db.save()
 		}
 	}
 )

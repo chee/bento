@@ -83,6 +83,7 @@ export async function load(slug = getSlugFromLocation()) {
 		console.error("well now come now.. tried to load before init")
 		return
 	}
+
 	let object = (await get(slug).catch(() => Memory.fresh())) || Memory.fresh()
 	Memory.load(memory, object)
 	alreadyFancy = true
@@ -125,7 +126,7 @@ export async function save(id = getSlugFromLocation()) {
 		throw new Error("hey now! tried to save before init")
 	}
 	let trans = db.transaction("pattern", "readwrite", {
-		// durability: "strict"
+		durability: "relaxed"
 	})
 	let store = trans.objectStore("pattern")
 	let object = new ArrayBuffer(Memory.size)

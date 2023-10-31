@@ -16,7 +16,7 @@ export async function init(sab) {
 		open.onerror = _event => {
 			// we don't mind, you just get the old no-save experience
 			console.error("🮲🮳", open.error)
-			boo(open.error)
+			yay(open.error)
 		}
 
 		// migrate here

@@ -60,14 +60,16 @@ if (history.scrollRestoration) {
 }
 
 async function getFancy() {
+	if (party.hasAttribute("fancy")) {
+		return
+	}
 	try {
 		if (!sounds.fancy()) {
 			await sounds.start()
-			party.removeAttribute("fancy")
 		}
+
 		if (sounds.fancy() && !graphics.fancy()) {
 			graphics.start(screen.canvas, buffer)
-			party.removeAttribute("fancy")
 		}
 
 		if (sounds.fancy() && graphics.fancy() && !db.fancy()) {
@@ -76,7 +78,8 @@ async function getFancy() {
 				await sounds.loadDefaultKit()
 			}
 		}
-		if (sounds.fancy() && graphics.fancy()) {
+
+		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
 			party.setAttribute("fancy", "fancy")
 		}
 	} catch {}

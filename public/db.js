@@ -16,7 +16,7 @@ export async function init(sab) {
 		open.onerror = _event => {
 			// we don't mind, you just get the old no-save experience
 			console.error("🮲🮳", open.error)
-			yay(open.error)
+			boo(open.error)
 		}
 
 		// migrate here
@@ -66,9 +66,10 @@ export async function get(slug = getSlugFromLocation()) {
 		let store = trans.objectStore("pattern")
 		let get = store.get(slug)
 		get.onsuccess = () => {
-			Memory.load(fresh, get.result)
+			if (get.result) {
+				Memory.load(fresh, get.result)
+			}
 			yay(fresh)
-			console.log(get.result)
 		}
 		get.onerror = error => {
 			console.error("i'm so sorry", error)

@@ -60,12 +60,14 @@ export async function get(slug = getSlugFromLocation()) {
 		console.error("hey now! tried to get before init")
 		return
 	}
+	let fresh = Memory.fresh()
 	return new Promise(async (yay, boo) => {
 		let trans = db.transaction("pattern", "readonly")
 		let store = trans.objectStore("pattern")
 		let get = store.get(slug)
 		get.onsuccess = () => {
-			yay(get.result)
+			Memory.load(fresh, get.result)
+			yay(fresh)
 			console.log(get.result)
 		}
 		get.onerror = error => {

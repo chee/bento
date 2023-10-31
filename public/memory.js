@@ -246,7 +246,11 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 					continue
 				}
 
-				memory[name].set(safe[name].subarray(0, memory[name].length))
+				let content = safe[name].subarray(0, memory[name].length)
+				if (name == "numberOfGridsInLayers" && content.every(n => !n)) {
+					content = Array(arrayInfo.size).fill(arrayInfo.defaultFill)
+				}
+				memory[name].set(content)
 			} catch (error) {
 				console.error(`error loading ${name} from safe`, error)
 			}

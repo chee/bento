@@ -1,12 +1,5 @@
 export const DB_VERSION = 3
 
-export let loaded = false
-/**
- * @typedef {Object} Message
- * @prop {string} type
- * @prop {string} [id]
- */
-
 import * as Memory from "./memory.js"
 /** @type {IDBDatabase} */
 let db
@@ -59,34 +52,43 @@ export async function init(sab) {
 	})
 }
 
-export async function load(slug = getSlugFromLocation()) {
+/**
+ * @returns {Promise<Memory.MemoryMap>}
+ */
+export async function get(slug = getSlugFromLocation()) {
 	if (!db || !memory) {
-		console.error("hey now! tried to load before init")
+		console.error("hey now! tried to get before init")
 		return
 	}
-	try {
+	return new Promise(async (yay, boo) => {
 		let trans = db.transaction("pattern", "readonly")
 		let store = trans.objectStore("pattern")
-		let object = await new Promise(yay => {
-			let get = store.get(slug)
-			get.onsuccess = () => yay(get.result)
-			get.onerror = error => {
-				console.error(error)
-				yay()
-			}
-		})
-
-		if (object) {
-			Memory.load(memory, object)
-		} else {
-			console.debug("fresh start :)")
+		let get = store.get(slug)
+		get.onsuccess = () => {
+			yay(get.result)
+			console.log(get.result)
 		}
-	} catch (error) {
-		console.error("i'm so sorry", error)
-	} finally {
-		/** um */
-		loaded = true
+		get.onerror = error => {
+			console.error("i'm so sorry", error)
+			boo(error)
+		}
+	})
+}
+
+export async function load(slug = getSlugFromLocation()) {
+	if (!db || !memory) {
+		console.error("well now come now.. tried to load before init")
+		return
 	}
+	let object = (await get(slug).catch(() => Memory.fresh())) || Memory.fresh()
+	Memory.load(memory, object)
+	alreadyFancy = true
+}
+
+let alreadyFancy = false
+
+export function fancy() {
+	return alreadyFancy
 }
 
 export async function exists(id = getSlugFromLocation()) {
@@ -111,12 +113,12 @@ export async function exists(id = getSlugFromLocation()) {
 		return false
 	} finally {
 		/** um */
-		loaded = true
+		alreadyFancy = true
 	}
 }
 
 export async function save(id = getSlugFromLocation()) {
-	if (!db || !memory || !loaded) {
+	if (!db || !memory || !alreadyFancy) {
 		throw new Error("hey now! tried to save before init")
 	}
 	let trans = db.transaction("pattern", "readwrite", {
@@ -134,7 +136,7 @@ export async function save(id = getSlugFromLocation()) {
 }
 
 export async function reset(id = getSlugFromLocation()) {
-	if (!db || !memory || !loaded) {
+	if (!db || !memory || !alreadyFancy) {
 		throw new Error("hey now! tried to reset before init")
 	}
 	let trans = db.transaction("pattern", "readwrite", {
@@ -148,7 +150,7 @@ export async function reset(id = getSlugFromLocation()) {
 }
 
 export async function getPatternNames() {
-	if (!db || !memory || !loaded) {
+	if (!db || !memory || !alreadyFancy) {
 		throw new Error("what! tried to getPatternNames before init??")
 	}
 	let trans = db.transaction("pattern", "readonly", {

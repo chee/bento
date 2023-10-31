@@ -99,23 +99,19 @@ export async function recordSound() {
 
 /**
  * Get a sound from the sounds folder
- * @param {string} name
+ * @param {string} url
  */
-async function fetchSound(name, ext = "wav") {
+async function fetchSound(url) {
 	try {
-		let sound = await fetch(`/sounds/${name}.${ext}`)
+		let sound = await fetch(url)
 		return decode(sound)
 	} catch (error) {
-		console.error(`:< unable to fetch the audio file: ${name}`, error)
+		console.error(`:< unable to fetch the audio file at ${url}`, error)
 	}
 }
 
 await context.audioWorklet.addModule("/bako.work.js")
 await context.audioWorklet.addModule("/expr.work.js")
-
-let [kick, snar, hhat, open] = await Promise.all(
-	["skk", "sks", "skh", "sko"].map(s => fetchSound(s))
-)
 
 /**
  * set the sound in memory
@@ -174,16 +170,35 @@ export async function start() {
 	}
 	alreadyFancy = true
 }
+
+/**
+ * @param {string[]} urls
+ */
+export async function loadKit(...urls) {
+	for (let [index, url] of Object.entries(urls)) {
+		setSound(memory, +index, await fetchSound(url))
+	}
+}
+
+export async function loadDefaultKit() {
+	return loadKit(
+		"/sounds/skk.wav",
+		"/sounds/sks.wav",
+		"/sounds/skh.wav",
+		"/sounds/sko.wav"
+	)
+}
+
+export function empty() {
+	return memory.layerSounds.every(n => !n)
+}
+
 /**
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
  */
 export async function init(buffer) {
 	memory = Memory.map(buffer)
-	setSound(memory, 0, kick)
-	setSound(memory, 1, snar)
-	setSound(memory, 2, hhat)
-	setSound(memory, 3, open)
 
 	let analyzer = context.createAnalyser()
 	analyzer.fftSize = 2048

@@ -69,8 +69,12 @@ async function getFancy() {
 			graphics.start(screen.canvas, buffer)
 			party.removeAttribute("fancy")
 		}
-		if (sounds.fancy() && graphics.fancy() && !db.loaded) {
-			db.load()
+
+		if (sounds.fancy() && graphics.fancy() && !db.fancy()) {
+			await db.load()
+			if (sounds.empty()) {
+				await sounds.loadDefaultKit()
+			}
 		}
 		if (sounds.fancy() && graphics.fancy()) {
 			party.setAttribute("fancy", "fancy")
@@ -102,29 +106,9 @@ fancyListeners.map(name =>
 )
 
 async function init() {
+	await db.init(buffer)
 	await graphics.init()
-	// todo only add the default sounds if the db init failed
 	await sounds.init(buffer)
-	try {
-		await db.init(buffer)
-	} catch (error) {
-		console.error("why is everyone bullying me :(", error)
-		console.error("failed to load db, nevertheless:")
-		console.error(error)
-	}
-
-	// todo move this logic to memory.fresh
-	Memory.bpm(memory, master.bpm)
-	loop.layers(pidx => {
-		Memory.layerSpeed(memory, pidx, 1)
-		Memory.numberOfStepsInGrid(memory, pidx, 16)
-		Memory.numberOfGridsInLayer(memory, pidx, 1)
-	})
-
-	loop.gridSteps(sidx => {
-		let selectedLayer = Memory.selectedLayer(memory)
-		Memory.stepOn(memory, selectedLayer, sidx, boxes[sidx].on)
-	})
 }
 
 function update(_frame = 0) {
@@ -445,11 +429,11 @@ async function saveAs(/** @type {string} */ name) {
 	}
 }
 
-async function load() {
+async function loadPattern() {
 	let names = await db.getPatternNames()
 	let slug = await ask.select(
 		"select a pattern",
-		...names.map(n => ("" + n).replaceAll("-", " "))
+		...names.map(n => n.toString())
 	)
 	if (slug) {
 		await db.load(slug)
@@ -477,25 +461,26 @@ async function newPattern() {
 		"",
 		slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 	)
-	await db.load()
+	await db.load(slug)
+	await sounds.loadDefaultKit()
 	nav.slug = slug
 	screen.open = true
 	settings.open = false
 }
 
-settings.addEventListener("load-pattern", async event => {
-	await load()
+settings.addEventListener("load-pattern", async () => {
+	await loadPattern()
 })
 
-settings.addEventListener("save-as", async event => {
+settings.addEventListener("save-as", async () => {
 	await saveAs()
 })
 
-settings.addEventListener("new-pattern", async event => {
+settings.addEventListener("new-pattern", async () => {
 	await newPattern()
 })
 
-settings.addEventListener("rename-pattern", async event => {
+settings.addEventListener("rename-pattern", async () => {
 	await renamePattern()
 })
 

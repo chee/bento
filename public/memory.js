@@ -18,7 +18,8 @@ export let arrays = [
 	{
 		name: "numberOfGridsInLayers",
 		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		defaultFill: 1
 	},
 	/* the 0x1-0x10 step-length of an individual grid  */
 	{
@@ -198,6 +199,7 @@ console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
 export function map(buffer) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
+
 	for (let arrayInfo of arrays) {
 		memory[arrayInfo.name] = /** @type {typeof arrayInfo.type.prototype} */ (
 			new arrayInfo.type(buffer, offset, arrayInfo.size)
@@ -255,6 +257,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 		}
 	}
 }
+
 /**
  * @param {MemoryMap} memory
  * @param {MemoryMap} safe
@@ -295,17 +298,29 @@ export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 	}
 }
 
-/*
+/**
+ * Returns a fresh array buffer that can be loaded
  * @returns {MemoryMap}
  */
-// export function fresh() {
-// 	let fresh = map(new ArrayBuffer(size))
-// 	stepOn(fresh, 0, 0x0, true)
-// 	stepOn(fresh, 0, 0x4, true)
-// 	stepOn(fresh, 0, 0x8, true)
-// 	stepOn(fresh, 0, 0xc, true)
-// 	bpm(fresh, 120)
-// }
+export function fresh() {
+	let arraybuffer = new ArrayBuffer(size)
+	let memory = /** @type {MemoryMap}*/ ({})
+	let offset = 0
+	for (let arrayInfo of arrays) {
+		let typedarray = (memory[arrayInfo.name] =
+			/** @type {typeof arrayInfo.type.prototype} */ (
+				new arrayInfo.type(arraybuffer, offset, arrayInfo.size)
+			))
+		if (arrayInfo.default) {
+			typedarray.set(arrayInfo.default)
+		} else if (arrayInfo.defaultFill) {
+			typedarray.set(Array(arrayInfo.size).fill(arrayInfo.defaultFill))
+		}
+		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
+	}
+	memory.master.set([DB_VERSION], Master.dbversion)
+	return memory
+}
 
 /**
  * @param {MemoryMap} memory

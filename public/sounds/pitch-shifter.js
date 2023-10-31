@@ -23,10 +23,15 @@ export default class BentoPitchShifter extends BentoAudioNode {
 		let osc1 = new OscillatorNode(context, {
 			type: "sawtooth",
 			frequency: 0.01,
-			detune: 1
+			detune: 0
 		})
-
-		let osc2 = new OscillatorNode(context, {type: "sawtooth", frequency: 0.01})
+		let osc2 = new OscillatorNode(context, {
+			type: "sawtooth",
+			frequency: 0.01,
+			detune: 0
+		})
+		osc1.frequency.value = 2 ** (1 / 12)
+		osc1.frequency.value = 2 ** (1 / 12)
 
 		let delay = new DelayNode(context)
 		this.time = delay.delayTime
@@ -41,10 +46,10 @@ export default class BentoPitchShifter extends BentoAudioNode {
 		delay1.connect(this.out)
 		delay2.connect(this.out)
 
-		// if (layer) {
-		// 	layer.connect(this.in.gain, constants.Output.DelayInputLevel)
-		// 	layer.connect(this.time, constants.Output.DelayTime)
-		// 	layer.connect(this.feedback, constants.Output.DelayFeedback)
-		// }
+		if (layer) {
+			// layer.connect(this.in.gain, constants.Output.Delay)
+			// layer.connect(this.time, constants.Output.DelayTime)
+			// layer.connect(this.feedback, constants.Output.DelayFeedback)
+		}
 	}
 }

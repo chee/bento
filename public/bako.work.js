@@ -90,7 +90,6 @@ class Bako extends AudioWorkletProcessor {
 	 * @param {Record<string, Float32Array>} parameters
 	 */
 	process(_inputs, outputs, parameters) {
-		// TODO fix stop button (this.lastStep, may need a mem field for paused)
 		let memory = this.memory
 		let [delayTime] = outputs[consts.Output.DelayTime]
 		let [feedback] = outputs[consts.Output.DelayFeedback]
@@ -116,9 +115,6 @@ class Bako extends AudioWorkletProcessor {
 			pitch[i] = this.pitch
 
 			if (this.djFrequency == 0) {
-				// todo figure out how to use constantsourcenode and if it's
-				// possible to do all this logic in the DjFilter node and only
-				// require outputs for `freq' and `q'
 				hgain[i] = 0
 				lgain[i] = 0
 				lfreq[i] = sampleRate / 2

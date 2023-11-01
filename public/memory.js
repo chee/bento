@@ -12,53 +12,64 @@ export const DYNAMIC_RANGE = 12
 /* for a time when there are an odd number of layers */
 export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 
-export let arrays = [
-	{name: "master", type: Uint8Array, size: 16, default: [120]},
+/**
+ * @typedef {Uint8Array | Int8Array | Int32Array | Uint32Array | Float32Array} BentoTypedArray
+ */
+
+/**
+ * @typedef {Object} ArrayInfo
+ * @prop {new (size: number) => BentoTypedArray} type
+ * @prop {number} size
+ * @prop {number[]} [default]
+ * @prop {number} [defaultFill]
+ */
+
+/**
+ * @typedef {Record<string, ArrayInfo>} MemoryArrayDefinition
+ */
+
+/**
+ * @satisfies {MemoryArrayDefinition}
+ */
+export let arrays = {
+	master: {type: Uint8Array, size: 16, default: [120]},
 	/* the 0x1-GRIDS_PER_LAYER grid-length of a given layer  */
-	{
-		name: "numberOfGridsInLayers",
+	numberOfGridsInLayers: {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
 		defaultFill: 1
 	},
 	/* the 0x1-0x10 step-length of an individual grid  */
-	{
-		name: "numberOfStepsInGrids",
+	numberOfStepsInGrids: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
 		defaultFill: 16
 	},
-	{
-		name: "soundLengths",
+	soundLengths: {
 		type: Uint32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	// this monotonic exists just to force a refresh when things change
 	// user may experience unexpected behaviour if they replace a sound more than
 	// 4294967295 times in one session
-	{
-		name: "soundVersions",
+	soundVersions: {
 		type: Int32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
-	{
-		name: "layerSelectedGrids",
+	layerSelectedGrids: {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
-	{
-		name: "layerSpeeds",
+	layerSpeeds: {
 		type: Float32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
 		defaultFill: 1
 	},
-	{
-		name: "currentSteps",
+	currentSteps: {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
-	{
-		name: "stepOns",
+	stepOns: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
 		// let 4onthefloor = 0x8888
@@ -67,71 +78,68 @@ export let arrays = [
 		//	                   .map(Number)
 		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
 	},
-	{
-		name: "stepReverseds",
+	gridOns: {
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		// let 4onthefloor = 0x8888
+		//                    .toString(2)
+		//                    .split("")
+		//	                   .map(Number)
+		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
+	},
+	stepReverseds: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepPitches",
+	stepPitches: {
 		type: Int8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepQuiets",
+	stepQuiets: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepPans",
+	stepPans: {
 		type: Int8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepAttacks",
+	stepAttacks: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepReleases",
+	stepReleases: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepStarts",
+	stepStarts: {
 		type: Uint32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepEnds",
+	stepEnds: {
 		type: Uint32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepDjFreqs",
+	stepDjFreqs: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepDelayTimes",
+	stepDelayTimes: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	{
-		name: "stepDelayGains",
+	stepDelayGains: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 
-	{name: "drawingRegion", type: Float32Array, size: 4},
-	{
-		name: "layerSounds",
+	drawingRegion: {type: Float32Array, size: 4},
+	layerSounds: {
 		type: Float32Array,
 		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)
 	},
-	{name: "mouse", type: Float32Array, size: 2},
-	{name: "theme", type: Uint8Array, size: 8}
-]
+	mouse: {type: Float32Array, size: 2},
+	theme: {type: Uint8Array, size: 8}
+}
 
 /**
  * Location of item in master control state
@@ -159,37 +167,18 @@ const DrawingRegion = {
 	xMultiplier: 3
 }
 
-export let size = arrays.reduce(
+export let size = Object.values(arrays).reduce(
 	(total, array) => total + array.type.BYTES_PER_ELEMENT * array.size,
 	0
 )
 
 /**
-for (let arrays of (await import("./public/memory.js")).arrays)
-console.log(`* @prop {${arrays.type.name}} MemoryMap.${arrays.name}`)
- * @typedef {Object} MemoryMap
- * @prop {Uint8Array} MemoryMap.master
- * @prop {Uint8Array} MemoryMap.numberOfGridsInLayers
- * @prop {Uint8Array} MemoryMap.numberOfStepsInGrids
- * @prop {Float32Array} MemoryMap.frame
- * @prop {Uint32Array} MemoryMap.soundLengths
- * @prop {Uint32Array} MemoryMap.soundVersions
- * @prop {Float32Array} MemoryMap.layerSounds
- * @prop {Float32Array} MemoryMap.layerSpeeds
- * @prop {Uint8Array} MemoryMap.currentSteps
- * @prop {Uint8Array} MemoryMap.stepOns
- * @prop {Uint8Array} MemoryMap.layerSelectedGrids
- * @prop {Uint8Array} MemoryMap.stepReverseds
- * @prop {Int8Array} MemoryMap.stepPitches
- * @prop {Uint8Array} MemoryMap.stepQuiets
- * @prop {Uint8Array} MemoryMap.stepPans
- * @prop {Uint8Array} MemoryMap.stepAttacks
- * @prop {Uint8Array} MemoryMap.stepReleases
- * @prop {Uint32Array} MemoryMap.stepStarts
- * @prop {Uint32Array} MemoryMap.stepEnds
- * @prop {Float32Array} MemoryMap.drawingRegion
- * @prop {Float32Array} MemoryMap.mouse
- * @prop {Float32Array} MemoryMap.stepDjFreqs
+ * @template {MemoryArrayDefinition} Arrays
+ * @typedef {{[Name in keyof Arrays]: InstanceType<Arrays[Name]["type"]>}} MemoryMapOf
+ */
+
+/**
+ * @typedef {MemoryMapOf<typeof arrays>} MemoryMap
  */
 
 /**
@@ -200,10 +189,8 @@ export function map(buffer) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 
-	for (let arrayInfo of arrays) {
-		memory[arrayInfo.name] = /** @type {typeof arrayInfo.type.prototype} */ (
-			new arrayInfo.type(buffer, offset, arrayInfo.size)
-		)
+	for (let [name, arrayInfo] of Object.entries(arrays)) {
+		memory[name] = new arrayInfo.type(buffer, offset, arrayInfo.size)
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 	}
 	return memory
@@ -223,10 +210,8 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 	for (let migrate of migrations.slice(savedDbVersion, DB_VERSION)) {
 		safe = migrate(safe)
 	}
-	for (let arrayInfo of arrays) {
-		let {name} = arrayInfo
+	for (let [name, arrayInfo] of Object.entries(arrays)) {
 		if (fields.has(name)) {
-			// TODO mark fields as `saveable' or something
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
 			// maybe move play/paused out so master can be completely ignored
@@ -246,18 +231,23 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 					continue
 				}
 
-				let content = safe[name].subarray(0, memory[name].length)
-				if (name == "numberOfGridsInLayers" && content.every(n => !n)) {
-					content = Array(arrayInfo.size).fill(arrayInfo.defaultFill)
+				let content = /** @type {typeof arrayInfo.type.prototype} */ (
+					safe[name]
+				)
+				content = content.subarray(0, memory[name].length)
+				if (
+					name == "numberOfGridsInLayers" &&
+					"defaultFill" in arrayInfo &&
+					content.every(/** @param {number} n */ n => !n)
+				) {
+					content.fill(arrayInfo.defaultFill)
 				}
 				memory[name].set(content)
 			} catch (error) {
 				console.error(`error loading ${name} from safe`, error)
 			}
 		} else {
-			console.debug(
-				`skipping ${arrayInfo.name} because it is not in the fields array`
-			)
+			console.debug(`skipping ${name} because it is not in the fields array`)
 		}
 	}
 }
@@ -267,10 +257,8 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
  * @param {MemoryMap} safe
  */
 export function save(memory, safe, fields = new Set(Object.keys(memory))) {
-	for (let arrayInfo of arrays) {
-		let {name} = arrayInfo
+	for (let [name] of Object.entries(arrays)) {
 		if (fields.has(name)) {
-			// TODO mark fields as `saveable' or something
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
 			// maybe move play/paused out so master can be completely ignored
@@ -295,9 +283,7 @@ export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 				console.error(`error loading ${name} from safe`, error)
 			}
 		} else {
-			console.debug(
-				`skipping ${arrayInfo.name} because it is not in the fields array`
-			)
+			console.debug(`skipping ${name} because it is not in the fields array`)
 		}
 	}
 }
@@ -310,14 +296,14 @@ export function fresh() {
 	let arraybuffer = new ArrayBuffer(size)
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
-	for (let arrayInfo of arrays) {
-		let typedarray = (memory[arrayInfo.name] =
+	for (let [name, arrayInfo] of Object.entries(arrays)) {
+		let typedarray = (memory[name] =
 			/** @type {typeof arrayInfo.type.prototype} */ (
 				new arrayInfo.type(arraybuffer, offset, arrayInfo.size)
 			))
-		if (arrayInfo.default) {
+		if ("default" in arrayInfo) {
 			typedarray.set(arrayInfo.default)
-		} else if (arrayInfo.defaultFill) {
+		} else if ("defaultFill" in arrayInfo) {
 			typedarray.set(Array(arrayInfo.size).fill(arrayInfo.defaultFill))
 		}
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
@@ -594,6 +580,17 @@ export function toggleStep(memory, layer, step) {
 	let {stepOns} = memory
 	let at = layer * STEPS_PER_LAYER + step
 	stepOns.set([stepOns.at(at) ^ 1], at)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} grid
+ */
+export function toggleGrid(memory, layer, grid) {
+	let {gridOns} = memory
+	let at = layer * GRIDS_PER_LAYER + grid
+	gridOns.set([gridOns.at(at) ^ 1], at)
 }
 
 /**

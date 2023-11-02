@@ -2,7 +2,6 @@ import * as Memory from "./memory.js"
 import * as loop from "./loop.js"
 import * as constants from "./sounds.const.js"
 import Delay from "./sounds/delay.js"
-import Reverb from "./sounds/reverb.js"
 import DjFilter from "./sounds/dj-filter.js"
 let context = new AudioContext()
 // in milliseconds
@@ -123,10 +122,6 @@ export function setSound(memory, layerNumber, sound) {
 	Memory.sound(memory, layerNumber, sound)
 }
 
-let ps1 = await context.decodeAudioData(
-	await (await fetch("/sounds/ps1d.flac")).arrayBuffer()
-)
-
 let alreadyFancy = false
 export function fancy() {
 	return alreadyFancy
@@ -207,7 +202,7 @@ export async function init(buffer) {
 	loop.layers(idx => {
 		let layer = new AudioWorkletNode(context, "bako", {
 			processorOptions: {buffer, layerNumber: idx},
-			channelCount: 2,
+			channelCount: 1,
 			numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS,
 			outputChannelCount: [
 				2,
@@ -219,7 +214,6 @@ export async function init(buffer) {
 
 		let filter = new DjFilter(context, {layer})
 		let delay = new Delay(context, {layer})
-		let reverb = new Reverb(context, {layer, ir: ps1})
 
 		/* bako -> filter */
 		layer.connect(filter.in, constants.Output.Sound)
@@ -231,16 +225,16 @@ export async function init(buffer) {
 		pan.connect(context.destination)
 
 		// /* pan->sends */
-		pan.connect(reverb.in)
+		// pan.connect(reverb.in)
 		pan.connect(delay.in)
 
 		// /* sends->dac */
 		delay.out.connect(context.destination)
-		reverb.out.connect(context.destination)
+		// reverb.out.connect(context.destination)
 
 		// /* everything that goes out is connected to the analyzer too  */
 		pan.connect(analyzer)
 		delay.out.connect(analyzer)
-		reverb.out.connect(analyzer)
+		// reverb.out.connect(analyzer)
 	})
 }

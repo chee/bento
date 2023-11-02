@@ -7,16 +7,6 @@ for (let i = 0; i < qcurve.length; i++) {
 	qcurve[i] = 1 - Math.sin((i / (qcurve.length + 1)) * Math.PI * 0.5)
 }
 
-// let lcurve = new Float32Array(Memory.DYNAMIC_RANGE / 2)
-// for (let i = 0; i < lcurve.length; i++) {
-// 	lcurve[i] = 1 - Math.sin((i / (lcurve.length + 1)) * Math.PI * 0.5)
-// }
-
-// let rcurve = new Float32Array(Memory.DYNAMIC_RANGE / 2)
-// for (let i = 0; i < lcurve.length; i++) {
-// 	lcurve[i] = 1 - Math.cos((i / (lcurve.length + 1)) * Math.PI * 0.5)
-// }
-
 /**
  * @param {import("./memory.js").StepDetails} stepDetails
  * @returns {import("./memory.js").StepDetails}
@@ -25,26 +15,24 @@ function alter(stepDetails) {
 	let {
 		// TODO take 2 channel for l + r and apply pan curves in here
 		sound: originalSound,
-
 		region,
 		soundLength,
-		reversed,
-		quiet,
-		attack,
-		release
+		reversed
 	} = stepDetails
 
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
-	if (quiet || attack || release || reversed) {
-		let output = new Float32Array(sound.length)
-		for (let i = 0; i < sound.length; i++) {
-			let targetIndex = reversed ? sound.length - i : i
-			output[targetIndex] = sound[i] * qcurve[quiet]
-		}
-		sound = output
-	}
-	return {...stepDetails, sound}
+	// todo send gain value out instead
+	// if (quiet || attack || release || reversed) {
+	// 	let output = new Float32Array(sound.length)
+	// 	for (let i = 0; i < sound.length; i++) {
+	// 		let targetIndex = reversed ? sound.length - i : i
+	// 		output[targetIndex] = sound[i] * qcurve[quiet]
+	// 	}
+	// 	sound = output
+	// }
+	stepDetails.sound = reversed ? sound.reverse() : sound
+	return stepDetails
 }
 
 class Bako extends AudioWorkletProcessor {
@@ -104,6 +92,7 @@ class Bako extends AudioWorkletProcessor {
 		let [hq] = outputs[consts.Output.HighPassQ]
 		let [pitch] = outputs[consts.Output.Pitch]
 
+		// todo why must we loop twice?
 		for (let i = 0; i < 128; i++) {
 			delay[i] = this.delay
 			delayTime[i] = this.delayTime
@@ -165,6 +154,7 @@ class Bako extends AudioWorkletProcessor {
 		this.lastStep = nextStep
 
 		if (this.alteredSound) {
+			// todo is this cutting off the last 127 samples?
 			if (this.point + 128 > this.alteredSound.sound.length) {
 				this.alteredSound = null
 				this.pan = 0
@@ -175,11 +165,11 @@ class Bako extends AudioWorkletProcessor {
 					this.point + 128
 				)
 				this.point += 128
-				let [leftear, rightear] = outputs[consts.Output.Sound]
+				let [leftear] = outputs[consts.Output.Sound]
 
 				for (let i = 0; i < 128; i++) {
 					// todo stereo
-					leftear[i] = rightear[i] = portionOfSound[i]
+					leftear[i] = portionOfSound[i]
 				}
 			}
 		}

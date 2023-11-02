@@ -6,11 +6,9 @@ export default class BentoReverb extends BentoAudioNode {
 		/** @type {AudioContext} */
 		context,
 		{
-			/** @type {AudioWorkletNode} */
-			layer,
 			/** @type {Float32Array} */
 			ir
-		} = {layer: undefined, ir: undefined}
+		} = {ir: undefined}
 	) {
 		super(context)
 		this.out = new ConvolverNode(context, {
@@ -21,10 +19,6 @@ export default class BentoReverb extends BentoAudioNode {
 			gain: 0
 		})
 		this.in.connect(this.out)
-
-		if (layer) {
-			layer.connect(this.in.gain, constants.Output.ReverbInputLevel)
-		}
 	}
 
 	setImpulseResponse(/** @type {AudioBuffer} */ ir) {

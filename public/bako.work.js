@@ -17,21 +17,20 @@ function alter(stepDetails) {
 		sound: originalSound,
 		region,
 		soundLength,
-		reversed
+		reversed,
+		quiet
 	} = stepDetails
 
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
-	// todo send gain value out instead
-	// if (quiet || attack || release || reversed) {
-	// 	let output = new Float32Array(sound.length)
-	// 	for (let i = 0; i < sound.length; i++) {
-	// 		let targetIndex = reversed ? sound.length - i : i
-	// 		output[targetIndex] = sound[i] * qcurve[quiet]
-	// 	}
-	// 	sound = output
-	// }
-	stepDetails.sound = reversed ? sound.reverse() : sound
+	if (reversed) {
+		sound.reverse()
+	}
+
+	if (quiet) {
+		sound = sound.map(f32 => f32 * qcurve[quiet])
+	}
+
 	return stepDetails
 }
 

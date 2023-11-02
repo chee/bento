@@ -72,11 +72,11 @@ export default class BentoBox extends BentoElement {
 	#dragenter(event) {
 		event.preventDefault()
 		for (let item of Array.from(event.dataTransfer.items)) {
-			// TODO restrict to supported formats by trying to decode a silent audio
-			// file of the format?
-			if (item.type == "application/bento.step") {
-				this.#droptarget = true
-			}
+			item.getAsString(string => {
+				if (string.match(/\bstep\s+\d/)) {
+					this.#droptarget = true
+				}
+			})
 		}
 	}
 
@@ -84,11 +84,13 @@ export default class BentoBox extends BentoElement {
 	#dragover(event) {
 		event.preventDefault()
 
-		for (let file of Array.from(event.dataTransfer.files)) {
-			// TODO restrict to supported formats by trying to decode a silent audio
-			// file of the format?
-			if (file.type == "application/bento.step") {
-				this.#droptarget = true
+		for (let item of Array.from(event.dataTransfer.items)) {
+			if (item.type == "text/plain") {
+				item.getAsString(string => {
+					if (string.match(/\bstep\s+\d/)) {
+						this.#droptarget = true
+					}
+				})
 			}
 		}
 	}
@@ -103,7 +105,7 @@ export default class BentoBox extends BentoElement {
 	#dragstart(event) {
 		// TODO make this a special file format containing all the step info
 		// (maybe a .wav with cue points + instrument info)
-		event.dataTransfer.setData("application/bento.step", this.id)
+		event.dataTransfer.setData("text/plain", `step ${this.id}`)
 	}
 
 	/** @param {DragEvent} event */
@@ -111,10 +113,14 @@ export default class BentoBox extends BentoElement {
 		event.preventDefault()
 		if (event.dataTransfer.items) {
 			for (let item of Array.from(event.dataTransfer.items)) {
-				if (item.type == "application/bento.step") {
+				console.log(item)
+				if (item.type == "text/plain") {
+					let text = event.dataTransfer.getData("text/plain")
+					let step = text.match(/\bstep\s+(\d+)/)?.[1]
+
 					this.announce("change", {
 						change: "copy",
-						from: event.dataTransfer.getData("application/bento.step")
+						from: +step
 					})
 				}
 			}

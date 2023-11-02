@@ -736,7 +736,8 @@ export function sound(memory, layer, sound) {
 	// todo instanceof
 	if (typeof sound != "undefined") {
 		memory.layerSounds.set(sound, start)
-		fixRegions(memory, layer)
+		// todo rememeber why i turned this off?
+		// fixRegions(memory, layer)
 		memory.soundLengths.set([sound.length], layer)
 		memory.soundVersions.set([memory.soundVersions.at(layer) + 1], layer)
 	}
@@ -868,8 +869,8 @@ export function stepRegion(memory, layer, step, region) {
  * @param {number} layer
  */
 export function clearRegions(memory, layer) {
-	// memory.stepStarts.set(Array(STEPS_PER_LAYER).fill(0), layer)
-	// memory.stepEnds.set(Array(STEPS_PER_LAYER).fill(0), layer)
+	memory.stepStarts.set(Array(STEPS_PER_LAYER).fill(0), layer)
+	memory.stepEnds.set(Array(STEPS_PER_LAYER).fill(0), layer)
 }
 
 /**
@@ -1057,31 +1058,6 @@ export function getSelectedStepDetails(memory) {
 }
 
 /**
- * save one step's copyable details to another
- * @param {MemoryMap} memory
- * @param {number} from
- * @param {number} to
- */
-export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
-	let layer = selectedLayer(memory)
-	let grid = layerSelectedGrid(memory, layer)
-	let fromDetails = getStepDetails(memory, layer, grid * STEPS_PER_GRID + from)
-
-	stepRegion(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.region)
-	stepQuiet(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.quiet)
-	stepPan(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.pan)
-	stepOn(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.on)
-	stepReversed(memory, layer, grid * STEPS_PER_GRID + to, fromDetails.reversed)
-
-	// let version = memory.soundVersions.at(layer)
-	// let snd = sound(memory, layer)
-	// let length = soundLength(memory, layer)
-	// let attack = stepAttack(memory, layer, step)
-	// let release = stepRelease(memory, layer, step)
-	// let pitch = stepPitch(memory, layer, step)
-}
-
-/**
  * copy one step's copyable details to another
  * @param {MemoryMap} memory
  * @param {number} from
@@ -1096,6 +1072,23 @@ export function copyStepWithinSelectedLayer(memory, from, to) {
 	stepPan(memory, layer, to, fromDetails.pan)
 	stepOn(memory, layer, to, fromDetails.on)
 	stepReversed(memory, layer, to, fromDetails.reversed)
+	stepPitch(memory, layer, to, fromDetails.pitch)
+	// attack, relese, sound
+}
+
+/**
+ * copy one step's copyable details to another
+ * @param {MemoryMap} memory
+ * @param {number} from
+ * @param {number} to
+ */
+export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
+	let layer = selectedLayer(memory)
+	let grid = layerSelectedGrid(memory, layer)
+
+	let absoluteFrom = grid * STEPS_PER_GRID + from
+	let absoluteTo = grid * STEPS_PER_GRID + to
+	copyStepWithinSelectedLayer(memory, absoluteFrom, absoluteTo)
 }
 
 /**
@@ -1111,5 +1104,26 @@ export function copyGridWithinSelectedLayer(memory, from, to) {
 			from * STEPS_PER_GRID + i,
 			to * STEPS_PER_GRID + i
 		)
+	}
+}
+
+/**
+ * copy one grid's steps details to another
+ * @param {MemoryMap} memory
+ * @param {number} uiStep
+ */
+export function trimSelectedLayerSoundToStepRegion(memory, uiStep) {
+	let layer = selectedLayer(memory)
+	let grid = layerSelectedGrid(memory, layer)
+	let absoluteStep = grid * STEPS_PER_GRID + uiStep
+	let deets = getStepDetails(memory, layer, absoluteStep)
+	let region = deets.region
+	if (region.start || region.end) {
+		sound(
+			memory,
+			layer,
+			sound(memory, layer).subarray(region.start, region.end)
+		)
+		clearRegions(memory, layer)
 	}
 }

@@ -268,6 +268,11 @@ screen.addEventListener(
 	}
 )
 
+screen.addEventListener("commit-sound", event => {
+	let {step} = event.detail
+	Memory.trimSelectedLayerSoundToStepRegion(memory, step)
+})
+
 grid.addEventListener(
 	"change",
 	// todo? BentoChangeEvent?

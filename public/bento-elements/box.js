@@ -1,5 +1,6 @@
 import {BentoElement} from "./base.js"
 import Modmask from "../modmask.js"
+import * as dt from "../data-transfer.js"
 
 let squircle = `
 	<svg id="squircle" viewBox="-64 -64 608 608" xmlns="http://www.w3.org/2000/svg">
@@ -69,29 +70,18 @@ export default class BentoBox extends BentoElement {
 	}
 
 	/** @param {DragEvent} event */
-	#dragenter(event) {
+	async #dragenter(event) {
 		event.preventDefault()
-		for (let item of Array.from(event.dataTransfer.items)) {
-			item.getAsString(string => {
-				if (string.match(/\bstep\s+\d/)) {
-					this.#droptarget = true
-				}
-			})
+		if (await dt.isStep(event.dataTransfer)) {
+			this.#droptarget = true
 		}
 	}
 
 	/** @param {DragEvent} event */
-	#dragover(event) {
+	async #dragover(event) {
 		event.preventDefault()
-
-		for (let item of Array.from(event.dataTransfer.items)) {
-			if (item.type == "text/plain") {
-				item.getAsString(string => {
-					if (string.match(/\bstep\s+\d/)) {
-						this.#droptarget = true
-					}
-				})
-			}
+		if (await dt.isStep(event.dataTransfer)) {
+			this.#droptarget = true
 		}
 	}
 
@@ -103,28 +93,17 @@ export default class BentoBox extends BentoElement {
 
 	/** @param {DragEvent} event */
 	#dragstart(event) {
-		// TODO make this a special file format containing all the step info
-		// (maybe a .wav with cue points + instrument info)
-		event.dataTransfer.setData("text/plain", `step ${this.id}`)
+		dt.setStep(event.dataTransfer, +this.id)
 	}
 
 	/** @param {DragEvent} event */
-	#drop(event) {
+	async #drop(event) {
 		event.preventDefault()
-		if (event.dataTransfer.items) {
-			for (let item of Array.from(event.dataTransfer.items)) {
-				console.log(item)
-				if (item.type == "text/plain") {
-					let text = event.dataTransfer.getData("text/plain")
-					let step = text.match(/\bstep\s+(\d+)/)?.[1]
-
-					this.announce("change", {
-						change: "copy",
-						from: +step
-					})
-				}
-			}
-		}
+		let step = await dt.getStep(event.dataTransfer)
+		this.announce("change", {
+			change: "copy",
+			from: step
+		})
 		this.#droptarget = false
 	}
 

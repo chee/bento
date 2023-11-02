@@ -1,6 +1,6 @@
 import {BentoElement, BentoEvent} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
-
+import * as dt from "../data-transfer.js"
 /**
  * @typedef {Object} StyleMap
  * @prop {string} fill
@@ -60,6 +60,7 @@ export default class BentoScreen extends BentoElement {
 
 			// todo allow dragging a clip to the screen to trim the sound to the
 			// length of its region
+			// todo move this to dt.getAudio
 			for (let item of Array.from(items)) {
 				// TODO restrict to supported formats by trying to decode a silent
 				// audio item of all the formats anyone supports?
@@ -71,18 +72,22 @@ export default class BentoScreen extends BentoElement {
 					}
 				}
 			}
+			if (await dt.isStep(event.dataTransfer)) {
+				this.setAttribute("drop-target", "drop-target")
+			}
 			event.preventDefault()
 		})
 
 		/* this runs a billion times a second while a drag is being held on top of the
 		target */
-		this.addEventListener("dragover", event => {
+		this.addEventListener("dragover", async event => {
 			event.preventDefault()
 
 			let {items} = event.dataTransfer
 
 			// todo allow dragging a clip to the screen to trim the sound to the length
 			// of its region
+			// todo move this to dt.getAudio
 			for (let item of Array.from(items)) {
 				// TODO restrict to supported formats by trying to decode a silent audio
 				// item of all the formats anyone supports?
@@ -93,6 +98,9 @@ export default class BentoScreen extends BentoElement {
 						console.debug(`unsupported type: ${item.kind}, ${event.type}`)
 					}
 				}
+			}
+			if (await dt.isStep(event.dataTransfer)) {
+				this.setAttribute("drop-target", "drop-target")
 			}
 		})
 
@@ -109,6 +117,8 @@ export default class BentoScreen extends BentoElement {
 			event.preventDefault()
 
 			this.removeAttribute("drop-target")
+			// todo move this to dt.getAudio, also maybe have a getItems("step",
+			// "audio") or somethingn
 			if (event.dataTransfer.items) {
 				for (let item of Array.from(event.dataTransfer.items)) {
 					if (item.kind == "file") {
@@ -119,6 +129,12 @@ export default class BentoScreen extends BentoElement {
 						})
 					}
 				}
+			}
+			let step = await dt.getStep(event.dataTransfer)
+			if (step != null) {
+				this.announce("commit-sound", {
+					step
+				})
 			}
 		})
 	}

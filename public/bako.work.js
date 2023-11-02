@@ -24,7 +24,7 @@ function alter(stepDetails) {
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
 	if (reversed) {
-		sound.reverse()
+		sound = sound.reverse()
 	}
 
 	if (quiet) {

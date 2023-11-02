@@ -7,9 +7,6 @@ let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
 let iphoneSilenceElement = document.querySelector("audio")
-/** @type {AudioWorkletNode[]} */
-let layers
-
 /** @type {Memory.MemoryMap} */
 let memory
 

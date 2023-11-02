@@ -128,7 +128,7 @@ export function fancy() {
 }
 
 document.addEventListener("visibilitychange", () => {
-	if (document.hidden) {
+	if (document.hidden && Memory.paused(memory)) {
 		context.suspend()
 		iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
 		alreadyFancy = false

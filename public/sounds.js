@@ -106,7 +106,7 @@ async function fetchSound(url) {
 	}
 }
 
-await context.audioWorklet.addModule("/bako.work.js?0")
+await context.audioWorklet.addModule("/layer.work.js")
 await context.audioWorklet.addModule("/expr.work.js")
 
 /**
@@ -197,7 +197,7 @@ export async function init(buffer) {
 	// let analysis = new Float32Array(analyzer.fftSize)
 
 	loop.layers(idx => {
-		let layer = new AudioWorkletNode(context, "bako", {
+		let layer = new AudioWorkletNode(context, "bento-layer", {
 			processorOptions: {buffer, layerNumber: idx},
 			channelCount: 1,
 			numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS,
@@ -212,7 +212,7 @@ export async function init(buffer) {
 		let filter = new DjFilter(context, {layer})
 		let delay = new Delay(context, {layer})
 
-		/* bako -> filter */
+		/* layer -> filter */
 		layer.connect(filter.in, constants.Output.Sound)
 
 		/* filter->pan */

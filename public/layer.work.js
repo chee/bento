@@ -36,12 +36,12 @@ function alter(stepDetails) {
 	return stepDetails
 }
 
-class Bako extends AudioWorkletProcessor {
+class BentoLayerWorklet extends AudioWorkletProcessor {
 	constructor(options) {
 		super()
 		let {buffer, layerNumber} = options.processorOptions
 		if (!buffer || layerNumber == null) {
-			let msg = "failed to instantiate Bako, missing processorOption"
+			let msg = "failed to instantiate BentoLayer, missing processorOption"
 			console.error(msg, {
 				buffer: typeof buffer,
 				layerNumber
@@ -181,4 +181,4 @@ class Bako extends AudioWorkletProcessor {
 	}
 }
 
-registerProcessor("bako", Bako)
+registerProcessor("bento-layer", BentoLayerWorklet)

@@ -135,7 +135,9 @@ class Bako extends AudioWorkletProcessor {
 		let layerNumber = this.layerNumber
 		let speed = Memory.layerSpeed(memory, layerNumber)
 		// let numberOfActiveGrids = Memory.numberOfGridsInLayer(memory, layerNumber)
-		// let gridLength = Memory.numberOfStepsInGrid(memory, layerNumber, gridNumber)
+		// let gridLength = Memory.numberOfStepsInGrid(memory, layerNumber,
+		// gridNumber)
+		// what
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 
 		// you can use all your current variables, but you won't want to

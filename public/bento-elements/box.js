@@ -1,6 +1,11 @@
 import {BentoElement} from "./base.js"
 import Modmask from "../modmask.js"
 
+let squircle = `
+	<svg id="squircle" viewBox="-64 -64 608 608" xmlns="http://www.w3.org/2000/svg">
+		<path d="M 0 256C 0 10, 10 0, 256 0S 512 10, 512 256, 502 512 256 512, 0 502, 0 256"/>
+	</svg>`
+
 // fufufu
 export default class BentoBox extends BentoElement {
 	#playing = false
@@ -10,7 +15,7 @@ export default class BentoBox extends BentoElement {
 	connectedCallback() {
 		this.tabIndex = 0
 		this.shadow = this.attachShadow({mode: "closed"})
-		this.shadow.innerHTML = `<img id="wavimg">`
+		this.shadow.innerHTML = `${squircle}<img id="wavimg">`
 		this.attachStylesheet("box")
 		this.setAttribute("draggable", "true")
 		this.addEventListener("click", this.#click)

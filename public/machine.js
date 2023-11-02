@@ -142,10 +142,15 @@ function update(_frame = 0) {
 		let box = boxes[uiStep]
 		box.selected = uiStep == selectedUiStep
 		box.on = Memory.stepOn(memory, selectedLayer, actualStep)
-		// todo move playing to be a property of the grid
+		// todo move playing to be a number property of the grid
 		box.playing = currentStep == actualStep
 		box.quiet = Memory.stepQuiet(memory, selectedLayer, actualStep)
 		box.pan = Memory.stepPan(memory, selectedLayer, actualStep)
+	})
+
+	loop.grids(gidx => {
+		gridSelector.toggle(gidx, Memory.gridOn(memory, selectedLayer, gidx))
+		grid.on = Memory.gridOn(memory, selectedLayer, selectedGrid)
 	})
 
 	requestAnimationFrame(update)
@@ -218,23 +223,13 @@ gridSelector.addEventListener(
 )
 
 gridSelector.addEventListener(
-	"new",
+	"toggle",
 	/** @param {import("./bento-elements/base.js").BentoEvent} event */
 	event => {
-		let {type, value} = event.detail
-		if (type == "grid") {
+		let {toggle, value} = event.detail
+		if (toggle == "grid") {
 			let selectedLayer = Memory.selectedLayer(memory)
-			let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
-			let currentNumberOfGrids = Memory.numberOfGridsInLayer(
-				memory,
-				selectedLayer
-			)
-			let newNumberOfGrids = value + currentNumberOfGrids
-			Memory.numberOfGridsInLayer(memory, selectedLayer, newNumberOfGrids)
-			for (let i = currentNumberOfGrids; i < newNumberOfGrids; i++) {
-				Memory.copyGridWithinSelectedLayer(memory, selectedGrid, i)
-			}
-			Memory.layerSelectedGrid(memory, selectedLayer, newNumberOfGrids - 1)
+			Memory.toggleGrid(memory, selectedLayer, +value)
 			db.save()
 		}
 	}

@@ -11,4 +11,15 @@
 	justify-items: center;
 	gap: var(--box-gap);
 	padding: var(--box-gap);
+	--box-off-line: color-mix(in srgb, var(--grid-line) 50%, var(--grid-fill));
+	--box-on-fill: color-mix(
+		in srgb,
+		var(--prominent-fill) 50%,
+		var(--grid-fill)
+	);
+}
+
+:host([on]) {
+	--box-off-line: var(--grid-line);
+	--box-on-fill: var(--prominent-fill);
 }

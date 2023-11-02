@@ -13,7 +13,25 @@
 	border: var(--box-border-width) solid;
 	position: relative;
 	box-shadow: 1px 1px 4px 0px var(--box-shadow-color);
-	clip-path: url(#squircle);
+	/* border-radius: var(--box-border-radius); */
+	border: var(--box-border-width) solid var(--box-line);
+}
+
+/* #squircle { */
+/* 	--stroke-width: calc(var(--box-border-width) * 10); */
+/* 	--offset: calc((var(--stroke-width) * -1) - 2px); */
+/* 	fill: var(--box-fill); */
+/* 	stroke: var(--box-line); */
+/* 	stroke-width: var(--stroke-width); */
+/* 	width: calc(var(--box-size) + (var(--stroke-width) * 2)); */
+/* 	height: calc(var(--box-size) + (var(--stroke-width) * 2)); */
+/* 	position: absolute; */
+/* 	left: var(--offset); */
+/* 	top: var(--offset); */
+/* } */
+
+#squircle {
+	display: none;
 }
 
 img {
@@ -25,6 +43,9 @@ img {
 	pointer-events: none;
 	display: none;
 	user-select: none;
+	display: none;
+
+	position: relative;
 }
 
 :host([on][with-wav]) #wavimg {
@@ -46,7 +67,6 @@ img {
 					04px 04px 0 0 var(--selected-box-outline),
 					-4px 04px 0 0 var(--selected-box-outline),
 					04px -4px 0 0 var(--selected-box-outline);
-	border-color: currentColor;
 }
 
 :host([on]) {

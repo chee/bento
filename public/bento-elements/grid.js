@@ -102,6 +102,14 @@ export default class BentoGrid extends BentoElement {
 		this.addEventListener("keydown", this.#keydown)
 	}
 
+	set on(val) {
+		this.toggleAttribute("on", val)
+	}
+
+	get on() {
+		return this.hasAttribute("on")
+	}
+
 	/** @param {KeyboardEvent} event */
 	#keydown(event) {}
 }

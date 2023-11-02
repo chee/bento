@@ -20,7 +20,7 @@ export function scaleStepsForGrids(/** @type Uint8Array */ array) {
 }
 
 /**
- * @typedef {import("./memory.js").MemoryMap} MemoryMap
+ * @typedef {import("./memory.js").MemoryMapType} MemoryMap
  * @typedef {(map: MemoryMap) => MemoryMap} Migration
  */
 
@@ -34,10 +34,10 @@ export default [
 	map => map,
 	// 2 to 3
 	map => {
-		if ("layerLengths" in map) {
-			map.numberOfStepsInGrids = /**@type {Uint8Array}*/ (map.layerLengths)
-			delete map.layerLengths
-		}
+		// if ("layerLengths" in map) {
+		// 	map.numberOfStepsInGrids = /**@type {Uint8Array}*/ (map.layerLengths)
+		// 	delete map.layerLengths
+		// }
 
 		map.stepOns = scaleStepsForGrids(map.stepOns)
 		map.stepPans = scaleStepsForGrids(map.stepPans)

@@ -10,6 +10,8 @@ export default class BentoMiniGrid extends BentoElement {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.attachStylesheet("mini-grid")
 		let button = this.shadow.appendChild(document.createElement("button"))
+		button.id = "minigrid"
+		this.on = true
 
 		loop.gridSteps(i => {
 			let dot = document.createElement("bento-dot")

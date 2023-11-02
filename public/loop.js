@@ -44,9 +44,9 @@ export function steps(fn) {
 }
 
 /**
- * loop over the number of steps
+ * loop over the number of grids
  * @template {any} T
- * @param {(stepIdx: number) => T} fn
+ * @param {(gridIdx: number) => T} fn
  * @returns {T[]}
  */
 export function grids(fn) {
@@ -54,7 +54,7 @@ export function grids(fn) {
 }
 
 /**
- * loop over the number of steps
+ * loop over the number of steps per grid
  * @template {any} T
  * @param {(stepIdx: number) => T} fn
  * @returns {T[]}

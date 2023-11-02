@@ -1,39 +1,70 @@
 :host {
+	--minigrid-fill: var(--grid-fill);
 	--dot-on-fill: var(--box-on-fill);
-	--dot-off-fill: var(--machine-fill);
-	opacity: 0.5;
+	--dot-off-fill: var(--minigrid-fill);
+	--selected-minigrid-outline: var(--selected-box-outline);
+	--minigrid-play-icon: var(--machine-line);
+	--minigrid-on-line: var(--machine-line);
+	--minigrid-off-line: color-mix(
+		in srgb,
+		var(--minigrid-on-line) 20%,
+		var(--minigrid-fill)
+	);
 	position: relative;
+	box-sizing: border-box;
+}
+
+button {
+	background: var(--minigrid-fill);
+	cursor: pointer;
+	appearance: none;
+	height: var(--grid-selector-box-size);
+	width: var(--grid-selector-box-size);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: var(--machine-fill);
+	border: 1px solid var(--minigrid-off-line);
+	display: grid;
+	padding: 1px;
+}
+
+:host([on]) button {
+	border: 1px solid var(--minigrid-on-line);
 }
 
 :host([selected]) {
-	--dot-on-fill: var(--box-on-fill);
-	--dot-off-fill: var(--box-off-fill);
-	opacity: 1;
+	outline: 1px solid var(--selected-minigrid-outline);
+	outline-offset: 2px;
+}
+
+:host([selected]) button {
+	/* border: 1px solid var(--box-off-line); */
 }
 
 :host([playing])::after {
 	content: "";
-	width: 2px;
-	height: 2px;
-	border-radius: 2px;
+	width: 0;
+	height: 0;
+	border-top: 4px solid transparent;
+	border-bottom: 4px solid transparent;
+	border-left: 4px solid var(--minigrid-play-icon);
 	position: absolute;
-	bottom: 0;
+	bottom: -10px;
 	left: 50%;
-	background: var(--machine-line);
+	transform: translate(-50%);
 }
 
-button {
-	cursor: pointer;
-	appearance: none;
-	border: none;
-	background: none;
-	display: grid;
+#minigrid {
+	box-sizing: border-box;
 	grid-template-columns: repeat(4, 1fr);
-
-	--dot-size: calc(var(--box-size) / 16);
-	row-gap: var(--dot-size);
-	column-gap: var(--dot-size);
-	padding: calc(var(--dot-size));
+	height: var(--grid-selector-box-size);
+	width: var(--grid-selector-box-size);
+	--dot-size: calc((var(--grid-selector-box-size) / 4) - 4px);
+	--dot-gap: 2px;
+	row-gap: var(--dot-gap);
+	column-gap: var(--dot-gap);
+	padding: 2px;
 }
 
 bento-dot {
@@ -41,20 +72,27 @@ bento-dot {
 	width: var(--dot-size);
 	height: var(--dot-size);
 	margin: 0;
-	border-radius: 2px;
+	border-radius: 50%;
 	background: transparent;
 	position: relative;
-	--dot-fill: var(--dot-off-fill);
-	--dot-inverse-fill: var(--dot-on-fill);
-	background: var(--dot-fill);
+	box-sizing: border-box;
+	background: var(--dot-off-fill);
+}
+
+:host([on]) bento-dot {
+	--dot-playing-dot: var(--dot-on-fill);
 }
 
 bento-dot[on] {
-	--dot-fill: var(--dot-on-fill);
-	--dot-inverse-fill: var(--dot-off-fill);
+	background: color-mix(in srgb, var(--dot-on-fill) 20%, var(--dot-off-fill));
 }
 
-[playing]:after {
+:host([on]) bento-dot[on] {
+	background: var(--dot-on-fill);
+	--dot-playing-dot: var(--dot-off-fill);
+}
+
+bento-dot[playing]:after {
 	content: "";
 	height: 2px;
 	width: 2px;
@@ -63,5 +101,5 @@ bento-dot[on] {
 	top: 50%;
 	transform: translate(-50%, -50%);
 	border-radius: 100%;
-	background: var(--dot-inverse-fill);
+	background: var(--dot-playing-dot);
 }

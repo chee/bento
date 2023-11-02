@@ -4,57 +4,40 @@ import * as loop from "../loop.js"
 import {STEPS_PER_GRID} from "../memory.js"
 
 export default class BentoGridSelector extends BentoElement {
-	/** @type {boolean[][]} */
-	#grids = []
 	/** @type {BentoMiniGrid[]} */
 	#minigrids = []
-	/** @type {HTMLButtonElement[]} */
-	#news = []
+
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<div></div>`
-		this.shadow.addEventListener("click", event => {
-			if (this.#minigrids.includes(event.target)) {
-				this.announce("change", {
-					change: "grid",
-					value: this.#minigrids.indexOf(event.target)
-				})
-			} else if (this.#news.includes(event.target)) {
-				this.announce("new", {
-					type: "grid",
-					value: this.#news.indexOf(event.target) + 1
-				})
-			}
+		loop.grids(() => {
+			let minigrid = /** @type BentoMiniGrid */ (
+				document.createElement("bento-mini-grid")
+			)
+			// minigrid.on = true
+			this.shadow.firstElementChild.append(minigrid)
+			this.#minigrids.push(minigrid)
 		})
-		this.attachStylesheet("grid-selector")
-	}
-
-	updateElements() {
-		let numberOfMinigrids = this.#grids.length
-		if (numberOfMinigrids != this.#minigrids.length) {
-			this.shadow.firstElementChild.textContent = ""
-			this.#minigrids = []
-			this.#news = []
-			loop.grids(index => {
-				if (index < this.#grids.length) {
-					let minigrid = /** @type BentoMiniGrid */ (
-						document.createElement("bento-mini-grid")
-					)
-					// minigrid.on = true
-					this.shadow.firstElementChild.append(minigrid)
-					this.#minigrids.push(minigrid)
-					minigrid.grid = this.#grids[index]
-				} else {
-					let button = document.createElement("button")
-					this.#news.push(button)
-					button.ariaLabel = "add grid to layer"
-					this.shadow.firstElementChild.append(button)
+		this.shadow.addEventListener(
+			"click",
+			/** @param {MouseEvent} event */
+			event => {
+				if (this.#minigrids.includes(event.target)) {
+					if (event.target.selected) {
+						this.announce("toggle", {
+							toggle: "grid",
+							value: this.#minigrids.indexOf(event.target)
+						})
+					} else {
+						this.announce("change", {
+							change: "grid",
+							value: this.#minigrids.indexOf(event.target)
+						})
+					}
 				}
-			})
-		}
-		this.#minigrids.forEach((mg, i) => {
-			mg.grid = this.#grids?.[i]
-		})
+			}
+		)
+		this.attachStylesheet("grid-selector")
 	}
 
 	/** @param {number} val */
@@ -62,6 +45,17 @@ export default class BentoGridSelector extends BentoElement {
 		this.#minigrids.forEach((mg, i) => {
 			mg.selected = val == i
 		})
+	}
+
+	/**
+	 * @param {number} index
+	 * @param {boolean} val
+	 */
+	toggle(index, val) {
+		if (index >= this.#minigrids.length) {
+			return
+		}
+		this.#minigrids[index].on = val
 	}
 
 	/** @param {number} val */
@@ -78,12 +72,13 @@ export default class BentoGridSelector extends BentoElement {
 	}
 
 	get grids() {
-		return this.#grids
+		return this.#minigrids.map(mg => mg.grid)
 	}
 
 	/** @param {boolean[][]} val */
 	set grids(val) {
-		this.#grids = val
-		this.updateElements()
+		this.#minigrids.forEach((mg, i) => {
+			mg.grid = val[i]
+		})
 	}
 }

@@ -33,18 +33,6 @@ export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
  */
 export let arrays = {
 	master: {type: Uint8Array, size: 16, default: [120]},
-	/* the 0x1-GRIDS_PER_LAYER grid-length of a given layer  */
-	numberOfGridsInLayers: {
-		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
-		defaultFill: 1
-	},
-	/* the 0x1-0x10 step-length of an individual grid  */
-	numberOfStepsInGrids: {
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
-		defaultFill: 16
-	},
 	soundLengths: {
 		type: Uint32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
@@ -67,7 +55,8 @@ export let arrays = {
 	},
 	currentSteps: {
 		type: Uint8Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		defaultFill: -1
 	},
 	stepOns: {
 		type: Uint8Array,
@@ -81,11 +70,13 @@ export let arrays = {
 	gridOns: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
-		// let 4onthefloor = 0x8888
-		//                    .toString(2)
-		//                    .split("")
-		//	                   .map(Number)
-		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
+		default: Array.from(
+			{length: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER},
+			// 1 at the start of every layer, 0 everywhere else
+			(_, i) => {
+				return Number(!(i % (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)))
+			}
+		)
 	},
 	stepReverseds: {
 		type: Uint8Array,
@@ -192,6 +183,12 @@ export function map(buffer) {
 	for (let [name, arrayInfo] of Object.entries(arrays)) {
 		memory[name] = new arrayInfo.type(buffer, offset, arrayInfo.size)
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
+		if (
+			"defaultFill" in arrayInfo &&
+			memory[name].every(/** @param {number} n */ n => !n)
+		) {
+			memory[name].fill(arrayInfo.defaultFill)
+		}
 	}
 	return memory
 }
@@ -236,7 +233,6 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 				)
 				content = content.subarray(0, memory[name].length)
 				if (
-					name == "numberOfGridsInLayers" &&
 					"defaultFill" in arrayInfo &&
 					content.every(/** @param {number} n */ n => !n)
 				) {
@@ -352,27 +348,38 @@ export function currentStep(memory, layer, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [val]
- * @returns {number}
- */
-export function numberOfGridsInLayer(memory, layer, val) {
-	if (typeof val == "number") {
-		memory.numberOfGridsInLayers.set([val], layer)
+ * @param {number} layer*/
+export function incrementStep(memory, layer) {
+	let current = memory.currentSteps.at(layer)
+	let activeGrids = Array.from(
+		memory.gridOns.subarray(
+			layer * GRIDS_PER_LAYER,
+			layer * GRIDS_PER_LAYER + GRIDS_PER_LAYER
+		)
+	)
+		.map((on, index) => ({index, on}))
+		.filter(n => n.on)
+	if (current > STEPS_PER_LAYER) {
+		let grid = activeGrids[0]
+		if (grid) {
+			currentStep(memory, layer, grid.index * STEPS_PER_GRID)
+		}
+	} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
+		let absoluteCurrentGrid = Math.floor(current / STEPS_PER_GRID)
+		let nextGrid =
+			activeGrids.find(g => g.index > absoluteCurrentGrid)?.index ||
+			activeGrids[0]?.index ||
+			0
+		let nextStep = nextGrid * STEPS_PER_GRID
+		if (activeGrids.length == 0) {
+			nextStep = -1
+		}
+
+		currentStep(memory, layer, nextStep)
+	} else {
+		let next = current + 1
+		currentStep(memory, layer, next)
 	}
-	return memory.numberOfGridsInLayers.at(layer)
-}
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [val]
- * @returns {number}
- */
-export function numberOfStepsInGrid(memory, layer, val) {
-	if (typeof val == "number") {
-		memory.numberOfStepsInGrids.set([val], layer)
-	}
-	return memory.numberOfStepsInGrids.at(layer)
 }
 
 /**
@@ -404,6 +411,24 @@ export function stepOn(memory, layer, step, val) {
 	}
 
 	return Boolean(stepOns.at(at))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} grid
+ * @param {boolean} [val]
+ * @returns {boolean}
+ */
+export function gridOn(memory, layer, grid, val) {
+	let {gridOns} = memory
+	let at = layer * GRIDS_PER_LAYER + grid
+
+	if (typeof val == "boolean") {
+		gridOns.set([Number(val)], at)
+	}
+
+	return Boolean(gridOns.at(at))
 }
 
 /**
@@ -589,8 +614,16 @@ export function toggleStep(memory, layer, step) {
  */
 export function toggleGrid(memory, layer, grid) {
 	let {gridOns} = memory
-	let at = layer * GRIDS_PER_LAYER + grid
-	gridOns.set([gridOns.at(at) ^ 1], at)
+	let layerStart = layer * GRIDS_PER_LAYER
+	let at = layerStart + grid
+	let layerGridOns = gridOns.subarray(layerStart, layerStart + GRIDS_PER_LAYER)
+	let currentState = gridOns.at(at)
+	let nextState = currentState ^ 1
+	// todo allow turning off the last grid in Advanced+ Mode
+	if (layerGridOns.filter(Boolean).length < 2 && !nextState) {
+		return
+	}
+	gridOns.set([nextState], at)
 }
 
 /**
@@ -637,7 +670,7 @@ export function stop(memory) {
 	memory.master.set([0], Master.playing)
 	memory.master.set([0], Master.paused)
 	memory.currentSteps.set(
-		Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(0)
+		Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(-1)
 	)
 }
 
@@ -944,7 +977,6 @@ export function getLayerGridStepOns(memory, layer) {
 	return Array.from(memory.stepOns.subarray(start, end))
 		.map(Boolean)
 		.chunk(STEPS_PER_GRID)
-		.slice(0, memory.numberOfGridsInLayers.at(layer))
 }
 
 // i cannot get @extends or @augments or &intersection to work

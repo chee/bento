@@ -144,17 +144,16 @@ class Bako extends AudioWorkletProcessor {
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		let layerNumber = this.layerNumber
 		let speed = Memory.layerSpeed(memory, layerNumber)
-		let numberOfActiveGrids = Memory.numberOfGridsInLayer(memory, layerNumber)
+		// let numberOfActiveGrids = Memory.numberOfGridsInLayer(memory, layerNumber)
 		// let gridLength = Memory.numberOfStepsInGrid(memory, layerNumber, gridNumber)
-		let numberOfActiveSteps = 16
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 
-		let currentStep =
-			((this.tick / samplesPerStep) | 0) %
-			(numberOfActiveGrids * numberOfActiveSteps)
+		// you can use all your current variables, but you won't want to
+		let nextStep = ((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
 
-		if (currentStep != this.lastStep) {
-			Memory.currentStep(memory, layerNumber, currentStep)
+		if (nextStep != this.lastStep) {
+			Memory.incrementStep(memory, layerNumber)
+			let currentStep = Memory.currentStep(memory, layerNumber)
 			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
 			if (stepDetails.on) {
 				this.point = 0
@@ -163,8 +162,7 @@ class Bako extends AudioWorkletProcessor {
 				// this.dj = stepDetails.dj || 0
 			}
 		}
-
-		this.lastStep = currentStep
+		this.lastStep = nextStep
 
 		if (this.alteredSound) {
 			if (this.point + 128 > this.alteredSound.sound.length) {

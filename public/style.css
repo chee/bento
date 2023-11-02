@@ -63,6 +63,8 @@
 	--grid-line: var(--machine-line);
 
 	/* =box= */
+	/* todo this might all need to be internal to grid */
+	--box-border-radius: var(--button-border-radius);
 	--box-border-width: var(--machine-border-width);
 	--box-on-fill: var(--prominent-fill);
 	--box-on-line: var(--prominent-line);
@@ -132,6 +134,13 @@ body {
 	--drop-target-outline: #00ffcc;
 	--button-border-radius: 4px;
 	--layer-selector-border-radius: 2px;
+	/* --grid-fill: var(--holy-light); */
+	--box-off-fill: var(--cherries-light);
+	--box-shadow-color: color-mix(
+		in srgb,
+		var(--cherries-dark) 12%,
+		var(--holy-light)
+	);
 }
 
 [theme="night"] {

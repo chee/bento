@@ -65,7 +65,7 @@ export default class BentoMasterControls extends BentoElement {
 			{
 				name: "reset",
 				type: "button",
-				label: "delete pattern"
+				label: "reset pattern"
 			},
 			this.shadow.firstElementChild
 		)

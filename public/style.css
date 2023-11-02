@@ -63,7 +63,7 @@
 	--grid-line: var(--machine-line);
 
 	/* =box= */
-	/* todo this might all need to be internal to grid */
+	/* todo the colours here might all need to be internal to grid */
 	--box-border-radius: var(--button-border-radius);
 	--box-border-width: var(--machine-border-width);
 	--box-on-fill: var(--prominent-fill);
@@ -104,7 +104,7 @@ body {
 
 	--font-family: qp, iosevka, monaco, monospace;
 	--line: var(--cherries-dark);
-	--page-fill: color-mix(
+	--fill: color-mix(
 		in srgb,
 		var(--cherries-light) 80%,
 		var(--holy-light)
@@ -364,25 +364,41 @@ bento-party {
 
 dialog {
 	text-align: center;
+	flex-direction: column:
 }
 
-[click-to-start] {
-	font-size: 0.5rem;
+dialog[open] {
+	display: flex;
+}
+
+
+dialog input,
+dialog button,
+dialog select {
+	color: var(--machine-line);
+	border: 1px solid;
+	width: 100%;
+	height: 1.5em;
+	box-sizing: border-box;
+	font-size: 1em;
+	margin-bottom: 0.5em;
+	background: white
 }
 
 dialog button {
 	appearance: none;
 	color: var(--machine-line);
 	border: 1px solid;
-	box-shadow: 2px 2px 2px var(--machine-shadow-color);
-	font-size: 1em;
-	margin-bottom: 1em;
+	box-shadow: 2px 2px 2px color-mix(in srgb, var(--machine-line) 20%, white);
 	cursor: pointer;
-	width: 5em;
-	height: 1.5em;
 	font-family: var(--font-family);
-	background: var(--fill);
-	margin: auto;
+	display: block;
+}
+
+dialog button:active {
+	background: var(--machine-line);
+	color: white;
+	box-shadow: none;
 }
 
 bento-party:not([fancy]) {

@@ -106,7 +106,7 @@ async function fetchSound(url) {
 	}
 }
 
-await context.audioWorklet.addModule("/bako.work.js")
+await context.audioWorklet.addModule("/bako.work.js?0")
 await context.audioWorklet.addModule("/expr.work.js")
 
 /**

@@ -218,6 +218,13 @@ gridSelector.addEventListener(
 		let {change, value} = event.detail
 		if (change == "grid") {
 			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), value)
+			db.save()
+		}
+		if (change == "copy") {
+			let {from, minigrid: to} = event.detail
+			Memory.copyGridWithinSelectedLayer(memory, +from, +to)
+			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), +to)
+			db.save()
 		}
 	}
 )

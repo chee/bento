@@ -53,7 +53,7 @@ export default class BentoGrid extends BentoElement {
 			/** @param {BentoEvent} event */
 			event => {
 				let index = this.boxes.indexOf(/** @type {BentoBox}*/ (event.target))
-				if (index != null) {
+				if (index != -1) {
 					this.announce("change", {
 						...event.detail,
 						box: index

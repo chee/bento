@@ -1105,6 +1105,12 @@ export function copyGridWithinSelectedLayer(memory, from, to) {
 			to * STEPS_PER_GRID + i
 		)
 	}
+	gridOn(
+		memory,
+		selectedLayer(memory),
+		to,
+		gridOn(memory, selectedLayer(memory), from)
+	)
 }
 
 /**

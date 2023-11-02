@@ -1,5 +1,6 @@
 import {BentoElement} from "./base.js"
 import * as loop from "../loop.js"
+import * as dt from "../data-transfer.js"
 
 export default class BentoMiniGrid extends BentoElement {
 	/** @type HTMLElement[] */
@@ -9,16 +10,68 @@ export default class BentoMiniGrid extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.attachStylesheet("mini-grid")
-		let button = this.shadow.appendChild(document.createElement("button"))
-		button.id = "minigrid"
 		this.on = true
+		this.setAttribute("draggable", "true")
+		this.tabIndex = 0
 
 		loop.gridSteps(i => {
 			let dot = document.createElement("bento-dot")
 			dot.toggleAttribute("on", this.grid?.[i])
 			this.#dots.push(dot)
-			button.append(dot)
+			this.shadow.append(dot)
 		})
+		// todo some kind of withCopyable mixin
+		this.addEventListener("dragenter", this.#dragenter)
+		this.addEventListener("dragover", this.#dragover)
+		this.addEventListener("dragleave", this.#dragleave)
+		this.addEventListener("drop", this.#drop)
+		this.addEventListener("dragstart", this.#dragstart)
+	}
+
+	get #droptarget() {
+		return this.hasAttribute("drop-target")
+	}
+
+	set #droptarget(val) {
+		this.toggleAttribute("drop-target", val)
+	}
+
+	/** @param {DragEvent} event */
+	async #dragenter(event) {
+		event.preventDefault()
+		if (await dt.isGrid(event.dataTransfer)) {
+			this.#droptarget = true
+		}
+	}
+
+	/** @param {DragEvent} event */
+	async #dragover(event) {
+		event.preventDefault()
+		if (await dt.isGrid(event.dataTransfer)) {
+			this.#droptarget = true
+		}
+	}
+
+	/** @param {DragEvent} event */
+	#dragleave(event) {
+		event.preventDefault()
+		this.#droptarget = false
+	}
+
+	/** @param {DragEvent} event */
+	#dragstart(event) {
+		dt.setGrid(event.dataTransfer, +this.id)
+	}
+
+	/** @param {DragEvent} event */
+	async #drop(event) {
+		event.preventDefault()
+		let grid = await dt.getGrid(event.dataTransfer)
+		this.announce("change", {
+			change: "copy",
+			from: grid
+		})
+		this.#droptarget = false
 	}
 
 	get grid() {

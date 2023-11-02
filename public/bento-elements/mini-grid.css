@@ -12,24 +12,34 @@
 	);
 	position: relative;
 	box-sizing: border-box;
-}
-
-button {
 	background: var(--minigrid-fill);
 	cursor: pointer;
 	appearance: none;
 	height: var(--grid-selector-box-size);
 	width: var(--grid-selector-box-size);
-	display: flex;
 	justify-content: center;
 	align-items: center;
 	color: var(--machine-fill);
 	border: 1px solid var(--minigrid-off-line);
 	display: grid;
 	padding: 1px;
+	grid-template-columns: repeat(4, 1fr);
+	height: var(--grid-selector-box-size);
+	width: var(--grid-selector-box-size);
+	--dot-size: calc((var(--grid-selector-box-size) / 4) - 4px);
+	--dot-gap: 2px;
+	row-gap: var(--dot-gap);
+	column-gap: var(--dot-gap);
+	padding: 2px;
 }
 
-:host([on]) button {
+:host([drop-target]) {
+	outline: 4px solid var(--drop-target-outline);
+	border: 2px solid var(--drop-target-outline);
+	outline-offset: 2px;
+}
+
+:host([on]) {
 	border: 1px solid var(--minigrid-on-line);
 }
 
@@ -37,11 +47,6 @@ button {
 	outline: 1px solid var(--selected-minigrid-outline);
 	outline-offset: 2px;
 }
-
-:host([selected]) button {
-	/* border: 1px solid var(--box-off-line); */
-}
-
 :host([playing])::after {
 	content: "";
 	width: 0;
@@ -53,18 +58,6 @@ button {
 	bottom: -10px;
 	left: 50%;
 	transform: translate(-50%);
-}
-
-#minigrid {
-	box-sizing: border-box;
-	grid-template-columns: repeat(4, 1fr);
-	height: var(--grid-selector-box-size);
-	width: var(--grid-selector-box-size);
-	--dot-size: calc((var(--grid-selector-box-size) / 4) - 4px);
-	--dot-gap: 2px;
-	row-gap: var(--dot-gap);
-	column-gap: var(--dot-gap);
-	padding: 2px;
 }
 
 bento-dot {

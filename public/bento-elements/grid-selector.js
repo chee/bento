@@ -10,11 +10,12 @@ export default class BentoGridSelector extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<div></div>`
-		loop.grids(() => {
+		loop.grids(index => {
 			let minigrid = /** @type BentoMiniGrid */ (
 				document.createElement("bento-mini-grid")
 			)
 			// minigrid.on = true
+			minigrid.id = index.toString()
 			this.shadow.firstElementChild.append(minigrid)
 			this.#minigrids.push(minigrid)
 		})
@@ -22,21 +23,36 @@ export default class BentoGridSelector extends BentoElement {
 			"click",
 			/** @param {MouseEvent} event */
 			event => {
-				if (this.#minigrids.includes(event.target)) {
-					if (event.target.selected) {
+				let target = /** @type {BentoMiniGrid}*/ (event.target)
+				if (this.#minigrids.includes(target)) {
+					if (target.selected) {
 						this.announce("toggle", {
 							toggle: "grid",
-							value: this.#minigrids.indexOf(event.target)
+							value: +target.id
 						})
 					} else {
 						this.announce("change", {
 							change: "grid",
-							value: this.#minigrids.indexOf(event.target)
+							value: +target.id
 						})
 					}
 				}
 			}
 		)
+		// todo this code is SO exactly the same as the grid stuff
+		// it can probably be one thing once it has settled
+		// but: repeat yourself, repeat yourself, repeat yourself
+		// until you hear what you are saying
+		this.shadow.addEventListener("change", event => {
+			let target = /** @type {BentoMiniGrid}*/ (event.target)
+			let index = this.#minigrids.indexOf(target)
+			if (index != -1) {
+				this.announce("change", {
+					...event.detail,
+					minigrid: index
+				})
+			}
+		})
 		this.attachStylesheet("grid-selector")
 	}
 

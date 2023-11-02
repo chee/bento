@@ -23,21 +23,13 @@ function alter(stepDetails) {
 
 	let sound = originalSound.subarray(region.start, region.end || soundLength)
 
-	// if (quiet || reversed) {
-	// 	let output = new Float32Array(sound.length)
-	// 	for (let i = 0; i < sound.length; i++) {
-	// 		let targetIndex = reversed ? sound.length - i : i
-	// 		output[targetIndex] = sound[i] * qcurve[quiet]
-	// 	}
-	// 	sound = output
-	// }
-
-	if (reversed) {
-		sound.reverse()
-	}
-
-	if (quiet) {
-		sound = sound.map(f32 => f32 * qcurve[quiet])
+	if (quiet || reversed) {
+		let output = new Float32Array(sound.length)
+		for (let i = 0; i < sound.length; i++) {
+			let targetIndex = reversed ? sound.length - i : i
+			output[targetIndex] = sound[i] * qcurve[quiet]
+		}
+		sound = output
 	}
 
 	stepDetails.sound = sound

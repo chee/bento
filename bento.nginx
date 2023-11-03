@@ -19,6 +19,7 @@ ssl_early_data on;
 add_header Alt-Svc 'h3=":$server_port"; ma=86400' always;
 add_header 'Cross-Origin-Opener-Policy' 'same-origin' always;
 add_header 'Cross-Origin-Embedder-Policy' 'require-corp' always;
+add_header 'Cache-Control' 'no-cache' always;
 index index.html;
 error_page 404 /404;
 expires off;

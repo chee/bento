@@ -290,42 +290,48 @@ screen.hark("mouse", message => {
 		let deets = Memory.getSelectedStepDetails(memory)
 		Memory.stepQuiet(memory, deets.layer, deets.step, quiet)
 		Memory.stepPan(memory, deets.layer, deets.step, pan)
+	} else if (message.screen == "key") {
+		let deets = Memory.getSelectedStepDetails(memory)
+		Memory.stepPitch(
+			memory,
+			deets.layer,
+			deets.step,
+			Math.round((message.mouse.x / screen.canvas.width) * 16)
+		)
 	}
 })
 
 grid.hark("change", message => {
 	if ("box" in message) {
-		let {change, box} = message
 		let layer = Memory.selectedLayer(memory)
 		let selectedGrid = Memory.layerSelectedGrid(memory, layer)
-		let uiStep = box
+		let uiStep = message.box
 		let step = selectedGrid * Memory.STEPS_PER_GRID + uiStep
-		if (change == "selected") {
+		if (message.change == "selected") {
 			Memory.selectedUiStep(memory, uiStep)
-		} else if (change == "on") {
+		} else if (message.change == "on") {
 			Memory.stepOn(memory, layer, step, true)
 			db.save()
-		} else if (change == "off") {
+		} else if (message.change == "off") {
 			Memory.stepOn(memory, layer, step, false)
 			db.save()
-		} else if (change == "copy") {
-			let {from} = event.detail
-			Memory.copyStepWithinSelectedLayerAndGrid(memory, +from, +uiStep)
+		} else if (message.change == "copy") {
+			Memory.copyStepWithinSelectedLayerAndGrid(memory, +message.from, +uiStep)
 			Memory.selectedUiStep(memory, +uiStep)
 			db.save()
-		} else if (change == "quieter") {
+		} else if (message.change == "quieter") {
 			Memory.stepQuieter(memory, layer, step)
 			db.save()
-		} else if (change == "louder") {
+		} else if (message.change == "louder") {
 			Memory.stepLouder(memory, layer, step)
 			db.save()
-		} else if (change == "pan-left") {
+		} else if (message.change == "pan-left") {
 			Memory.stepPanLeft(memory, layer, step)
 			db.save()
-		} else if (change == "pan-right") {
+		} else if (message.change == "pan-right") {
 			Memory.stepPanRight(memory, layer, step)
 			db.save()
-		} else if (change == "reverse") {
+		} else if (message.change == "reverse") {
 			Memory.stepReverse(memory, layer, step)
 			db.save()
 		}

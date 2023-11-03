@@ -456,6 +456,12 @@ function update(frame = 0, force = false) {
 		wav(frame, force)
 	} else if (screen == "mix") {
 		mix(frame, force)
+	} else if (screen == "key") {
+		fillRegion(0, context.canvas.width, "pink")
+		let xs = context.canvas.width / 17
+		let x = xs * stepDetails.pitch
+		fillRegion(x, x + xs, "white")
+		requestAnimationFrame(update)
 	} else {
 		requestAnimationFrame(update)
 	}

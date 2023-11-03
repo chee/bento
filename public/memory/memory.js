@@ -4,7 +4,7 @@ import migrations from "./migrations.js"
 // todo stereo
 export const SOUND_SIZE = 2 ** 16 * 4
 export const SAMPLERS_PER_MACHINE = 4
-export const SYNTHS_PER_MACHINE = 1
+export const SYNTHS_PER_MACHINE = 0
 export const LAYERS_PER_MACHINE = SAMPLERS_PER_MACHINE + SYNTHS_PER_MACHINE
 export const GRIDS_PER_LAYER = 8
 export const STEPS_PER_GRID = 16
@@ -424,7 +424,8 @@ export function currentStep(memory, layer, val) {
 
 /**
  * @param {MemoryMap} memory
- * @param {number} layer*/
+ * @param {number} layer
+ */
 export function incrementStep(memory, layer) {
 	let current = memory.currentSteps.at(layer)
 	let activeGrids = Array.from(

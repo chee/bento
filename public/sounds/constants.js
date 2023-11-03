@@ -12,7 +12,8 @@ export const Output = {
 	DelayFeedback: 10,
 	DelayInputLevel: 11,
 	BypassFilter: 12,
-	Pitch: 13
+	Pitch: 13,
+	Gain: 14
 }
 
 export const NUMBER_OF_CONTROL_OUTPUTS = Object.keys(Output).length

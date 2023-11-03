@@ -106,7 +106,12 @@ async function fetchSound(url) {
 	}
 }
 
+// await context.audioWorklet.addModule("/sounds/nodes/base.audioworklet.js")
 await context.audioWorklet.addModule("/sounds/nodes/sampler.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/nodes/synth.audioworklet.js")
+await context.audioWorklet.addModule(
+	"/sounds/nodes/quiet-party.audioworklet.js"
+)
 
 /**
  * set the sound in memory
@@ -197,44 +202,82 @@ export async function init(buffer) {
 
 	let analyzer = context.createAnalyser()
 	analyzer.fftSize = 2048
+	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
 
-	loop.layers(idx => {
-		let layer = new AudioWorkletNode(context, "bento-layer", {
-			processorOptions: {buffer, layerNumber: idx},
-			channelCount: 1,
-			numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS,
-			outputChannelCount: [
-				2,
-				...Array(constants.NUMBER_OF_CONTROL_OUTPUTS).fill(1)
-			]
-		})
-		let pan = new StereoPannerNode(context)
-		layer.connect(pan.pan, constants.Output.Pan)
+	// loop.synths(idx => {
+	// 	let synth = new AudioWorkletNode(context, "bento-synth", {
+	// 		processorOptions: {buffer, layerNumber: idx},
+	// 		channelCount: 1,
+	// 		numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS
+	// 	})
+	// 	let oscillator = new OscillatorNode(context, {
+	// 		type: "sawtooth"
+	// 	})
+	// 	let oscillator2 = new OscillatorNode(context, {
+	// 		type: "sawtooth",
+	// 		detune: 0.5
+	// 	})
+	// 	synth.connect(oscillator.frequency, constants.Output.Pitch)
+	// 	synth.connect(oscillator2.frequency, constants.Output.Pitch)
+	// 	let gain = new GainNode(context, {gain: 0.5})
+	// 	oscillator.connect(gain)
+	// 	let pan = new StereoPannerNode(context, {pan: -1})
+	// 	gain.connect(pan)
+	// 	pan.connect(context.destination)
+	// 	let gain2 = new GainNode(context, {gain: 0.5})
+	// 	oscillator2.connect(gain)
+	// 	let pan2 = new StereoPannerNode(context, {pan: 1})
+	// 	gain2.connect(pan2)
+	// 	pan2.connect(context.destination)
+	// 	synth.connect(gain.gain, constants.Output.Sound)
+	// 	synth.connect(gain2.gain, constants.Output.Sound)
+	// 	// oscillator.start()
+	// })
 
-		let filter = new DjFilter(context, {layer})
-		let delay = new Delay(context, {layer})
+	loop.samplers(idx => {
+		let sampler = new AudioWorkletNode(context, "bento-sampler", {
+			processorOptions: {buffer, layerNumber: idx},
+			channelCount: 2,
+			numberOfOutputs: 1,
+			outputChannelCount: [2]
+		})
+		let qp = new AudioWorkletNode(context, "quiet-party", {
+			processorOptions: {buffer, layerNumber: idx},
+			channelCount: 2,
+			numberOfInputs: 1,
+			numberOfOutputs: 1,
+			outputChannelCount: [2]
+		})
+		sampler.connect(qp)
+		qp.connect(context.destination)
+
+		// let pan = new StereoPannerNode(context)
+		// sampler.connect(pan.pan, constants.Output.Pan)
+		// let filter = new DjFilter(context, {layer: sampler})
+		// let delay = new Delay(context, {layer: sampler})
 
 		/* layer -> filter */
-		layer.connect(filter.in, constants.Output.Sound)
+		// qp.connect(filter.in)
+		// sampler.connect(filter.in)
 
 		/* filter->pan */
-		filter.out.connect(pan)
+		// filter.out.connect(pan)
 
 		/* pan->dac */
-		pan.connect(context.destination)
+		// pan.connect(context.destination)
 
 		// /* pan->sends */
 		// pan.connect(reverb.in)
-		pan.connect(delay.in)
+		// pan.connect(delay.in)
 
-		// /* sends->dac */
-		delay.out.connect(context.destination)
+		/* sends->dac */
+		// delay.out.connect(context.destination)
 		// reverb.out.connect(context.destination)
 
-		// /* everything that goes out is connected to the analyzer too  */
-		pan.connect(analyzer)
-		delay.out.connect(analyzer)
+		/* everything that goes out is connected to the analyzer too  */
+		// pan.connect(analyzer)
+		// delay.out.connect(analyzer)
 		// reverb.out.connect(analyzer)
 	})
 }

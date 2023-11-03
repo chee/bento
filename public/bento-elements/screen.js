@@ -2,6 +2,7 @@ import {BentoElement, BentoEvent} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../data-transfer.js"
 import {LayerType} from "../memory.js"
+import {DPI} from "../graphics.const.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -14,18 +15,41 @@ import {LayerType} from "../memory.js"
 export default class BentoScreen extends BentoElement {
 	static screens = {
 		[LayerType.sampler]: {
-			wav: "wav",
-			mix: "mix"
+			wav: {
+				name: "wav",
+				reselect: "reverse",
+				mouse: {
+					start: "start-drawing-region",
+					move: "drawing-region-x",
+					end: "end-drawing-region"
+				}
+			},
+			mix: {
+				name: "mix",
+				mouse: {
+					start: "mouse-mix",
+					move: "mouse-mix",
+					end: "mouse-mix"
+				}
+			}
 		},
 		[LayerType.synth]: {
-			key: "key",
-			mix: "mix"
+			key: {name: "key", mouse: {}},
+			mix: {
+				name: "mix",
+				mouse: {
+					start: "mouse-mix",
+					move: "mouse-mix",
+					end: "mouse-mix"
+				}
+			}
 		}
 	}
 	/** @type {BentoScreenSelector} */
 	#screenSelector
+	#layerType = 1
 	canvas = document.createElement("canvas")
-	screen = "wav"
+	screen = BentoScreen.screens[LayerType.sampler][0]
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<figure></figure>`
@@ -33,13 +57,10 @@ export default class BentoScreen extends BentoElement {
 		this.attachStylesheet("screen")
 		// this.setAttribute("screen", this.screen)
 		customElements.whenDefined("bento-screen-selector").then(() => {
-			// let screens = Object.values(BentoScreen.screens)
 			this.#screenSelector = /** @type BentoScreenSelector */ (
 				document.createElement("bento-screen-selector")
 			)
 			this.shadow.appendChild(this.#screenSelector)
-			// screenSelector.setAttribute("screens", screens.join(" "))
-			// screenSelector.setAttribute("selected", this.screen)
 		})
 		this.shadow.addEventListener(
 			"screen",
@@ -53,11 +74,11 @@ export default class BentoScreen extends BentoElement {
 				this.announce("screen", {
 					screen: event.detail.screen
 				})
-
-				this.screen = event.detail.screen
-				this.setAttribute("screen", this.screen)
+				let screen = BentoScreen.screens[this.#layerType][event.detail.screen]
+				this.screen = screen
+				this.setAttribute("screen", screen.name)
 				if (event.target instanceof BentoScreenSelector) {
-					event.target.setAttribute("selected", event.detail.screen)
+					event.target.setAttribute("selected", screen.name)
 				}
 			}
 		)
@@ -90,6 +111,7 @@ export default class BentoScreen extends BentoElement {
 			event.preventDefault()
 		})
 
+		// todo move these to #handlers
 		/* this runs a billion times a second while a drag is being held on top of the
 		target */
 		this.addEventListener("dragover", async event => {
@@ -149,6 +171,77 @@ export default class BentoScreen extends BentoElement {
 				})
 			}
 		})
+		if (IS_BASICALLY_A_PHONE) {
+			this.addEventListener("touchstart", this.#touchstart)
+		} else {
+			this.addEventListener("mousedown", this.#mousedown)
+		}
+
+		this.addEventListener("mouse", this.#mouse)
+	}
+
+	/** @param {MouseEvent} event */
+	#mousedown(event) {
+		// assumes nothing ever changes size while you're trying to trim a sample
+		let bounds = this.canvas.getBoundingClientRect()
+		let mouse = resolveMouseFromEvent(event, bounds)
+		this.announce("mouse", {type: "start", mouse})
+		/** @param {MouseEvent} event */
+		let mousemove = event => {
+			let mouse = resolveMouseFromEvent(event, bounds)
+			this.announce("mouse", {type: "move", mouse})
+		}
+		window.addEventListener("mousemove", mousemove)
+
+		/** @param {MouseEvent} event */
+		let mouseend = event => {
+			let mouse = resolveMouseFromEvent(event, bounds)
+			this.announce("mouse", {type: "end", mouse})
+			window.removeEventListener("mousemove", mousemove)
+		}
+
+		window.addEventListener("mouseup", mouseend, {once: true})
+	}
+
+	// this is super naïve
+	/** @param {TouchEvent} event */
+	#touchstart(event) {
+		// assumes nothing ever changes size while you're fingering
+		let bounds = this.canvas.getBoundingClientRect()
+		let finger = event.touches.item(0)
+		let mouse = resolveMouseFromEvent(finger, bounds)
+		this.announce("mouse", {type: "start", mouse})
+		/** @param {TouchEvent} event */
+		function move(event) {
+			let moved = findFinger(finger, event.changedTouches)
+			if (moved) {
+				let mouse = resolveMouseFromEvent(moved, bounds)
+				this.announce("mouse", {type: "start", mouse})
+			}
+		}
+		window.addEventListener("touchmove", move)
+		window.addEventListener(
+			"touchend",
+			/** @param {TouchEvent} event */
+			event => {
+				let lost = findFinger(finger, event.changedTouches)
+				let missing = !findFinger(finger, event.targetTouches)
+				if (lost && missing) {
+					let mouse = resolveMouseFromEvent(lost, bounds)
+					this.announce("mouse", {type: "end", mouse})
+					window.removeEventListener("touchmove", move)
+				}
+			},
+			{once: true}
+		)
+	}
+
+	#mouse(event) {
+		let {type, mouse} = event.detail
+		let screen = this.screen
+		if ("mouse" in screen) {
+			this.announce(screen.mouse[type], {mouse})
+		}
 	}
 
 	/** @param {string} prop */
@@ -225,17 +318,75 @@ export default class BentoScreen extends BentoElement {
 		return this.empx * 4
 	}
 
+	get layerType() {
+		return this.#layerType
+	}
 	/** @param {LayerType} val */
 	set layerType(val) {
 		let screen = BentoScreen.screens[val]
-
+		this.#layerType = val
 		if (screen) {
 			this.#screenSelector.setAttribute(
 				"screens",
-				Object.values(screen).join(" ")
+				Object.keys(screen).join(" ")
 			)
 		} else {
 			console.error(`no screen for LayerType ${val}`)
 		}
 	}
+}
+
+const IS_BASICALLY_A_PHONE =
+	typeof window != "undefined" &&
+	window.matchMedia("(pointer: coarse)").matches
+
+/**
+ * @param {import("../memory.js").MousePoint} clientXY
+ * @param {DOMRect} bounds
+ * @returns {import("../memory.js").MousePoint} corrected
+ */
+function resolveMouse(clientXY, bounds) {
+	return {
+		x:
+			clientXY.x < bounds.left
+				? 0
+				: // the bounds are the effective size
+				clientXY.x > bounds.right
+				? bounds.width
+				: // multiplied for the REAL canvas size
+				  (clientXY.x - bounds.left) * DPI,
+		y:
+			clientXY.y < bounds.top
+				? 0
+				: clientXY.y > bounds.bottom
+				? bounds.height
+				: (clientXY.y - bounds.top) * DPI
+	}
+}
+
+/**
+ * @param {MouseEvent | Touch} event
+ * @param {DOMRect} bounds
+ */
+function resolveMouseFromEvent(event, bounds) {
+	return resolveMouse(
+		{
+			x: event.clientX,
+			y: event.clientY
+		},
+		bounds
+	)
+}
+
+/**
+ * @param {Touch} finger
+ * @param {TouchList} touches
+ * @returns {Touch?}
+ */
+function findFinger(finger, touches) {
+	return [].find.call(
+		touches,
+		/** @param {Touch} touch */
+		touch => touch.identifier == finger.identifier
+	)
 }

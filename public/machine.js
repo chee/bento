@@ -69,7 +69,7 @@ async function getFancy() {
 		}
 
 		if (sounds.fancy() && !graphics.fancy()) {
-			graphics.start(screen.canvas, buffer)
+			graphics.start(buffer)
 		}
 
 		if (sounds.fancy() && graphics.fancy() && !db.fancy()) {

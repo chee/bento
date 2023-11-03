@@ -168,11 +168,11 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 					this.point + 128
 				)
 				this.point += 128
-				let [leftear] = outputs[consts.Output.Sound]
+				let [leftear, rightear] = outputs[consts.Output.Sound]
 
 				for (let i = 0; i < 128; i++) {
 					// todo stereo
-					leftear[i] = portionOfSound[i]
+					rightear[i] = leftear[i] = portionOfSound[i]
 				}
 			}
 		}

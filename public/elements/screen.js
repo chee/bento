@@ -148,9 +148,9 @@ export default class BentoScreen extends BentoElement {
 			}
 		})
 		if (IS_BASICALLY_A_PHONE) {
-			this.addEventListener("touchstart", this.#touchstart)
+			this.canvas.addEventListener("touchstart", this.#touchstart)
 		} else {
-			this.addEventListener("mousedown", this.#mousedown)
+			this.canvas.addEventListener("mousedown", this.#mousedown)
 		}
 	}
 

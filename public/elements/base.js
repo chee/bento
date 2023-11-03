@@ -74,7 +74,6 @@ export class BentoElement extends HTMLElement {
 		let cb = (/** @type BentoEvent & {target: BentoElement} */ event) => {
 			fn.call(el, event.detail, event)
 		}
-		console.log(this)
 		this.addEventListener(name, cb, options)
 		return () => {
 			this.removeEventListener(name, cb)

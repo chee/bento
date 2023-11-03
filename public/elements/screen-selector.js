@@ -11,6 +11,7 @@ export default class BentoScreenSelector extends BentoElement {
 			"click",
 			/** @param {MouseEvent} event */
 			event => {
+				event.stopImmediatePropagation()
 				if (event.target instanceof HTMLButtonElement) {
 					this.announce("screen", {
 						screen: /** @type Screen */ (event.target.name)
@@ -20,6 +21,12 @@ export default class BentoScreenSelector extends BentoElement {
 				}
 			}
 		)
+		this.addEventListener("mousedown", event => {
+			event.stopImmediatePropagation()
+		})
+		this.addEventListener("touchstart", event => {
+			event.stopImmediatePropagation()
+		})
 	}
 
 	#selectedIndex() {

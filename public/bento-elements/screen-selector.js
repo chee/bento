@@ -21,17 +21,36 @@ export default class BentoScreenSelector extends BentoElement {
 		)
 	}
 
-	attributeChangedCallback(attr, _old, value) {
+	#selectedIndex() {
+		let sel = Array.from(this.shadow.firstElementChild.children).findIndex(n =>
+			n.hasAttribute("aria-checked")
+		)
+		return sel == -1 ? 0 : sel
+	}
+
+	attributeChangedCallback(attr, old, value) {
 		if (attr == "screens") {
+			// todo bring this in if performance suffers
+			if (old == value) {
+				return
+			}
+
 			let nav = this.shadow.firstElementChild
+			let sel = this.#selectedIndex()
 			nav.textContent = ""
-			for (let name of value.split(/\s+/)) {
+			// todo the joining and splitting of this is wasteful. use a prop instead
+			let names = value.split(/\s+/)
+
+			for (let name of names) {
 				let button = document.createElement("button")
 				button.textContent = name
 				button.name = name
 				nav.appendChild(button)
 			}
-			nav.children[0].setAttribute("aria-checked", "true")
+			nav.children[sel].setAttribute("aria-checked", "true")
+			this.announce("screen", {
+				screen: names[sel]
+			})
 		} else if (attr == "selected") {
 			Array.from(this.shadow.querySelectorAll("button")).forEach(button => {
 				button.toggleAttribute("aria-checked", button.name == value)

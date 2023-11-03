@@ -1,9 +1,11 @@
 import {DB_VERSION} from "./db.share.js"
 import migrations from "./migrations.js"
 // ~4.75 seconds at 44.1khz
+// todo stereo
 export const SOUND_SIZE = 2 ** 16 * 4
-// let NUMBER_OF_LAYERS = number_of_samplers + number_of_synths
-export const LAYERS_PER_MACHINE = 4
+export const SAMPLERS_PER_MACHINE = 4
+export const SYNTHS_PER_MACHINE = 1
+export const LAYERS_PER_MACHINE = SAMPLERS_PER_MACHINE + SYNTHS_PER_MACHINE
 export const GRIDS_PER_LAYER = 8
 export const STEPS_PER_GRID = 16
 export const STEPS_PER_LAYER = GRIDS_PER_LAYER * STEPS_PER_GRID
@@ -29,6 +31,15 @@ export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
  */
 
 /**
+ * @readonly
+ * @enum {number}
+ */
+export const LayerType = {
+	sampler: 1,
+	synth: 2
+}
+
+/**
  * @satisfies {MemoryArrayDefinition}
  */
 export let arrays = {
@@ -52,6 +63,17 @@ export let arrays = {
 		type: Float32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
 		defaultFill: 1
+	},
+	layerTypes: {
+		type: Uint8Array,
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		default: [
+			LayerType.sampler,
+			LayerType.sampler,
+			LayerType.sampler,
+			LayerType.sampler,
+			LayerType.synth
+		]
 	},
 	currentSteps: {
 		type: Uint8Array,
@@ -122,11 +144,11 @@ export let arrays = {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-
 	drawingRegion: {type: Float32Array, size: 4},
 	layerSounds: {
 		type: Float32Array,
-		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)
+		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) // * 2? then
+		// place the right channel at layer+lpm from the left channel
 	},
 	mouse: {type: Float32Array, size: 2},
 	theme: {type: Uint8Array, size: 8}
@@ -181,7 +203,16 @@ export function map(buffer) {
 	let offset = 0
 
 	for (let [name, arrayInfo] of Object.entries(arrays)) {
-		memory[name] = new arrayInfo.type(buffer, offset, arrayInfo.size)
+		let description = `maping ${name} as ${arrayInfo.type.name} of ${
+			arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
+		} at ${offset}`
+		try {
+			console.debug(description)
+			memory[name] = new arrayInfo.type(buffer, offset, arrayInfo.size)
+		} catch (error) {
+			console.error(error)
+			throw new Error(description)
+		}
 		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 		if (
 			"defaultFill" in arrayInfo &&
@@ -233,6 +264,11 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 				)
 				content = content.subarray(0, memory[name].length)
 				if (
+					"default" in arrayInfo &&
+					content.every(/** @param {number} n */ n => !n)
+				) {
+					content.set(arrayInfo.default)
+				} else if (
 					"defaultFill" in arrayInfo &&
 					content.every(/** @param {number} n */ n => !n)
 				) {
@@ -318,6 +354,46 @@ export function selectedLayer(memory, val) {
 		memory.master.set([val], Master.selectedLayer)
 	}
 	return memory.master.at(Master.selectedLayer)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @returns {LayerType}
+ */
+export function getLayerType(memory, layer) {
+	return memory.layerTypes.at(layer)
+}
+
+/**
+ * @typedef {{
+		layer: number
+		selectedGrid: number
+		type: LayerType
+		currentStep: number
+		speed: number
+	}} LayerDetails
+ */
+
+/**
+ * todo return all the step infos as an array?
+ * @param {MemoryMap} memory
+ * @returns {LayerDetails}
+ */
+export function getSelectedLayerDetails(memory) {
+	let layer = memory.master.at(Master.selectedLayer)
+	let selectedGrid = layerSelectedGrid(memory, layer)
+	let type = getLayerType(memory, layer) || 1 // todo lol remove this 1
+	let step = currentStep(memory, layer)
+	let speed = layerSpeed(memory, layer)
+
+	return {
+		layer,
+		selectedGrid,
+		type,
+		currentStep: step,
+		speed
+	}
 }
 
 /**

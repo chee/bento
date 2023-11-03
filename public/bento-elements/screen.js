@@ -1,6 +1,8 @@
 import {BentoElement, BentoEvent} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../data-transfer.js"
+import {LayerType} from "../memory.js"
+
 /**
  * @typedef {Object} StyleMap
  * @prop {string} fill
@@ -11,23 +13,33 @@ import * as dt from "../data-transfer.js"
 
 export default class BentoScreen extends BentoElement {
 	static screens = {
-		wav: "wav",
-		mix: "mix"
+		[LayerType.sampler]: {
+			wav: "wav",
+			mix: "mix"
+		},
+		[LayerType.synth]: {
+			key: "key",
+			mix: "mix"
+		}
 	}
+	/** @type {BentoScreenSelector} */
+	#screenSelector
 	canvas = document.createElement("canvas")
-	screen = BentoScreen.screens.wav
+	screen = "wav"
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<figure></figure>`
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
-		this.setAttribute("screen", this.screen)
+		// this.setAttribute("screen", this.screen)
 		customElements.whenDefined("bento-screen-selector").then(() => {
-			let screens = Object.values(BentoScreen.screens)
-			let screenSelector = document.createElement("bento-screen-selector")
-			this.shadow.appendChild(screenSelector)
-			screenSelector.setAttribute("screens", screens.join(" "))
-			screenSelector.setAttribute("selected", this.screen)
+			// let screens = Object.values(BentoScreen.screens)
+			this.#screenSelector = /** @type BentoScreenSelector */ (
+				document.createElement("bento-screen-selector")
+			)
+			this.shadow.appendChild(this.#screenSelector)
+			// screenSelector.setAttribute("screens", screens.join(" "))
+			// screenSelector.setAttribute("selected", this.screen)
 		})
 		this.shadow.addEventListener(
 			"screen",
@@ -211,5 +223,19 @@ export default class BentoScreen extends BentoElement {
 
 	get height() {
 		return this.empx * 4
+	}
+
+	/** @param {LayerType} val */
+	set layerType(val) {
+		let screen = BentoScreen.screens[val]
+
+		if (screen) {
+			this.#screenSelector.setAttribute(
+				"screens",
+				Object.values(screen).join(" ")
+			)
+		} else {
+			console.error(`no screen for LayerType ${val}`)
+		}
 	}
 }

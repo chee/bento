@@ -115,20 +115,24 @@ async function init() {
 }
 
 function update(_frame = 0) {
-	let selectedLayer = Memory.selectedLayer(memory)
+	let selectedLayerDetails = Memory.getSelectedLayerDetails(memory)
 	let bpm = Memory.bpm(memory)
 	master.bpm = bpm
 	master.toggleAttribute("playing", Memory.playing(memory))
 	master.toggleAttribute("paused", Memory.paused(memory))
-	layerSelector.selected = selectedLayer
-	layerOptions.speed = Memory.layerSpeed(memory, selectedLayer)
+	layerSelector.selected = selectedLayerDetails.layer
+	layerOptions.speed = Memory.layerSpeed(memory, selectedLayerDetails.speed)
 	// layerOptions.length = Memory.numberOfStepsInGrid(memory, selectedLayer)
+	screen.layerType = selectedLayerDetails.type
 
 	let selectedUiStep = Memory.selectedUiStep(memory)
-	let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
-	let currentStep = Memory.currentStep(memory, selectedLayer)
+	let selectedGrid = selectedLayerDetails.selectedGrid
+	let currentStep = selectedLayerDetails.currentStep
 	gridSelector.selected = selectedGrid
-	gridSelector.grids = Memory.getLayerGridStepOns(memory, selectedLayer)
+	gridSelector.grids = Memory.getLayerGridStepOns(
+		memory,
+		selectedLayerDetails.layer
+	)
 	gridSelector.playing = currentStep
 
 	loop.gridSteps(uiStep => {
@@ -141,16 +145,23 @@ function update(_frame = 0) {
 
 		let box = boxes[uiStep]
 		box.selected = uiStep == selectedUiStep
-		box.on = Memory.stepOn(memory, selectedLayer, actualStep)
+		box.on = Memory.stepOn(memory, selectedLayerDetails.layer, actualStep)
 		// todo move playing to be a number property of the grid
 		box.playing = currentStep == actualStep
-		box.quiet = Memory.stepQuiet(memory, selectedLayer, actualStep)
-		box.pan = Memory.stepPan(memory, selectedLayer, actualStep)
+		box.quiet = Memory.stepQuiet(
+			memory,
+			selectedLayerDetails.layer,
+			actualStep
+		)
+		box.pan = Memory.stepPan(memory, selectedLayerDetails.layer, actualStep)
 	})
 
 	loop.grids(gidx => {
-		gridSelector.toggle(gidx, Memory.gridOn(memory, selectedLayer, gidx))
-		grid.on = Memory.gridOn(memory, selectedLayer, selectedGrid)
+		gridSelector.toggle(
+			gidx,
+			Memory.gridOn(memory, selectedLayerDetails.layer, gidx)
+		)
+		grid.on = Memory.gridOn(memory, selectedLayerDetails.layer, selectedGrid)
 	})
 
 	requestAnimationFrame(update)
@@ -205,8 +216,8 @@ layerOptions.addEventListener(
 			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
 			db.save()
 		} else if (change == "length") {
-			Memory.numberOfStepsInGrid(memory, Memory.selectedLayer(memory), value)
-			db.save()
+			// Memory.numberOfStepsInGrid(memory, Memory.selectedLayer(memory), value)
+			// db.save()
 		}
 	}
 )

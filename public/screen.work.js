@@ -456,6 +456,8 @@ function update(frame = 0, force = false) {
 		wav(frame, force)
 	} else if (screen == "mix") {
 		mix(frame, force)
+	} else {
+		requestAnimationFrame(update)
 	}
 }
 

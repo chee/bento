@@ -1,12 +1,12 @@
-import * as share from "./db.share.js"
-import * as Memory from "./memory.js"
+import * as share from "./share.js"
+import * as Memory from "../memory/memory.js"
 
 /** @type {IDBDatabase} */
 let db
 /** @type {Memory.MemoryMap} */
 let memory
 
-let worker = new Worker("/db.work.js", {type: "module"})
+let worker = new Worker("/db/worker.js", {type: "module"})
 
 /** @param {SharedArrayBuffer} sab */
 export async function init(sab) {

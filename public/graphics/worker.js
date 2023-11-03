@@ -1,8 +1,8 @@
-import "./extend-native-prototypes.js"
-import * as Memory from "./memory.js"
-import {DPI} from "./graphics.const.js"
+import "../convenience/extend-native-prototypes.js"
+import * as Memory from "../memory/memory.js"
+import {DPI, Screen} from "./constants.js"
 
-/** @type {Record<string, import("./bento-elements/screen.js").StyleMap>}*/
+/** @type {Record<string, import("../elements/screen.js").StyleMap>}*/
 let styles
 
 /**
@@ -16,7 +16,7 @@ let context
 let memory
 
 /**
- * @type {"wav" | "mix"}
+ * @type Screen
  */
 let screen
 
@@ -461,7 +461,7 @@ function update(frame = 0, force = false) {
 	}
 }
 
-let f = new FontFace("qp", 'url("/fonts/iosevka-qp-regular.ttf")')
+let f = new FontFace("qp", 'url("/aux/fonts/iosevka-qp-regular.ttf")')
 f.load()
 
 onmessage = async event => {

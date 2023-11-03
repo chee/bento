@@ -1,4 +1,5 @@
 import {BentoElement} from "./base.js"
+import {Screen} from "../graphics/constants.js"
 
 export default class BentoScreenSelector extends BentoElement {
 	static observedAttributes = ["screens", "selected"]
@@ -12,7 +13,7 @@ export default class BentoScreenSelector extends BentoElement {
 			event => {
 				if (event.target instanceof HTMLButtonElement) {
 					this.announce("screen", {
-						screen: event.target.name
+						screen: /** @type Screen */ (event.target.name)
 					})
 				} else {
 					this.announce("open")
@@ -30,11 +31,9 @@ export default class BentoScreenSelector extends BentoElement {
 
 	attributeChangedCallback(attr, old, value) {
 		if (attr == "screens") {
-			// todo bring this in if performance suffers
 			if (old == value) {
 				return
 			}
-
 			let nav = this.shadow.firstElementChild
 			let sel = this.#selectedIndex()
 			nav.textContent = ""

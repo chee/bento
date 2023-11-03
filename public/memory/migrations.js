@@ -20,7 +20,7 @@ export function scaleStepsForGrids(/** @type Uint8Array */ array) {
 }
 
 /**
- * @typedef {import("./memory.js").MemoryMap} MemoryMap
+ * @typedef {import("../memory/memory.js").MemoryMap} MemoryMap
  * @typedef {(map: MemoryMap) => MemoryMap} Migration
  */
 

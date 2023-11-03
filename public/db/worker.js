@@ -1,4 +1,4 @@
-import * as share from "./db.share.js"
+import * as share from "./share.js"
 
 onmessage = async event => {
 	let message = event.data

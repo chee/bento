@@ -1,16 +1,11 @@
-/**
- * @readonly
- * @enum {keyof typeof Screen}
- */
+/** @typedef {typeof Screen[keyof typeof Screen]} Screen */
 export const Screen = {
-	/** @type {"wav"} */
-	wav: "wav",
-	/** @type {"env"} */
-	env: "env",
-	/** @type {"mix"} */
-	mix: "mix",
-	/** @type {"fx"} */
-	fx: "fx"
+	wav: /** @type const */ ("wav"),
+	mix: /** @type const */ ("mix"),
+	env: /** @type const */ ("env"),
+	key: /** @type const */ ("key"),
+	flt: /** @type const */ ("flt"),
+	spc: /** @type const */ ("spc")
 }
 
 export const DPI = 3

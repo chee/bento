@@ -1,4 +1,4 @@
-import * as loop from "../loop.js"
+import * as loop from "../convenience/loop.js"
 import {BentoElement} from "./base.js"
 
 export default class BentoLayerSelector extends BentoElement {

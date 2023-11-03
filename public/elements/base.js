@@ -1,8 +1,44 @@
+// todo probably have another map just for change events haha
+
+/**
+ * @typedef {{
+	change:
+		| {change: "reverse"}
+		| {change: "grid" | "speed" | "step" | "layer" | "bpm", value: number}
+		| {change: "sound", value: File}
+		| {change: "copy", from: number, box: number}
+		| {change: "copy", from: number, minigrid: number}
+		| {change: "on" | "selected" | "off" | "quieter" | "louder" | "pan-left" | "pan-right" | "reverse", box: number}
+	play: undefined
+	pause: undefined
+	stop: undefined
+	record: undefined
+	open: undefined
+	theme: string
+	toggle: {toggle: "grid", value: number}
+	"commit-sound": {step: number}
+	mouse: {
+		type: "start" | "move" | "end",
+		mouse: import("../memory/memory").MousePoint
+	} | {
+		type: "start" | "move" | "end",
+		mouse: import("../memory/memory").MousePoint
+		screen: import("../graphics/constants").Screen
+	}
+	screen: {screen: import("../graphics/constants").Screen} | undefined
+}} BentoEvents
+ */
+
+/**
+ * @template {keyof BentoEvents} Name
+ * @template {BentoEvents[Name]} Detail
+ * @template {Omit<EventInit, "detail">} Options
+ */
 export class BentoEvent extends CustomEvent {
 	/**
-	 * @param {string} name
-	 * @param {any} [detail]
-	 * @param {EventInit} [options]
+	 * @param {Name} name
+	 * @param {Detail} detail
+	 * @param {Options} options
 	 */
 	constructor(name, detail, options) {
 		super(name, {...options, detail})
@@ -15,20 +51,40 @@ export class BentoEvent extends CustomEvent {
 
 export class BentoElement extends HTMLElement {
 	#stylesheet = document.createElement("link")
+
 	/** @type {ShadowRoot} [shadow] */
 	shadow
 	/** @param {string} name */
 	attachStylesheet(name) {
 		this.#stylesheet.rel = "stylesheet"
-		this.#stylesheet.href = `/bento-elements/${name}.css`
+		this.#stylesheet.href = `/elements/${name}.css`
 		if (this.shadow != null) {
 			this.shadow.appendChild(this.#stylesheet)
 		}
 	}
 
 	/**
-	 * @param {string} name
-	 * @param {any} [detail]
+	 * @template {keyof BentoEvents} Name
+	 * @param {Name} name
+	 * @param {(message: BentoEvents[Name], event: (BentoEvent<Name> & {target: BentoElement})) => void} fn
+	 * @param {boolean | AddEventListenerOptions} [options]
+	 */
+	hark(name, fn, options) {
+		let el = this
+		let cb = (/** @type BentoEvent & {target: BentoElement} */ event) => {
+			fn.call(el, event.detail, event)
+		}
+		console.log(this)
+		this.addEventListener(name, cb, options)
+		return () => {
+			this.removeEventListener(name, cb)
+		}
+	}
+
+	/**
+	 * @template {keyof BentoEvents} Name
+	 * @param {Name} name
+	 * @param {BentoEvents[Name]} [detail]
 	 * @param {EventInit} [options]
 	 */
 	announce(name, detail, options = {bubbles: true}) {

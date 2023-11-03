@@ -1,6 +1,6 @@
 import {BentoElement} from "./base.js"
-import * as loop from "../loop.js"
-import * as dt from "../data-transfer.js"
+import * as loop from "../convenience/loop.js"
+import * as dt from "../io/data-transfer.js"
 
 export default class BentoMiniGrid extends BentoElement {
 	/** @type HTMLElement[] */

@@ -1,8 +1,8 @@
-import * as Memory from "./memory.js"
-import * as loop from "./loop.js"
-import * as constants from "./sounds.const.js"
-import Delay from "./sounds/delay.js"
-import DjFilter from "./sounds/dj-filter.js"
+import * as Memory from "../memory/memory.js"
+import * as loop from "../convenience/loop.js"
+import * as constants from "./constants.js"
+import Delay from "./nodes/fx/delay.js"
+import DjFilter from "./nodes/fx/dj-filter.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -106,12 +106,11 @@ async function fetchSound(url) {
 	}
 }
 
-await context.audioWorklet.addModule("/layer.work.js")
-await context.audioWorklet.addModule("/expr.work.js")
+await context.audioWorklet.addModule("/sounds/nodes/sampler.audioworklet.js")
 
 /**
  * set the sound in memory
- * @param {import("./memory.js").MemoryMap} memory
+ * @param {import("../memory/memory.js").MemoryMap} memory
  * @param {number} layerNumber
  * @param {Float32Array} sound
  */
@@ -172,13 +171,17 @@ export async function loadKit(...urls) {
 	}
 }
 
-export async function loadDefaultKit() {
+export async function loadKitFromPath(base) {
 	return loadKit(
-		"/sounds/skk.wav",
-		"/sounds/sks.wav",
-		"/sounds/skh.wav",
-		"/sounds/sko.wav"
+		`${base}/a.wav`,
+		`${base}/b.wav`,
+		`${base}/c.wav`,
+		`${base}/d.wav`
 	)
+}
+
+export async function loadDefaultKit() {
+	return loadKitFromPath("/aux/kits/casio")
 }
 
 export function empty() {

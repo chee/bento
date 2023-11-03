@@ -1,7 +1,7 @@
 import {BentoElement} from "./base.js"
 import BentoMiniGrid from "./mini-grid.js"
-import * as loop from "../loop.js"
-import {STEPS_PER_GRID} from "../memory.js"
+import * as loop from "../convenience/loop.js"
+import {STEPS_PER_GRID} from "../memory/memory.js"
 
 export default class BentoGridSelector extends BentoElement {
 	/** @type {BentoMiniGrid[]} */

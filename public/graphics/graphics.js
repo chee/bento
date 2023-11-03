@@ -1,45 +1,14 @@
-// ==============================
-// PLEASE DONT LOOK AT THIS FILE
-// ==============================
-// todo remove above when it's legal to look at this file
-import * as Memory from "./memory.js"
-import {DPI} from "./graphics.const.js"
-import BentoScreen from "./bento-elements/screen.js"
-import * as db from "./db.js"
+import {DPI} from "./constants.js"
+import BentoScreen from "../elements/screen.js"
 
 let partyElement = document.querySelector("bento-party")
 partyElement.addEventListener("theme", event => theme(event.detail))
-
-/** @type {Memory.MemoryMap} */
-let memory
-
 /** @type {BentoScreen} */
 let screenElement
 
 /** @type {Worker} */
 let screenWorker
 
-function getMixFromMouse(mouse) {
-	let pan = Math.round((mouse.x / screenElement.canvas.width) * 12 - 6)
-	let quiet = Math.round((mouse.y / screenElement.canvas.height) * 12)
-	return {pan, quiet}
-}
-
-function startMousing(event) {
-	if (screenElement.screen == "wav") {
-		startSelectingRegion(event)
-	} else if (screenElement.screen == "mix") {
-		startSelectingMix(event)
-	}
-}
-
-function startFingering(event) {
-	if (screenElement.screen == "wav") {
-		startSelectingRegionWithFinger(event)
-	} else if (screenElement.screen == "mix") {
-		startSelectingMixWithFinger(event)
-	}
-}
 export let alreadyFancy = false
 
 export function fancy() {
@@ -60,7 +29,7 @@ let alreadyInit = false
 export async function init() {
 	if (alreadyInit) return
 	alreadyInit = true
-	screenWorker = new Worker("/screen.work.js", {type: "module"})
+	screenWorker = new Worker("/graphics/worker.js", {type: "module"})
 	await customElements.whenDefined("bento-screen")
 	screenElement = document.querySelector("bento-screen")
 	screenElement.canvas.height = screenElement.height * DPI
@@ -92,8 +61,6 @@ export async function init() {
 export function start(buffer) {
 	screenWorker.postMessage({type: "start", buffer})
 	screenWorker.onmessage = onWorkerMessage
-	memory = Memory.map(buffer)
-
 	alreadyFancy = true
 }
 

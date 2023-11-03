@@ -1,8 +1,8 @@
 import {BentoElement, BentoEvent} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
-import * as dt from "../data-transfer.js"
-import {LayerType} from "../memory.js"
-import {DPI} from "../graphics.const.js"
+import * as dt from "../io/data-transfer.js"
+import {LayerType} from "../memory/memory.js"
+import {DPI, Screen} from "../graphics/constants.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -12,50 +12,28 @@ import {DPI} from "../graphics.const.js"
  * @prop {string} [font]
  */
 
+/**
+ * @typedef {import("./base").BentoEvents["mouse"]} BentoMouseDetail
+ */
+
 export default class BentoScreen extends BentoElement {
+	/** @type Record<LayerType, Screen[]> */
 	static screens = {
-		[LayerType.sampler]: {
-			wav: {
-				name: "wav",
-				reselect: "reverse",
-				mouse: {
-					start: "start-drawing-region",
-					move: "drawing-region-x",
-					end: "end-drawing-region"
-				}
-			},
-			mix: {
-				name: "mix",
-				mouse: {
-					start: "mouse-mix",
-					move: "mouse-mix",
-					end: "mouse-mix"
-				}
-			}
-		},
-		[LayerType.synth]: {
-			key: {name: "key", mouse: {}},
-			mix: {
-				name: "mix",
-				mouse: {
-					start: "mouse-mix",
-					move: "mouse-mix",
-					end: "mouse-mix"
-				}
-			}
-		}
+		[LayerType.sampler]: [Screen.wav, Screen.mix],
+		[LayerType.synth]: [Screen.key, Screen.mix]
 	}
 	/** @type {BentoScreenSelector} */
 	#screenSelector
 	#layerType = 1
 	canvas = document.createElement("canvas")
+	/** @type Screen */
 	screen = BentoScreen.screens[LayerType.sampler][0]
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<figure></figure>`
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
-		// this.setAttribute("screen", this.screen)
+		this.setAttribute("screen", this.screen)
 		customElements.whenDefined("bento-screen-selector").then(() => {
 			this.#screenSelector = /** @type BentoScreenSelector */ (
 				document.createElement("bento-screen-selector")
@@ -67,18 +45,20 @@ export default class BentoScreen extends BentoElement {
 			/** @param {BentoEvent} event */
 			event => {
 				if (this.screen == event.detail.screen) {
-					this.announce("change", {
-						change: "reverse"
-					})
+					if (this.screen == Screen.wav) {
+						this.announce("change", {
+							change: "reverse"
+						})
+					}
 				}
 				this.announce("screen", {
 					screen: event.detail.screen
 				})
-				let screen = BentoScreen.screens[this.#layerType][event.detail.screen]
+				let screen = event.detail.screen
 				this.screen = screen
-				this.setAttribute("screen", screen.name)
+				this.setAttribute("screen", screen)
 				if (event.target instanceof BentoScreenSelector) {
-					event.target.setAttribute("selected", screen.name)
+					event.target.setAttribute("selected", screen)
 				}
 			}
 		)
@@ -91,8 +71,6 @@ export default class BentoScreen extends BentoElement {
 			event.preventDefault()
 			let {items} = event.dataTransfer
 
-			// todo allow dragging a clip to the screen to trim the sound to the
-			// length of its region
 			// todo move this to dt.getAudio
 			for (let item of Array.from(items)) {
 				// TODO restrict to supported formats by trying to decode a silent
@@ -119,8 +97,6 @@ export default class BentoScreen extends BentoElement {
 
 			let {items} = event.dataTransfer
 
-			// todo allow dragging a clip to the screen to trim the sound to the length
-			// of its region
 			// todo move this to dt.getAudio
 			for (let item of Array.from(items)) {
 				// TODO restrict to supported formats by trying to decode a silent audio
@@ -159,7 +135,7 @@ export default class BentoScreen extends BentoElement {
 						let file = item.getAsFile()
 						this.announce("change", {
 							change: "sound",
-							file
+							value: file
 						})
 					}
 				}
@@ -176,8 +152,6 @@ export default class BentoScreen extends BentoElement {
 		} else {
 			this.addEventListener("mousedown", this.#mousedown)
 		}
-
-		this.addEventListener("mouse", this.#mouse)
 	}
 
 	/** @param {MouseEvent} event */
@@ -185,18 +159,18 @@ export default class BentoScreen extends BentoElement {
 		// assumes nothing ever changes size while you're trying to trim a sample
 		let bounds = this.canvas.getBoundingClientRect()
 		let mouse = resolveMouseFromEvent(event, bounds)
-		this.announce("mouse", {type: "start", mouse})
+		this.#mouse({type: "start", mouse})
 		/** @param {MouseEvent} event */
 		let mousemove = event => {
 			let mouse = resolveMouseFromEvent(event, bounds)
-			this.announce("mouse", {type: "move", mouse})
+			this.#mouse({type: "move", mouse})
 		}
 		window.addEventListener("mousemove", mousemove)
 
 		/** @param {MouseEvent} event */
 		let mouseend = event => {
 			let mouse = resolveMouseFromEvent(event, bounds)
-			this.announce("mouse", {type: "end", mouse})
+			this.#mouse({type: "end", mouse})
 			window.removeEventListener("mousemove", mousemove)
 		}
 
@@ -210,13 +184,13 @@ export default class BentoScreen extends BentoElement {
 		let bounds = this.canvas.getBoundingClientRect()
 		let finger = event.touches.item(0)
 		let mouse = resolveMouseFromEvent(finger, bounds)
-		this.announce("mouse", {type: "start", mouse})
+		this.#mouse({type: "start", mouse})
 		/** @param {TouchEvent} event */
 		function move(event) {
 			let moved = findFinger(finger, event.changedTouches)
 			if (moved) {
 				let mouse = resolveMouseFromEvent(moved, bounds)
-				this.announce("mouse", {type: "start", mouse})
+				this.#mouse({type: "start", mouse})
 			}
 		}
 		window.addEventListener("touchmove", move)
@@ -228,7 +202,7 @@ export default class BentoScreen extends BentoElement {
 				let missing = !findFinger(finger, event.targetTouches)
 				if (lost && missing) {
 					let mouse = resolveMouseFromEvent(lost, bounds)
-					this.announce("mouse", {type: "end", mouse})
+					this.#mouse({type: "end", mouse})
 					window.removeEventListener("touchmove", move)
 				}
 			},
@@ -236,12 +210,11 @@ export default class BentoScreen extends BentoElement {
 		)
 	}
 
-	#mouse(event) {
-		let {type, mouse} = event.detail
+	/** @param {BentoMouseDetail} message */
+	#mouse(message) {
+		let {type, mouse} = message
 		let screen = this.screen
-		if ("mouse" in screen) {
-			this.announce(screen.mouse[type], {mouse})
-		}
+		this.announce("mouse", {type, mouse, screen})
 	}
 
 	/** @param {string} prop */
@@ -328,7 +301,7 @@ export default class BentoScreen extends BentoElement {
 		if (screen) {
 			this.#screenSelector.setAttribute(
 				"screens",
-				Object.keys(screen).join(" ")
+				BentoScreen.screens[this.#layerType].join(" ")
 			)
 		} else {
 			console.error(`no screen for LayerType ${val}`)
@@ -341,9 +314,9 @@ const IS_BASICALLY_A_PHONE =
 	window.matchMedia("(pointer: coarse)").matches
 
 /**
- * @param {import("../memory.js").MousePoint} clientXY
+ * @param {import("../memory/memory.js").MousePoint} clientXY
  * @param {DOMRect} bounds
- * @returns {import("../memory.js").MousePoint} corrected
+ * @returns {import("../memory/memory.js").MousePoint} corrected
  */
 function resolveMouse(clientXY, bounds) {
 	return {
@@ -352,14 +325,14 @@ function resolveMouse(clientXY, bounds) {
 				? 0
 				: // the bounds are the effective size
 				clientXY.x > bounds.right
-				? bounds.width
+				? bounds.width * DPI
 				: // multiplied for the REAL canvas size
 				  (clientXY.x - bounds.left) * DPI,
 		y:
 			clientXY.y < bounds.top
 				? 0
 				: clientXY.y > bounds.bottom
-				? bounds.height
+				? bounds.height * DPI
 				: (clientXY.y - bounds.top) * DPI
 	}
 }

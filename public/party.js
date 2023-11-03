@@ -1,11 +1,11 @@
-import * as sounds from "./sounds.js"
-import * as graphics from "./graphics.js"
-import * as Memory from "./memory.js"
-import * as loop from "./loop.js"
-import * as db from "./db.js"
-import Ask from "./ask.js"
+import * as sounds from "./sounds/sounds.js"
+import * as graphics from "./graphics/graphics.js"
+import * as Memory from "./memory/memory.js"
+import * as loop from "./convenience/loop.js"
+import * as db from "./db/db.js"
+import Ask from "./io/ask.js"
 
-/** @type {import("./bento-elements/bento-elements.js").BentoElement} */
+/** @type {import("./elements/bento-elements.js").BentoElement} */
 let party = document.querySelector("bento-party")
 let root = document.documentElement
 let themeObserver = new MutationObserver(changes => {
@@ -21,27 +21,27 @@ themeObserver.observe(root, {
 	attributes: true,
 	attributeFilter: ["theme"]
 })
-// TODO move non ui stuff to, like, start.js
+
 let machine = document.querySelector("bento-machine")
-/** @type {import("./bento-elements/bento-elements.js").BentoMasterControls} */
+/** @type {import("./elements/bento-elements.js").BentoMasterControls} */
 let master = document.querySelector("bento-master-controls")
-/** @type {import("./bento-elements/bento-elements.js").BentoNav} */
+/** @type {import("./elements/bento-elements.js").BentoNav} */
 let nav = document.querySelector("bento-nav")
-/** @type {import("./bento-elements/bento-elements.js").BentoLayerSelector} */
+/** @type {import("./elements/bento-elements.js").BentoLayerSelector} */
 let layerSelector = machine.querySelector("bento-layer-selector")
-/** @type {import("./bento-elements/bento-elements.js").BentoLayerOptions} */
+/** @type {import("./elements/bento-elements.js").BentoLayerOptions} */
 let layerOptions = machine.querySelector("bento-layer-options")
-/** @type {import("./bento-elements/bento-elements.js").BentoGrid} */
+/** @type {import("./elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
-/** @type {import("./bento-elements/bento-elements.js").BentoGridSelector} */
+/** @type {import("./elements/bento-elements.js").BentoGridSelector} */
 let gridSelector = machine.querySelector("bento-grid-selector")
 
-/** @type {import("./bento-elements/bento-elements.js").BentoScreen} */
+/** @type {import("./elements/bento-elements.js").BentoScreen} */
 let screen = machine.querySelector("bento-screen")
-/** @type {import("./bento-elements/bento-elements.js").BentoSettings} */
+/** @type {import("./elements/bento-elements.js").BentoSettings} */
 let settings = machine.querySelector("bento-settings")
-/** @type {import("./bento-elements/bento-elements.js").BentoTape} */
+/** @type {import("./elements/bento-elements.js").BentoTape} */
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
@@ -171,173 +171,169 @@ await init()
 getFancy()
 update()
 
-master.addEventListener("play", () => {
+master.hark("play", () => {
 	Memory.play(memory)
 	sounds.play()
 })
 
-master.addEventListener("pause", () => {
+master.hark("pause", () => {
 	Memory.pause(memory)
 	sounds.pause()
 })
 
-master.addEventListener("stop", () => {
+master.hark("stop", () => {
 	Memory.stop(memory)
 	sounds.pause()
 })
 
-master.addEventListener(
-	"change",
-	/** @param {import("./bento-elements/base.js").BentoEvent} event */
-	event => {
-		if (event.detail.change == "bpm") {
-			Memory.bpm(memory, event.detail.value)
-			db.save()
-		}
-	}
-)
-
-layerSelector.addEventListener(
-	"change",
-	/** @param {import("./bento-elements/base.js").BentoEvent} event */
-	event => {
-		if (event.detail.change == "layer") {
-			Memory.selectedLayer(memory, event.detail.value)
-		}
-	}
-)
-
-layerOptions.addEventListener(
-	"change",
-	/** @param {import("./bento-elements/base.js").BentoEvent} event */
-	event => {
-		let {change, value} = event.detail
-		if (change == "speed") {
-			Memory.layerSpeed(memory, Memory.selectedLayer(memory), value)
-			db.save()
-		} else if (change == "length") {
-			// Memory.numberOfStepsInGrid(memory, Memory.selectedLayer(memory), value)
-			// db.save()
-		}
-	}
-)
-
-gridSelector.addEventListener(
-	"change",
-	/** @param {import("./bento-elements/base.js").BentoEvent} event */
-	event => {
-		let {change, value} = event.detail
-		if (change == "grid") {
-			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), value)
-			db.save()
-		}
-		if (change == "copy") {
-			let {from, minigrid: to} = event.detail
-			Memory.copyGridWithinSelectedLayer(memory, +from, +to)
-			Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), +to)
-			db.save()
-		}
-	}
-)
-
-gridSelector.addEventListener(
-	"toggle",
-	/** @param {import("./bento-elements/base.js").BentoEvent} event */
-	event => {
-		let {toggle, value} = event.detail
-		if (toggle == "grid") {
-			let selectedLayer = Memory.selectedLayer(memory)
-			Memory.toggleGrid(memory, selectedLayer, +value)
-			db.save()
-		}
-	}
-)
-
-layerOptions.addEventListener(
-	"record",
-	/** @param {import("./bento-elements/base.js").BentoEvent} _event */
-	async _event => {
-		if (party.hasAttribute("recording")) {
-			return
-		}
-		party.setAttribute("recording", "recording")
-		let audio = await sounds.recordSound()
-		sounds.setSound(memory, Memory.selectedLayer(memory), audio)
+master.hark("change", message => {
+	if (message.change == "bpm") {
+		Memory.bpm(memory, message.value)
 		db.save()
 	}
-)
+})
 
-screen.addEventListener(
-	"change",
-	/** @param {import("./bento-elements/bento-elements.js").BentoEvent} event */
-	async event => {
-		if (event.detail.change == "sound") {
-			sounds.setSound(
-				memory,
-				Memory.selectedLayer(memory),
-				await sounds.decode(event.detail.file)
-			)
-			db.save()
-		} else if (event.detail.change == "reverse") {
-			let layer = Memory.selectedLayer(memory)
-			Memory.stepReverse(memory, layer, Memory.getActualSelectedStep(memory))
-			db.save()
-		}
+layerSelector.hark("change", message => {
+	if (message.change == "layer") {
+		Memory.selectedLayer(memory, message.value)
 	}
-)
+})
 
-screen.addEventListener("commit-sound", event => {
-	let {step} = event.detail
+layerOptions.hark("change", message => {
+	if (message.change == "speed") {
+		Memory.layerSpeed(memory, Memory.selectedLayer(memory), message.value)
+		db.save()
+	}
+	// else if (message.change == "length") {
+	// Memory.numberOfStepsInGrid(memory, Memory.selectedLayer(memory), value)
+	// db.save()
+	// }
+})
+
+gridSelector.hark("change", message => {
+	if (message.change == "grid") {
+		Memory.layerSelectedGrid(
+			memory,
+			Memory.selectedLayer(memory),
+			message.value
+		)
+		db.save()
+	}
+	if (message.change == "copy" && "minigrid" in message) {
+		let {from, minigrid: to} = message
+		Memory.copyGridWithinSelectedLayer(memory, +from, +to)
+		Memory.layerSelectedGrid(memory, Memory.selectedLayer(memory), +to)
+		db.save()
+	}
+})
+
+gridSelector.hark("toggle", message => {
+	let {toggle, value} = message
+	if (toggle == "grid") {
+		let selectedLayer = Memory.selectedLayer(memory)
+		Memory.toggleGrid(memory, selectedLayer, +value)
+		db.save()
+	}
+})
+
+layerOptions.hark("record", async () => {
+	if (party.hasAttribute("recording")) {
+		return
+	}
+	party.setAttribute("recording", "recording")
+	let audio = await sounds.recordSound()
+	sounds.setSound(memory, Memory.selectedLayer(memory), audio)
+	db.save()
+})
+
+screen.hark("change", async message => {
+	if (message.change == "sound") {
+		sounds.setSound(
+			memory,
+			Memory.selectedLayer(memory),
+			await sounds.decode(message.value)
+		)
+		db.save()
+	} else if (message.change == "reverse") {
+		let layer = Memory.selectedLayer(memory)
+		Memory.stepReverse(memory, layer, Memory.getActualSelectedStep(memory))
+		db.save()
+	}
+})
+
+screen.hark("commit-sound", message => {
+	let {step} = message
 	Memory.trimSelectedLayerSoundToStepRegion(memory, step)
 })
 
-grid.addEventListener(
-	"change",
-	// todo? BentoChangeEvent?
-	/** @param {import("./bento-elements/bento-elements.js").BentoEvent} event */
-	event => {
-		let {box, change} = event.message
-		if (box != null) {
-			let layer = Memory.selectedLayer(memory)
-			let selectedGrid = Memory.layerSelectedGrid(memory, layer)
-			let uiStep = box
-			let step = selectedGrid * Memory.STEPS_PER_GRID + uiStep
-			if (change == "selected") {
-				Memory.selectedUiStep(memory, uiStep)
-			} else if (change == "on") {
-				Memory.stepOn(memory, layer, step, true)
-				db.save()
-			} else if (change == "off") {
-				Memory.stepOn(memory, layer, step, false)
-				db.save()
-			} else if (change == "copy") {
-				let {from} = event.detail
-				Memory.copyStepWithinSelectedLayerAndGrid(memory, +from, +uiStep)
-				Memory.selectedUiStep(memory, +uiStep)
-				db.save()
-			} else if (change == "quieter") {
-				Memory.stepQuieter(memory, layer, step)
-				db.save()
-			} else if (change == "louder") {
-				Memory.stepLouder(memory, layer, step)
-				db.save()
-			} else if (change == "pan-left") {
-				Memory.stepPanLeft(memory, layer, step)
-				db.save()
-			} else if (change == "pan-right") {
-				Memory.stepPanRight(memory, layer, step)
-				db.save()
-			} else if (change == "reverse") {
-				Memory.stepReverse(memory, layer, step)
-				db.save()
-			}
+/** @param {Memory.MousePoint} mouse */
+function getMixFromMouse(mouse) {
+	let pan = Math.round((mouse.x / screen.canvas.width) * 12 - 6)
+	let quiet = Math.round((mouse.y / screen.canvas.height) * 12)
+	return {pan, quiet}
+}
+
+screen.hark("mouse", message => {
+	if (!("screen" in message)) {
+		return
+	}
+	if (message.screen == "wav") {
+		if (message.type == "start") {
+			Memory.drawingRegionStart(memory, message.mouse.x)
+		} else if (message.type == "move") {
+			Memory.drawingRegionX(memory, message.mouse.x)
+		} else if (message.type == "end") {
+			Memory.drawingRegionEnd(memory, message.mouse.x)
+		}
+	} else if (message.screen == "mix") {
+		let {pan, quiet} = getMixFromMouse(message.mouse)
+		let deets = Memory.getSelectedStepDetails(memory)
+		Memory.stepQuiet(memory, deets.layer, deets.step, quiet)
+		Memory.stepPan(memory, deets.layer, deets.step, pan)
+	}
+})
+
+grid.hark("change", message => {
+	if ("box" in message) {
+		let {change, box} = message
+		let layer = Memory.selectedLayer(memory)
+		let selectedGrid = Memory.layerSelectedGrid(memory, layer)
+		let uiStep = box
+		let step = selectedGrid * Memory.STEPS_PER_GRID + uiStep
+		if (change == "selected") {
+			Memory.selectedUiStep(memory, uiStep)
+		} else if (change == "on") {
+			Memory.stepOn(memory, layer, step, true)
+			db.save()
+		} else if (change == "off") {
+			Memory.stepOn(memory, layer, step, false)
+			db.save()
+		} else if (change == "copy") {
+			let {from} = event.detail
+			Memory.copyStepWithinSelectedLayerAndGrid(memory, +from, +uiStep)
+			Memory.selectedUiStep(memory, +uiStep)
+			db.save()
+		} else if (change == "quieter") {
+			Memory.stepQuieter(memory, layer, step)
+			db.save()
+		} else if (change == "louder") {
+			Memory.stepLouder(memory, layer, step)
+			db.save()
+		} else if (change == "pan-left") {
+			Memory.stepPanLeft(memory, layer, step)
+			db.save()
+		} else if (change == "pan-right") {
+			Memory.stepPanRight(memory, layer, step)
+			db.save()
+		} else if (change == "reverse") {
+			Memory.stepReverse(memory, layer, step)
+			db.save()
 		}
 	}
-)
+})
 
 /**
  * Handle messages from my friends
- * TODO window.dispatchEvent?
  * @param {MessageEvent} event
  */
 window.onmessage = function (event) {
@@ -380,7 +376,9 @@ document.addEventListener(
 	}
 )
 
-machine.addEventListener("toggle-settings", event => {
+// todo move below to some kind of machine/settings.js
+
+machine.addEventListener("toggle-settings", () => {
 	settings.open = !settings.open
 	setTimeout(() => {
 		screen.open = !settings.open
@@ -392,8 +390,8 @@ function openScreen() {
 	screen.open = true
 }
 
-screen.addEventListener("screen", openScreen)
-screen.addEventListener("open", openScreen)
+screen.hark("screen", openScreen)
+screen.hark("open", openScreen)
 layerSelector.addEventListener("click", openScreen)
 grid.addEventListener("click", openScreen)
 
@@ -435,7 +433,7 @@ async function saveAs(/** @type {string} */ name) {
 					return saveAs(name)
 				}
 			}
-			await db.save(slug)
+			db.save(slug)
 
 			history.pushState(
 				{slug},

@@ -1,4 +1,4 @@
-import {DB_VERSION} from "./db.share.js"
+import {DB_VERSION} from "../db/share.js"
 import migrations from "./migrations.js"
 // ~4.75 seconds at 44.1khz
 // todo stereo

@@ -1,5 +1,5 @@
-import * as constants from "../sounds.const.js"
-import BentoAudioNode from "./node.js"
+import * as constants from "../../constants.js"
+import BentoAudioNode from "../node.js"
 
 /**
  * @typedef {Object} BDFFilter

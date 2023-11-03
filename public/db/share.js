@@ -1,4 +1,4 @@
-import * as Memory from "./memory.js"
+import * as Memory from "../memory/memory.js"
 export const DB_VERSION = 3
 
 /** @type {IDBDatabase} */
@@ -46,7 +46,7 @@ export async function init(sab) {
 		// now we're talking
 		open.onsuccess = _event => {
 			db = open.result
-			console.log("initialized")
+			console.debug("initialized")
 			yay(db)
 		}
 	})

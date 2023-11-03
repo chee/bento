@@ -1,7 +1,7 @@
 import {BentoElement, BentoEvent} from "./base.js"
-import * as loop from "../loop.js"
+import * as loop from "../convenience/loop.js"
 import BentoBox from "./box.js"
-import Modmask from "../modmask.js"
+import Modmask from "../io/modmask.js"
 
 export default class BentoGrid extends BentoElement {
 	static defaultLayer = `

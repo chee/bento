@@ -1,6 +1,6 @@
 import {BentoElement} from "./base.js"
-import Modmask from "../modmask.js"
-import * as dt from "../data-transfer.js"
+import Modmask from "../io/modmask.js"
+import * as dt from "../io/data-transfer.js"
 
 let squircle = `
 	<svg id="squircle" viewBox="-64 -64 608 608" xmlns="http://www.w3.org/2000/svg">

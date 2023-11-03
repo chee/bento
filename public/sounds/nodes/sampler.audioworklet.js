@@ -1,5 +1,5 @@
-import * as Memory from "./memory.js"
-import * as consts from "./sounds.const.js"
+import * as Memory from "../../memory/memory.js"
+import * as consts from "../constants.js"
 
 /** the curve used to make the gain more satisfying */
 let qcurve = new Float32Array(Memory.DYNAMIC_RANGE)
@@ -8,8 +8,8 @@ for (let i = 0; i < qcurve.length; i++) {
 }
 
 /**
- * @param {import("./memory.js").StepDetails} stepDetails
- * @returns {import("./memory.js").StepDetails}
+ * @param {Memory.StepDetails} stepDetails
+ * @returns {Memory.StepDetails}
  */
 function alter(stepDetails) {
 	let {
@@ -53,7 +53,7 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		this.layerNumber = layerNumber
 		this.point = 0
 		this.lastStep = -1
-		/** @type {import("./memory.js").StepDetails} */
+		/** @type {import("../.).Memory.Details} */
 		this.alteredSound = null
 		this.tick = 0
 		this.pan = 0

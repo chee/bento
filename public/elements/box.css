@@ -83,7 +83,7 @@ img {
 	outline: 0;
 }
 
-:host([playing]):after {
+:host:after {
 	content: "";
 	height: 15%;
 	width: 15%;
@@ -93,6 +93,11 @@ img {
 	transform: translate(-50%, -0%);
 	border-radius: 100%;
 	background: var(--box-line);
+	opacity: 0;
+}
+
+:host([playing]):after {
+	opacity: 1;
 }
 
 :host([disabled]) {

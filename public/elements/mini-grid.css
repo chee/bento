@@ -85,7 +85,7 @@ bento-dot[on] {
 	--dot-playing-dot: var(--dot-off-fill);
 }
 
-bento-dot[playing]:after {
+bento-dot:after {
 	content: "";
 	height: 2px;
 	width: 2px;
@@ -95,4 +95,9 @@ bento-dot[playing]:after {
 	transform: translate(-50%, -50%);
 	border-radius: 100%;
 	background: var(--dot-playing-dot);
+	opacity: 0;
+}
+
+bento-dot[playing]:after {
+	opacity: 1;
 }

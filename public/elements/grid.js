@@ -4,32 +4,10 @@ import BentoBox from "./box.js"
 import Modmask from "../io/modmask.js"
 
 export default class BentoGrid extends BentoElement {
-	static defaultLayer = `
-     ◼︎ ◻︎ ◻︎ ◻︎
-     ◼︎ ◻︎ ◻︎ ◻︎
-     ◼︎ ◻︎ ◼︎ ◻︎
-     ◼︎ ◻︎ ◻︎ ◼︎
-`
 	/** @type {BentoBox[]} */
 	boxes = []
 
-	parseLayer(layer = "") {
-		return layer
-			.trim()
-			.split(/\n+/)
-			.flatMap(line =>
-				line
-					.trim()
-					.replace(/\s+/g, " ")
-					.split(" ")
-					.map(char => char.trim() == "◼︎")
-			)
-	}
-
 	connectedCallback() {
-		let initialLayer = this.parseLayer(
-			this.getAttribute("initial-layer") || BentoGrid.defaultLayer
-		)
 		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
 		this.attachStylesheet("grid")
 
@@ -39,7 +17,6 @@ export default class BentoGrid extends BentoElement {
 				this.boxes.push(box)
 				box.selected = stepIdx == 0
 				box.playing = stepIdx == 0
-				box.on = initialLayer[stepIdx]
 				box.ariaLabel = `step ${stepIdx}`
 				box.id = stepIdx.toString()
 				this.shadow.appendChild(box)

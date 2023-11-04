@@ -132,6 +132,7 @@ function update(_frame = 0) {
 		memory,
 		selectedLayerDetails.layer
 	)
+
 	gridSelector.playing = currentStep
 
 	loop.gridSteps(uiStep => {
@@ -145,8 +146,8 @@ function update(_frame = 0) {
 		let box = boxes[uiStep]
 		box.selected = uiStep == selectedUiStep
 		box.on = Memory.stepOn(memory, selectedLayerDetails.layer, actualStep)
-		// todo move playing to be a number property of the grid
 		box.playing = currentStep == actualStep
+
 		box.quiet = Memory.stepQuiet(
 			memory,
 			selectedLayerDetails.layer,

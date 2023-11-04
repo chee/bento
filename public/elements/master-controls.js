@@ -85,7 +85,7 @@ export default class BentoMasterControls extends BentoElement {
 		bpm.addEventListener("change", () => {
 			this.announce("change", {
 				change: "bpm",
-				value: Math.clamp(+bpm.min, +bpm.value, +bpm.max)
+				value: Math.clamp(+bpm.value, +bpm.min, +bpm.max)
 			})
 		})
 		this.#bpmElement = bpm
@@ -108,7 +108,7 @@ export default class BentoMasterControls extends BentoElement {
 	get bpm() {
 		if (this.#bpmElement) {
 			let el = this.#bpmElement
-			return Math.clamp(+el.min, +el.value, +el.max) || 120
+			return Math.clamp(+el.value, +el.min, +el.max) || 120
 		} else {
 			return 120
 		}
@@ -117,7 +117,7 @@ export default class BentoMasterControls extends BentoElement {
 	set bpm(val) {
 		let el = this.#bpmElement
 		if (el && this.shadow.activeElement != el) {
-			el.value = val ? Math.clamp(+el.min, val, +el.max).toString() : ""
+			el.value = val ? Math.clamp(val, +el.min, +el.max).toString() : ""
 		}
 	}
 }

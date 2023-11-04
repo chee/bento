@@ -1,8 +1,8 @@
 import * as Memory from "../memory/memory.js"
 import * as loop from "../convenience/loop.js"
-import * as constants from "./constants.js"
 import Delay from "./nodes/fx/delay.js"
 import DjFilter from "./nodes/fx/dj-filter.js"
+import Synth from "./nodes/synth.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -106,12 +106,11 @@ async function fetchSound(url) {
 	}
 }
 
-// await context.audioWorklet.addModule("/sounds/nodes/base.audioworklet.js")
 await context.audioWorklet.addModule("/sounds/nodes/sampler.audioworklet.js")
-await context.audioWorklet.addModule("/sounds/nodes/synth.audioworklet.js")
 await context.audioWorklet.addModule(
 	"/sounds/nodes/quiet-party.audioworklet.js"
 )
+await context.audioWorklet.addModule("/sounds/nodes/layer.audioworklet.js")
 
 /**
  * set the sound in memory
@@ -205,35 +204,33 @@ export async function init(buffer) {
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
 
-	// loop.synths(idx => {
-	// 	let synth = new AudioWorkletNode(context, "bento-synth", {
-	// 		processorOptions: {buffer, layerNumber: idx},
-	// 		channelCount: 1,
-	// 		numberOfOutputs: 1 + constants.NUMBER_OF_CONTROL_OUTPUTS
-	// 	})
-	// 	let oscillator = new OscillatorNode(context, {
-	// 		type: "sawtooth"
-	// 	})
-	// 	let oscillator2 = new OscillatorNode(context, {
-	// 		type: "sawtooth",
-	// 		detune: 0.5
-	// 	})
-	// 	synth.connect(oscillator.frequency, constants.Output.Pitch)
-	// 	synth.connect(oscillator2.frequency, constants.Output.Pitch)
-	// 	let gain = new GainNode(context, {gain: 0.5})
-	// 	oscillator.connect(gain)
-	// 	let pan = new StereoPannerNode(context, {pan: -1})
-	// 	gain.connect(pan)
-	// 	pan.connect(context.destination)
-	// 	let gain2 = new GainNode(context, {gain: 0.5})
-	// 	oscillator2.connect(gain)
-	// 	let pan2 = new StereoPannerNode(context, {pan: 1})
-	// 	gain2.connect(pan2)
-	// 	pan2.connect(context.destination)
-	// 	synth.connect(gain.gain, constants.Output.Sound)
-	// 	synth.connect(gain2.gain, constants.Output.Sound)
-	// 	// oscillator.start()
-	// })
+	loop.synths(idx => {
+		let layer = new AudioWorkletNode(context, "bento-layer", {
+			processorOptions: {buffer, layerNumber: idx}
+		})
+		let synth = new Synth(context, {
+			type: "triangle"
+		})
+		// let qp = new AudioWorkletNode(context, "quiet-party", {
+		// 	processorOptions: {buffer, layerNumber: idx},
+		// 	channelCount: 2,
+		// 	numberOfInputs: 1,
+		// 	numberOfOutputs: 1,
+		// 	outputChannelCount: [2]
+		// })
+		// synth.out.connect(qp)
+		// qp.connect(context.destination)
+		synth.out.connect(context.destination)
+		layer.port.onmessage = event => {
+			let message = event.data
+			if (message == "step-change") {
+				let step = Memory.getCurrentStepDetails(memory, idx)
+				if (step.on) {
+					synth.play(step.pitch)
+				}
+			}
+		}
+	})
 
 	loop.samplers(idx => {
 		let sampler = new AudioWorkletNode(context, "bento-sampler", {
@@ -250,15 +247,28 @@ export async function init(buffer) {
 			outputChannelCount: [2]
 		})
 		sampler.connect(qp)
-		qp.connect(context.destination)
+		// qp.connect(context.destination)
 
 		// let pan = new StereoPannerNode(context)
 		// sampler.connect(pan.pan, constants.Output.Pan)
-		// let filter = new DjFilter(context, {layer: sampler})
+		let filter = new DjFilter(context)
+		filter.q = 1
+		filter.freq = -16
+		sampler.port.onmessage = event => {
+			let message = event.data
+			if (message == "step-change") {
+				let step = Memory.getCurrentStepDetails(memory, idx)
+				if (step.on) {
+					filter.freq
+				}
+			}
+		}
 		// let delay = new Delay(context, {layer: sampler})
 
 		/* layer -> filter */
-		// qp.connect(filter.in)
+		qp.connect(filter.in)
+		filter.out.connect(context.destination)
+
 		// sampler.connect(filter.in)
 
 		/* filter->pan */

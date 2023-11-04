@@ -1,14 +1,9 @@
-import * as constants from "../../constants.js"
 import BentoAudioNode from "../node.js"
 
-export default class BentoDelay extends BentoAudioNode {
+export default class Delay extends BentoAudioNode {
 	constructor(
 		/** @type {AudioContext} */
-		context,
-		{
-			/** @type {AudioWorkletNode} */
-			layer
-		} = {layer: undefined}
+		context
 	) {
 		super(context)
 		this.in = new GainNode(context, {
@@ -30,11 +25,5 @@ export default class BentoDelay extends BentoAudioNode {
 
 		delay.connect(this.out)
 		feedback.connect(this.out)
-
-		if (layer) {
-			layer.connect(this.in.gain, constants.Output.DelayInputLevel)
-			layer.connect(this.time, constants.Output.DelayTime)
-			layer.connect(this.feedback, constants.Output.DelayFeedback)
-		}
 	}
 }

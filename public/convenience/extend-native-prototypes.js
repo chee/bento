@@ -36,7 +36,18 @@ function wrap(min, num, max) {
 	return num > max ? min : num < min ? max : num
 }
 
+/**
+ * A wrap function with the same sig as CSS's clamp()
+ * @param {number} num
+ * @param {number} min
+ * @param {number} max
+ */
+function lerp(num, min, max) {
+	return num > max ? min : num < min ? max : num
+}
+
 Object.defineProperties(Math, {
 	clamp: {value: clamp},
-	wrap: {value: wrap}
+	wrap: {value: wrap},
+	lerp: {value: lerp}
 })

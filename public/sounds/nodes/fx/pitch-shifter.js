@@ -1,4 +1,3 @@
-import * as constants from "../../constants.js"
 import BentoAudioNode from "../node.js"
 
 export default class BentoPitchShifter extends BentoAudioNode {

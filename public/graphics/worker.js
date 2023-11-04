@@ -492,10 +492,10 @@ onmessage = async event => {
 			context.lineTo(
 				x,
 				Math.clamp(
-					0,
 					(canvas.height / 2) *
 						(Math.random() + (Math.random() > 0.99 ? Math.random() : 0.5)) -
 						(canvas.height / 2) * (1 / i),
+					0,
 					canvas.height
 				)
 			)

@@ -3,8 +3,9 @@ interface HTMLElement {
 }
 
 interface Math {
-	clamp: (min: number, num: number, max: number) => number
-	wrap: (min: number, num: number, max: number) => number
+	clamp: (num: number, min: number, max: number) => number
+	wrap: (num: number, min: number, max: number) => number
+	lerp: (num: number, min: number, max: number) => number
 }
 
 interface Array<T> {

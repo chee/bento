@@ -4,7 +4,7 @@ import migrations from "./migrations.js"
 // todo stereo
 export const SOUND_SIZE = 2 ** 16 * 4
 export const SAMPLERS_PER_MACHINE = 4
-export const SYNTHS_PER_MACHINE = 0
+export const SYNTHS_PER_MACHINE = 1
 export const LAYERS_PER_MACHINE = SAMPLERS_PER_MACHINE + SYNTHS_PER_MACHINE
 export const GRIDS_PER_LAYER = 8
 export const STEPS_PER_GRID = 16
@@ -133,6 +133,10 @@ export let arrays = {
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	stepDjFreqs: {
+		type: Float32Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+	},
+	stepDjQs: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
@@ -530,6 +534,42 @@ export function stepReversed(memory, layer, step, val) {
  * @param {MemoryMap} memory
  * @param {number} layer
  * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepDjFreqs(memory, layer, step, val) {
+	let {stepDjFreqs} = memory
+	let at = layer * STEPS_PER_LAYER + step
+
+	if (typeof val == "number") {
+		stepDjFreqs.set([val], at)
+	}
+
+	return stepDjFreqs.at(at)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
+ * @param {number} [val]
+ * @returns {number}
+ */
+export function stepDjQs(memory, layer, step, val) {
+	let stepDjQs = memory.stepDjQs
+	let at = layer * STEPS_PER_LAYER + step
+
+	if (typeof val == "number") {
+		stepDjQs.set([val], at)
+	}
+
+	return stepDjQs.at(at)
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @param {number} step
  */
 export function stepReverse(memory, layer, step) {
 	stepReversed(memory, layer, step, !stepReversed(memory, layer, step))
@@ -605,7 +645,7 @@ export function stepQuiet(memory, layer, step, val) {
 	let at = layer * STEPS_PER_LAYER + step
 
 	if (typeof val == "number") {
-		stepQuiets.set([Math.clamp(0, val, DYNAMIC_RANGE)], at)
+		stepQuiets.set([Math.clamp(val, 0, DYNAMIC_RANGE)], at)
 	}
 
 	return stepQuiets.at(at)
@@ -648,7 +688,7 @@ export function stepPan(memory, layer, step, val) {
 
 	if (typeof val == "number") {
 		stepPans.set(
-			[Math.clamp(-(DYNAMIC_RANGE / 2), val, DYNAMIC_RANGE / 2)],
+			[Math.clamp(val, -(DYNAMIC_RANGE / 2), DYNAMIC_RANGE / 2)],
 			at
 		)
 	}
@@ -1073,6 +1113,8 @@ export function getLayerGridStepOns(memory, layer) {
  pan: number
  on: boolean
  reversed: boolean
+ freq: number
+ q: number
 }} StepDetails
 
  */
@@ -1094,8 +1136,8 @@ export function getStepDetails(memory, layer, step) {
 	let pitch = stepPitch(memory, layer, step)
 	let on = stepOn(memory, layer, step)
 	let reversed = stepReversed(memory, layer, step)
-	// let djFreq = stepDjFreqs.at(layer, step)
-	// let djQ = stepDjQs.at(layer, step)
+	let djFreq = stepDjFreqs(memory, layer, step)
+	let djQ = stepDjQs(memory, layer, step)
 	// let delay = stepDelayGains.at(layer, step)
 	// let delayTime = stepDelayTimes.at(layer, step)
 	// let reverb = stepReverbs.at(layer, step)
@@ -1116,7 +1158,9 @@ export function getStepDetails(memory, layer, step) {
 		reversed,
 		version,
 		grid: Math.floor(step / STEPS_PER_GRID),
-		uiStep: step % STEPS_PER_GRID
+		uiStep: step % STEPS_PER_GRID,
+		freq: djFreq,
+		q: djQ
 		// djFreq,
 		// djQ,
 		// delay,
@@ -1132,6 +1176,15 @@ export function getStepDetails(memory, layer, step) {
 export function getSelectedStepDetails(memory) {
 	let layer = selectedLayer(memory)
 	return getStepDetails(memory, layer, getActualSelectedStep(memory))
+}
+
+/**
+ * @param {MemoryMap} memory
+ * @param {number} layer
+ * @returns {StepDetails}
+ */
+export function getCurrentStepDetails(memory, layer) {
+	return getStepDetails(memory, layer, currentStep(memory, layer))
 }
 
 /**

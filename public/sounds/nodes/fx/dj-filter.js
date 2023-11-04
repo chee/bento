@@ -1,5 +1,4 @@
-import * as constants from "../../constants.js"
-import BentoAudioNode from "../node.js"
+import BentoEffect from "../effect.js"
 
 /**
  * @typedef {Object} BDFFilter
@@ -8,64 +7,59 @@ import BentoAudioNode from "../node.js"
  * @prop {AudioParam} freq
  */
 
-export default class BentoDjFilter extends BentoAudioNode {
-	/** @type {BDFFilter} */
-	lo
-	/** @type {BDFFilter} */
-	hi
+export default class BentoDjFilter extends BentoEffect {
+	/** @type BiquadFilterNode */
+	#filter
+	#freq = 0
+	#q = 0
 
-	constructor(
-		/** @type {AudioContext} */
-		context,
-		{
-			/** @type {AudioWorkletNode} */
-			layer
-		} = {layer: undefined}
-	) {
+	/** @param {AudioContext} context */
+	constructor(context) {
 		super(context)
+		this.context = context
 		this.in = new GainNode(context, {
 			gain: 1
 		})
-		this.out = new GainNode(context, {
-			gain: 1
+		this.#filter = new BiquadFilterNode(context, {
+			type: "allpass"
 		})
+		this.out = this.#filter
+		this.in.connect(this.#filter)
+	}
 
-		// todo provide boolean audioparam that can flip these vols without
-		// knowledge of internals
-		let logain = new GainNode(context, {gain: 0.5})
-		let lo = new BiquadFilterNode(context, {
-			type: "lowpass",
-			frequency: context.sampleRate / 2
-		})
-		this.lo = {
-			gain: logain.gain,
-			freq: lo.frequency,
-			q: lo.Q
+	get freq() {
+		return this.#freq
+	}
+
+	set freq(val) {
+		let {sampleRate} = this.context
+		this.#freq = val
+		if (val == 0) {
+			this.#filter.type = "allpass"
+		} else if (val > 0) {
+			this.#filter.type = "highpass"
+			// todo make this good
+			this.#filter.frequency.exponentialRampToValueAtTime(
+				(sampleRate / 2) * Math.sin((val / 17) * Math.PI * 0.5),
+				// todo base this on bpm
+				this.context.currentTime + 0.01
+			)
+		} else {
+			this.#filter.type = "lowpass"
+			this.#filter.frequency.exponentialRampToValueAtTime(
+				((sampleRate / 2) * Math.sin((Math.abs(val) / 17) * Math.PI * 0.5)) /
+					2,
+				this.context.currentTime + 0.01
+			)
 		}
+	}
 
-		let higain = new GainNode(context, {gain: 0.5})
-		let hi = new BiquadFilterNode(context, {
-			type: "highpass",
-			frequency: 0
-		})
-		this.hi = {
-			gain: higain.gain,
-			freq: hi.frequency,
-			q: hi.Q
-		}
+	get q() {
+		return this.#q
+	}
 
-		this.in.connect(logain)
-		this.in.connect(higain)
-		logain.connect(this.out)
-		higain.connect(this.out)
-
-		if (layer) {
-			layer.connect(this.lo.gain, constants.Output.LowPassGain)
-			layer.connect(this.lo.freq, constants.Output.HighPassFrequency)
-			layer.connect(this.lo.q, constants.Output.HighPassQ)
-			layer.connect(this.hi.gain, constants.Output.HighPassGain)
-			layer.connect(this.lo.freq, constants.Output.HighPassFrequency)
-			layer.connect(this.lo.q, constants.Output.HighPassQ)
-		}
+	set q(val) {
+		this.#q = val
+		this.#filter.Q.value = val / 12
 	}
 }

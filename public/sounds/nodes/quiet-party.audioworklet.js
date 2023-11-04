@@ -21,7 +21,6 @@ class QuietPartyWorklet extends BentoAudioWorkletProcessor {
 		}
 		this.memory = Memory.map(buffer)
 		this.point = 0
-		// this.envelope = new Envelope(4, 4)
 		this.lastStep = -1
 		this.quiet = 0
 		this.pan = 0
@@ -61,23 +60,18 @@ class QuietPartyWorklet extends BentoAudioWorkletProcessor {
 		let layerNumber = this.layerNumber
 		let currentStep = Memory.currentStep(memory, layerNumber)
 		if (currentStep != this.lastStep) {
-			// todo it'll be faster to access memory directly rather than creating
-			// an object
 			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
 			if (stepDetails.on) {
 				this.point = 0
 				this.quiet = stepDetails.quiet
 				this.pan = stepDetails.pan
-				// todo this.env.a=a this.env.r=r this.env.start()
 			}
 		}
 		let pan = (this.pan + Memory.DYNAMIC_RANGE / 2) / Memory.DYNAMIC_RANGE
 		let panl = Math.cos((pan * Math.PI) / 2)
 		let panr = Math.sin((pan * Math.PI) / 2)
-		// let env = this.envelope.g
-		// this.logSometimes(env)
+
 		for (let i = 0; i < 128; i++) {
-			// todo also apply env
 			output.left[i] = input.left[i] * qcurve[this.quiet] * panl
 			output.right[i] = input.right[i] * qcurve[this.quiet] * panr
 		}

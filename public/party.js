@@ -133,7 +133,6 @@ function update(_frame = 0) {
 		memory,
 		selectedLayerDetails.layer
 	)
-	gridSelector.playing = currentStep
 
 	loop.gridSteps(uiStep => {
 		/*
@@ -163,6 +162,14 @@ function update(_frame = 0) {
 		)
 		grid.on = Memory.gridOn(memory, selectedLayerDetails.layer, selectedGrid)
 	})
+
+	// follow mode
+	// if (Memory.playing(memory) && !Memory.paused(memory)) {
+	// 	let layer = selectedLayerDetails.layer
+	// 	let step = Memory.getCurrentStepDetails(memory, layer)
+	// 	Memory.selectedUiStep(memory, step.uiStep)
+	// 	Memory.layerSelectedGrid(memory, layer, step.grid)
+	// }
 
 	requestAnimationFrame(update)
 }
@@ -284,12 +291,16 @@ screen.hark("mouse", message => {
 			Memory.drawingRegionX(memory, message.mouse.x)
 		} else if (message.type == "end") {
 			Memory.drawingRegionEnd(memory, message.mouse.x)
+			db.save()
 		}
 	} else if (message.screen == "mix") {
 		let {pan, quiet} = getMixFromMouse(message.mouse)
 		let deets = Memory.getSelectedStepDetails(memory)
 		Memory.stepQuiet(memory, deets.layer, deets.step, quiet)
 		Memory.stepPan(memory, deets.layer, deets.step, pan)
+		if (message.type == "end") {
+			db.save()
+		}
 	} else if (message.screen == "key") {
 		let deets = Memory.getSelectedStepDetails(memory)
 		Memory.stepPitch(
@@ -298,6 +309,9 @@ screen.hark("mouse", message => {
 			deets.step,
 			Math.round((message.mouse.x / screen.canvas.width) * 16)
 		)
+		if (message.type == "end") {
+			db.save()
+		}
 	}
 })
 

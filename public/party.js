@@ -164,12 +164,12 @@ function update(_frame = 0) {
 	})
 
 	// follow mode
-	if (Memory.playing(memory) && !Memory.paused(memory)) {
-		let layer = selectedLayerDetails.layer
-		let step = Memory.getCurrentStepDetails(memory, layer)
-		Memory.selectedUiStep(memory, step.uiStep)
-		Memory.layerSelectedGrid(memory, layer, step.grid)
-	}
+	// if (Memory.playing(memory) && !Memory.paused(memory)) {
+	// 	let layer = selectedLayerDetails.layer
+	// 	let step = Memory.getCurrentStepDetails(memory, layer)
+	// 	Memory.selectedUiStep(memory, step.uiStep)
+	// 	Memory.layerSelectedGrid(memory, layer, step.grid)
+	// }
 
 	requestAnimationFrame(update)
 }

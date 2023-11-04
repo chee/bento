@@ -1,7 +1,13 @@
 import * as Memory from "../../memory/memory.js"
-import BentoAudioWorkletProcessor from "./base.audioworklet.js"
 
-class BentoLayerWorklet extends BentoAudioWorkletProcessor {
+/*
+ * the transport is kept in a worker so that it can keep time uninterupted by
+ * changes in the busy main thread
+ */
+
+class BentoLayerWorklet extends AudioWorkletProcessor {
+	/** @param {{processorOptions: {buffer: SharedArrayBuffer, layerNumber:
+	number}}} options */
 	constructor(options) {
 		super()
 		let {buffer, layerNumber} = options.processorOptions
@@ -19,19 +25,7 @@ class BentoLayerWorklet extends BentoAudioWorkletProcessor {
 		this.tick = 0
 	}
 
-	/** @param {any[]} args*/
-	logSometimes(...args) {
-		if (!((this.tick / 128) % 100)) {
-			console.info(...args)
-		}
-	}
-
-	/**
-	 * @param {Float32Array[][]} _inputs
-	 * @param {Float32Array[][]} outputs
-	 * @param {Record<string, Float32Array>} _parameters
-	 */
-	process(_inputs, _outputs, _parameters) {
+	process() {
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {
 			return true

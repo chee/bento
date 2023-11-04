@@ -30,14 +30,11 @@ export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
  * @typedef {Record<string, ArrayInfo>} MemoryArrayDefinition
  */
 
-/**
- * @readonly
- * @enum {number}
- */
-export const LayerType = {
+/** @typedef {typeof LayerType[keyof typeof LayerType]} LayerType */
+export const LayerType = /** @type const */ ({
 	sampler: 1,
 	synth: 2
-}
+})
 
 /**
  * @satisfies {MemoryArrayDefinition}
@@ -278,6 +275,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 				) {
 					content.fill(arrayInfo.defaultFill)
 				}
+
 				memory[name].set(content)
 			} catch (error) {
 				console.error(`error loading ${name} from safe`, error)
@@ -366,7 +364,7 @@ export function selectedLayer(memory, val) {
  * @returns {LayerType}
  */
 export function getLayerType(memory, layer) {
-	return memory.layerTypes.at(layer)
+	return /** @type LayerType */ (memory.layerTypes.at(layer))
 }
 
 /**

@@ -1,4 +1,4 @@
-import BentoEffect from "../effect.js"
+import BentoEffect from "./effect.js"
 
 /**
  * @typedef {Object} BDFFilter

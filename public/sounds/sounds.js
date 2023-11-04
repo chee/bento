@@ -1,14 +1,16 @@
 import * as Memory from "../memory/memory.js"
 import * as loop from "../convenience/loop.js"
-import Delay from "./nodes/fx/delay.js"
-import DjFilter from "./nodes/fx/dj-filter.js"
-import Synth from "./nodes/synth.js"
+import Synth from "./sources/synth.js"
+import Sampler from "./sources/sampler.js"
+import BentoSoundSource from "./sources/source.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
 let iphoneSilenceElement = document.querySelector("audio")
 /** @type {Memory.MemoryMap} */
 let memory
+/** @type {SharedArrayBuffer} */
+let sharedarraybuffer
 
 /**
  * normalize audio
@@ -32,7 +34,6 @@ function normalize(sound) {
  * trim zeros from the beginning of audio
  * @param {Float32Array} sound
  */
-
 function trim(sound) {
 	// i have NO IDEA what i'm doing.  what is -144dB in 32-bit float???????????
 	let noisefloor = 1e-33
@@ -106,12 +107,6 @@ async function fetchSound(url) {
 	}
 }
 
-await context.audioWorklet.addModule("/sounds/nodes/sampler.audioworklet.js")
-await context.audioWorklet.addModule(
-	"/sounds/nodes/quiet-party.audioworklet.js"
-)
-await context.audioWorklet.addModule("/sounds/nodes/layer.audioworklet.js")
-
 /**
  * set the sound in memory
  * @param {import("../memory/memory.js").MemoryMap} memory
@@ -159,6 +154,37 @@ export async function play() {
 }
 
 export async function start() {
+	let analyzer = context.createAnalyser()
+	analyzer.fftSize = 2048
+	// todo write analysis to memory periodically
+	// let analysis = new Float32Array(analyzer.fftSize)
+	/**
+	 * @type {Record<Memory.LayerType, BentoSoundSource>}
+	 */
+	let layerTypeSource = {
+		[Memory.LayerType.sampler]: Sampler,
+		[Memory.LayerType.synth]: Synth
+	}
+
+	loop.layers(idx => {
+		let layer = new AudioWorkletNode(context, "bento-layer", {
+			processorOptions: {buffer: sharedarraybuffer, layerNumber: idx}
+		})
+
+		let source = new layerTypeSource[Memory.getLayerType(memory, idx)](context)
+
+		layer.port.onmessage = event => {
+			let message = event.data
+			if (message == "step-change") {
+				let step = Memory.getCurrentStepDetails(memory, idx)
+				if (step.on) {
+					source.play(step)
+				}
+			}
+		}
+
+		source.connect(context.destination)
+	})
 	await play()
 	if (alreadyFancy) {
 		return
@@ -192,123 +218,13 @@ export function empty() {
 	return memory.layerSounds.every(n => !n)
 }
 
+await context.audioWorklet.addModule("/sounds/layer.audioworklet.js")
+
 /**
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
  */
 export async function init(buffer) {
+	sharedarraybuffer = buffer
 	memory = Memory.map(buffer)
-
-	let analyzer = context.createAnalyser()
-	analyzer.fftSize = 2048
-	// todo write analysis to memory periodically
-	// let analysis = new Float32Array(analyzer.fftSize)
-
-	loop.synths(idx => {
-		let layer = new AudioWorkletNode(context, "bento-layer", {
-			processorOptions: {buffer, layerNumber: idx}
-		})
-		let synth = new Synth(context, {
-			type: "triangle"
-		})
-		// let qp = new AudioWorkletNode(context, "quiet-party", {
-		// 	processorOptions: {buffer, layerNumber: idx},
-		// 	channelCount: 2,
-		// 	numberOfInputs: 1,
-		// 	numberOfOutputs: 1,
-		// 	outputChannelCount: [2]
-		// })
-		// synth.out.connect(qp)
-		// qp.connect(context.destination)
-		synth.out.connect(context.destination)
-		layer.port.onmessage = event => {
-			let message = event.data
-			if (message == "step-change") {
-				let step = Memory.getCurrentStepDetails(memory, idx)
-				if (step.on) {
-					synth.play(step.pitch)
-				}
-			}
-		}
-	})
-
-	loop.samplers(idx => {
-		let layer = new AudioWorkletNode(context, "bento-layer", {
-			processorOptions: {buffer, layerNumber: idx}
-		})
-		// let qp = new AudioWorkletNode(context, "quiet-party", {
-		// 	processorOptions: {buffer, layerNumber: idx},
-		// 	channelCount: 2,
-		// 	numberOfInputs: 1,
-		// 	numberOfOutputs: 1,
-		// 	outputChannelCount: [2]
-		// })
-
-		// qp.connect(context.destination)
-
-		// let pan = new StereoPannerNode(context)
-		// sampler.connect(pan.pan, constants.Output.Pan)
-		let filter = new DjFilter(context)
-		filter.q = 1
-		filter.freq = -16
-		layer.port.onmessage = event => {
-			let message = event.data
-			if (message == "step-change") {
-				let step = Memory.getCurrentStepDetails(memory, idx)
-				if (step.on) {
-					let portion = step.sound.slice(
-						step.region.start,
-						step.region.end || step.soundLength
-					)
-					if (step.reversed) {
-						portion.reverse()
-					}
-					let ab = new AudioBuffer({
-						length: portion.byteLength,
-						sampleRate: context.sampleRate,
-						numberOfChannels: 1
-					})
-					ab.copyToChannel(portion, 0)
-					let node = new AudioBufferSourceNode(context, {
-						buffer: ab
-					})
-					node.connect(filter.in)
-					let scale = [0, 2, 3, 5, 7, 8, 11]
-					let note = step.pitch
-					let no = Math.floor(note / scale.length) * 12
-					let nm = note % scale.length
-					let f = 1 + (scale[nm] + no)
-					let n = 2 ** (f / 12)
-					node.playbackRate.value = n
-					node.start()
-				}
-			}
-		}
-		// let delay = new Delay(context, {layer: sampler})
-
-		/* layer -> filter */
-		// qp.connect(filter.in)
-		filter.out.connect(context.destination)
-
-		// sampler.connect(filter.in)
-
-		/* filter->pan */
-		// filter.out.connect(pan)
-
-		/* pan->dac */
-		// pan.connect(context.destination)
-
-		// /* pan->sends */
-		// pan.connect(reverb.in)
-		// pan.connect(delay.in)
-
-		/* sends->dac */
-		// delay.out.connect(context.destination)
-		// reverb.out.connect(context.destination)
-
-		/* everything that goes out is connected to the analyzer too  */
-		// pan.connect(analyzer)
-		// delay.out.connect(analyzer)
-		// reverb.out.connect(analyzer)
-	})
 }

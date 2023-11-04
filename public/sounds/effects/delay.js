@@ -1,6 +1,6 @@
-import BentoAudioNode from "../node.js"
+import BentoSoundEffect from "./effect.js"
 
-export default class Delay extends BentoAudioNode {
+export default class Delay extends BentoSoundEffect {
 	constructor(
 		/** @type {AudioContext} */
 		context

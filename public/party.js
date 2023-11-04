@@ -64,19 +64,18 @@ async function getFancy() {
 		return
 	}
 	try {
+		if (!db.fancy()) {
+			await db.load()
+			if (sounds.empty()) {
+				await sounds.loadDefaultKit()
+			}
+		}
 		if (!sounds.fancy()) {
 			await sounds.start()
 		}
 
 		if (sounds.fancy() && !graphics.fancy()) {
 			graphics.start(buffer)
-		}
-
-		if (sounds.fancy() && graphics.fancy() && !db.fancy()) {
-			await db.load()
-			if (sounds.empty()) {
-				await sounds.loadDefaultKit()
-			}
 		}
 
 		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
@@ -133,6 +132,7 @@ function update(_frame = 0) {
 		memory,
 		selectedLayerDetails.layer
 	)
+	gridSelector.playing = currentStep
 
 	loop.gridSteps(uiStep => {
 		/*
@@ -164,12 +164,12 @@ function update(_frame = 0) {
 	})
 
 	// follow mode
-	// if (Memory.playing(memory) && !Memory.paused(memory)) {
-	// 	let layer = selectedLayerDetails.layer
-	// 	let step = Memory.getCurrentStepDetails(memory, layer)
-	// 	Memory.selectedUiStep(memory, step.uiStep)
-	// 	Memory.layerSelectedGrid(memory, layer, step.grid)
-	// }
+	if (Memory.playing(memory) && !Memory.paused(memory)) {
+		let layer = selectedLayerDetails.layer
+		let step = Memory.getCurrentStepDetails(memory, layer)
+		Memory.selectedUiStep(memory, step.uiStep)
+		Memory.layerSelectedGrid(memory, layer, step.grid)
+	}
 
 	requestAnimationFrame(update)
 }
@@ -307,7 +307,7 @@ screen.hark("mouse", message => {
 			memory,
 			deets.layer,
 			deets.step,
-			Math.round((message.mouse.x / screen.canvas.width) * 16)
+			Math.round((message.mouse.x / screen.canvas.width) * 32) - 16
 		)
 		if (message.type == "end") {
 			db.save()

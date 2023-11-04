@@ -4,5 +4,6 @@ export default class BentoAudioNode {
 	/** @param {AudioContext} context */
 	constructor(context) {
 		this.context = context
+		this.sampleRate = context.sampleRate
 	}
 }

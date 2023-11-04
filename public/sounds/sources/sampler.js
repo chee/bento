@@ -1,20 +1,7 @@
-import {SOUND_SIZE} from "../..//memory/memory.js"
-import BentoSoundSource from "./source.js"
+// this proved to keep unreliable time. unacceptable
 
-/**
- * @param {Float32Array} sound
- * @param {number} length
- */
-function* withZeros(sound, length) {
-	for (let sample of sound) {
-		yield sample
-	}
-	length -= sound.length
-	while (length) {
-		yield 0
-		length -= 1
-	}
-}
+import {SOUND_SIZE} from "../../memory/memory.js"
+import BentoSoundSource from "./source.js"
 
 export default class Sampler extends BentoSoundSource {
 	/** @type AudioBufferSourceNode */
@@ -23,6 +10,9 @@ export default class Sampler extends BentoSoundSource {
 	#audiobuffer
 
 	#zeros = new Float32Array(SOUND_SIZE)
+
+	/** @type Map<string, Float32Array> */
+	#cache = new Map()
 
 	/** @param {AudioContext} context */
 	constructor(context) {
@@ -37,17 +27,26 @@ export default class Sampler extends BentoSoundSource {
 	/** @param {import("../../memory/memory.js").StepDetails} step */
 	play(step) {
 		super.play(step)
-		let portion = step.sound.slice(
-			step.region.start,
-			step.region.end || step.soundLength
-		)
-		if (step.reversed) {
-			portion.reverse()
+		let start = step.region.start || 0
+		let end = step.region.end || step.soundLength
+		let version = step.version
+		let reversed = step.reversed
+		let cachename = `s${start}e${end}v${version}r${reversed}`
+		if (!this.#cache.has(cachename)) {
+			let portion = step.sound.slice(
+				step.region.start,
+				step.region.end || step.soundLength
+			)
+			if (step.reversed) {
+				portion.reverse()
+			}
+			this.#cache.set(cachename, portion)
 		}
+		let portion = this.#cache.get(cachename)
 
 		if (this.#source) {
-			this.#source.stop()
-			this.#source.disconnect(this.source)
+			// this.#source.stop()
+			// this.#source.disconnect(this.source)
 		}
 		this.#audiobuffer.copyToChannel(portion, 0)
 		if (portion.length < this.#audiobuffer.length) {

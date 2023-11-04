@@ -17,27 +17,27 @@ Object.defineProperties(Array.prototype, {
 })
 
 /**
- * A clamp function with the same sig as CSS's clamp()
- * @param {number} min
+ * Clamp a number between a min and mix
  * @param {number} num
+ * @param {number} min
  * @param {number} max
  */
-function clamp(min, num, max) {
+function clamp(num, min, max) {
 	return num > max ? max : num < min ? min : num
 }
 
 /**
- * A wrap function with the same sig as CSS's clamp()
+ * Wrap a number around
  * @param {number} min
  * @param {number} num
  * @param {number} max
  */
-function wrap(min, num, max) {
+function wrap(num, min, max) {
 	return num > max ? min : num < min ? max : num
 }
 
 /**
- * A wrap function with the same sig as CSS's clamp()
+ * Scale a number (from 0-1) to a range from min and max
  * @param {number} num
  * @param {number} min
  * @param {number} max

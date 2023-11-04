@@ -1,8 +1,7 @@
 import * as Memory from "../memory/memory.js"
 import * as loop from "../convenience/loop.js"
 import Synth from "./sources/synth.js"
-import Sampler from "./sources/sampler.js"
-import BentoSoundSource from "./sources/source.js"
+import Passthru from "./sources/passthru.js"
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
@@ -123,6 +122,9 @@ export function fancy() {
 }
 
 document.addEventListener("visibilitychange", () => {
+	if (!memory || !memory.master) {
+		return
+	}
 	if (document.hidden && Memory.paused(memory)) {
 		context.suspend()
 		iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
@@ -161,27 +163,49 @@ export async function start() {
 	analyzer.fftSize = 2048
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
-	/**
-	 * @type {Record<Memory.LayerType, BentoSoundSource>}
-	 */
-	let layerTypeSource = {
-		[Memory.LayerType.sampler]: Sampler,
-		[Memory.LayerType.synth]: Synth
-	}
 
-	loop.layers(idx => {
-		let layer = new AudioWorkletNode(context, "bento-layer", {
-			processorOptions: {buffer: sharedarraybuffer, layerNumber: idx}
+	loop.samplers(idx => {
+		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
+		let layer = new AudioWorkletNode(context, "bento-sampler", {
+			processorOptions,
+			numberOfInputs: 0,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
 		})
 
-		let source = new layerTypeSource[Memory.getLayerType(memory, idx)](context)
+		let source = new Passthru(context)
+		layer.connect(source.in)
+		source.connect(context.destination)
 
 		layer.port.onmessage = event => {
 			let message = event.data
 			if (message == "step-change") {
-				let step = Memory.getCurrentStepDetails(memory, idx)
-				if (step.on) {
-					source.play(step)
+				let on = Memory.stepOn(memory, idx, Memory.currentStep(memory, idx))
+				if (on) {
+					source.play(Memory.getCurrentStepDetails(memory, idx))
+				}
+			}
+		}
+	})
+
+	loop.synths(idx => {
+		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
+		let layer = new AudioWorkletNode(context, "bento-layer", {
+			processorOptions
+		})
+
+		let source = new Synth(context)
+		// the number of if statements here makes me think this should be two
+		// different loops lol
+
+		layer.port.onmessage = event => {
+			let message = event.data
+			if (message == "step-change") {
+				let on = Memory.stepOn(memory, idx, Memory.currentStep(memory, idx))
+				if (on) {
+					source.play(Memory.getCurrentStepDetails(memory, idx))
 				}
 			}
 		}
@@ -218,8 +242,6 @@ export function empty() {
 	return memory.layerSounds.every(n => !n)
 }
 
-await context.audioWorklet.addModule("/sounds/layer.audioworklet.js")
-
 /**
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
@@ -228,3 +250,7 @@ export async function init(buffer) {
 	sharedarraybuffer = buffer
 	memory = Memory.map(buffer)
 }
+
+await context.audioWorklet.addModule("/sounds/layer.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/sampler.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/quietparty.audioworklet.js")

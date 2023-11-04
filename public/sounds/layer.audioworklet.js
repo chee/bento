@@ -4,7 +4,6 @@ import * as Memory from "../memory/memory.js"
  * the transport is kept in a worker so that it can keep time uninterupted by
  * changes in the busy main thread
  */
-
 class BentoLayerWorklet extends AudioWorkletProcessor {
 	/** @param {{processorOptions: {buffer: SharedArrayBuffer, layerNumber:
 	number}}} options */

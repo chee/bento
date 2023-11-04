@@ -10,6 +10,7 @@ export default class BentoGrid extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
 		this.attachStylesheet("grid")
+		this.on = true
 
 		customElements.whenDefined("bento-box").then(() => {
 			loop.gridSteps(stepIdx => {

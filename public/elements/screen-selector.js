@@ -30,10 +30,9 @@ export default class BentoScreenSelector extends BentoElement {
 	}
 
 	#selectedIndex() {
-		let sel = Array.from(this.shadow.firstElementChild.children).findIndex(n =>
-			n.hasAttribute("aria-checked")
-		)
-		return sel == -1 ? 0 : sel
+		let kids = Array.from(this.shadow.firstElementChild.children)
+		let sel = kids.findIndex(n => n.hasAttribute("aria-checked"))
+		return sel
 	}
 
 	attributeChangedCallback(attr, old, value) {
@@ -53,6 +52,9 @@ export default class BentoScreenSelector extends BentoElement {
 				button.name = name
 				nav.appendChild(button)
 			}
+
+			sel = Math.clamp(sel, 0, nav.children.length - 1)
+
 			nav.children[sel].setAttribute("aria-checked", "true")
 			this.announce("screen", {
 				screen: names[sel]

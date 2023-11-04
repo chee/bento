@@ -6,7 +6,7 @@ let db
 /** @type {Memory.MemoryMap} */
 let memory
 
-let worker = new Worker("/db/worker.js", {type: "module"})
+let worker = new Worker("/db/db.worker.js", {type: "module"})
 
 /** @param {SharedArrayBuffer} sab */
 export async function init(sab) {

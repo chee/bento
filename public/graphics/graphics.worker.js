@@ -29,9 +29,10 @@ function clear(context) {
 	let canvas = context.canvas
 	let {width, height} = canvas
 	context.restore()
-	context.clearRect(0, 0, width, height)
+
 	context.fillStyle = styles.normal.fill
 	context.strokeStyle = styles.normal.line
+	context.clearRect(0, 0, width, height)
 	context.lineWidth = DPI
 }
 
@@ -460,7 +461,6 @@ function update(frame = 0, force = false) {
 		fillRegion(0, context.canvas.width, "black")
 		let xs = context.canvas.width / 33
 		let x = xs * (stepDetails.pitch + 16)
-		console.log({x, xs, sp: stepDetails.pitch})
 		fillRegion(x, x + xs, "white")
 		requestAnimationFrame(update)
 	} else {

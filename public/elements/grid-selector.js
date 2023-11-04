@@ -1,7 +1,7 @@
 import {BentoElement} from "./base.js"
 import BentoMiniGrid from "./mini-grid.js"
 import * as loop from "../convenience/loop.js"
-import {STEPS_PER_GRID} from "../memory/memory.js"
+import {STEPS_PER_GRID, step2grid, step2ui} from "../memory/memory.js"
 
 export default class BentoGridSelector extends BentoElement {
 	/** @type {BentoMiniGrid[]} */
@@ -76,8 +76,8 @@ export default class BentoGridSelector extends BentoElement {
 
 	/** @param {number} val */
 	set playing(val) {
-		let targetGrid = Math.floor(val / STEPS_PER_GRID)
-		let targetStep = val % STEPS_PER_GRID
+		let targetGrid = step2grid(val)
+		let targetStep = step2ui(val)
 		this.#minigrids.forEach((mg, i) => {
 			if (i == targetGrid) {
 				mg.playing = targetStep

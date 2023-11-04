@@ -1,9 +1,9 @@
 import BentoSoundSource from "./source.js"
 
 export default class Synth extends BentoSoundSource {
-	#width = 0.1
+	#width
 	/** @type OscillatorOptions["type"] */
-	#type = "sine"
+	#type
 	/** @type {OscillatorNode[]} */
 	#oscillators
 
@@ -22,7 +22,7 @@ export default class Synth extends BentoSoundSource {
 		rightosc.connect(rightpan)
 		this.#oscillators = [leftosc, rightosc]
 		this.width = 0.1
-		this.type = "sine"
+		this.type = "sawtooth"
 	}
 
 	get width() {
@@ -51,7 +51,7 @@ export default class Synth extends BentoSoundSource {
 				break
 			case "sawtooth":
 			case "square":
-				this.#startGain = 0.4
+				this.#startGain = 0.2
 				break
 		}
 
@@ -89,6 +89,6 @@ export default class Synth extends BentoSoundSource {
 		let time = this.context.currentTime
 		// todo this magic should happen in super and be a function of envelope
 		this.out.gain.setValueAtTime(this.#startGain, time)
-		this.out.gain.linearRampToValueAtTime(0.00000001, time + 0.4)
+		this.out.gain.setTargetAtTime(0, time, 0.1)
 	}
 }

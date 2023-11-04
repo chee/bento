@@ -80,6 +80,15 @@ async function getFancy() {
 
 		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
 			party.setAttribute("fancy", "fancy")
+			last = {
+				selectedLayer: -1,
+				selectedLayerDetails: {},
+				bpm: 0,
+				speed: -1,
+				selectedLayerType: -1,
+				selectedUiStep: -1,
+				selectedGrid: -1
+			}
 		}
 	} catch {}
 
@@ -113,27 +122,44 @@ async function init() {
 	await sounds.init(buffer)
 }
 
+let last = {
+	selectedLayer: -1,
+	selectedLayerDetails: {},
+	bpm: 0,
+	speed: -1,
+	selectedLayerType: -1,
+	selectedUiStep: -1,
+	selectedGrid: -1
+}
 function update(_frame = 0) {
-	let selectedLayerDetails = Memory.getSelectedLayerDetails(memory)
+	let selectedLayer = memory.master.at(Memory.Master.selectedLayer)
+	let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
+	gridSelector.selected = selectedGrid
+	// todo make less expensive (no chunks)
+	// todo cache in getLayerGridStepOns and only change when a step changes
+	gridSelector.grids = Memory.getLayerGridStepOns(memory, selectedLayer)
+	grid.on = Memory.gridOn(memory, selectedLayer, selectedGrid)
+	layerSelector.selected = selectedLayer
+	let type = Memory.getLayerType(memory, selectedLayer) || 1
+	let speed = Memory.layerSpeed(memory, selectedLayer)
+
+	layerOptions.speed = Memory.layerSpeed(memory, speed)
+
+	screen.layerType = type
+
 	let bpm = Memory.bpm(memory)
-	master.bpm = bpm
+
+	last.bpm = master.bpm = bpm
+
 	master.toggleAttribute("playing", Memory.playing(memory))
 	master.toggleAttribute("paused", Memory.paused(memory))
-	layerSelector.selected = selectedLayerDetails.layer
-	layerOptions.speed = Memory.layerSpeed(memory, selectedLayerDetails.speed)
-	// layerOptions.length = Memory.numberOfStepsInGrid(memory, selectedLayer)
-	screen.layerType = selectedLayerDetails.type
 
 	let selectedUiStep = Memory.selectedUiStep(memory)
-	let selectedGrid = selectedLayerDetails.selectedGrid
-	let currentStep = selectedLayerDetails.currentStep
-	gridSelector.selected = selectedGrid
-	gridSelector.grids = Memory.getLayerGridStepOns(
-		memory,
-		selectedLayerDetails.layer
-	)
+	let currentStep = Memory.currentStep(memory, selectedLayer)
 
-	gridSelector.playing = currentStep
+	loop.grids(gidx => {
+		gridSelector.toggle(gidx, Memory.gridOn(memory, selectedLayer, gidx))
+	})
 
 	loop.gridSteps(uiStep => {
 		/*
@@ -141,42 +167,37 @@ function update(_frame = 0) {
 		 * and then the actual step which is 0x0 to 0x40
 		 * this is so confusing i'm crying my eyes out
 		 */
+		let selectedGrid = Memory.layerSelectedGrid(memory, selectedLayer)
 		let actualStep = selectedGrid * Memory.STEPS_PER_GRID + uiStep
 
 		let box = boxes[uiStep]
 		box.selected = uiStep == selectedUiStep
-		box.on = Memory.stepOn(memory, selectedLayerDetails.layer, actualStep)
+		box.on = Memory.stepOn(memory, selectedLayer, actualStep)
 		box.playing = currentStep == actualStep
 
-		box.quiet = Memory.stepQuiet(
-			memory,
-			selectedLayerDetails.layer,
-			actualStep
-		)
-		box.pan = Memory.stepPan(memory, selectedLayerDetails.layer, actualStep)
+		box.quiet = Memory.stepQuiet(memory, selectedLayer, actualStep)
+		box.pan = Memory.stepPan(memory, selectedLayer, actualStep)
 	})
 
-	loop.grids(gidx => {
-		gridSelector.toggle(
-			gidx,
-			Memory.gridOn(memory, selectedLayerDetails.layer, gidx)
-		)
-		grid.on = Memory.gridOn(memory, selectedLayerDetails.layer, selectedGrid)
-	})
+	if (currentStep != last.currentStep) {
+		gridSelector.playing = currentStep
+		last.currentStep = currentStep
+	}
 
-	// follow mode
 	if (
 		Memory.playing(memory) &&
 		!Memory.paused(memory) &&
 		featureflags.has("follow")
 	) {
-		let layer = selectedLayerDetails.layer
-		let step = Memory.getCurrentStepDetails(memory, layer)
-		Memory.selectedUiStep(memory, step.uiStep)
-		Memory.layerSelectedGrid(memory, layer, step.grid)
+		let layer = selectedLayer
+		let step = currentStep
+		Memory.selectedUiStep(memory, Memory.step2ui(step))
+		Memory.layerSelectedGrid(memory, layer, Memory.step2grid(step))
 	}
 
-	requestAnimationFrame(update)
+	setTimeout(() => {
+		requestAnimationFrame(update)
+	}, 50)
 }
 
 await init()

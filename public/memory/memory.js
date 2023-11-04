@@ -155,19 +155,15 @@ export let arrays = {
 	theme: {type: Uint8Array, size: 8}
 }
 
-/**
- * Location of item in master control state
- * @readonly
- * @enum {number}
- */
-const Master = {
+/** @typedef {typeof Master[keyof typeof Master]} Master */
+export const Master = /** @type const */ ({
 	bpm: 0,
 	selectedLayer: 1,
 	selectedUiStep: 2,
 	playing: 3,
 	paused: 4,
 	dbversion: 5
-}
+})
 
 /**
  * Location of item in the actively drawn region
@@ -208,7 +204,7 @@ export function map(buffer) {
 			arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
 		} at ${offset}`
 		try {
-			console.debug(description)
+			// console.debug(description)
 			memory[name] = new arrayInfo.type(buffer, offset, arrayInfo.size)
 		} catch (error) {
 			console.error(error)
@@ -1117,6 +1113,7 @@ export function getLayerGridStepOns(memory, layer) {
 
  */
 
+// todo caching of these bigger objects
 /**
  * @param {MemoryMap} memory
  * @param {number} layer
@@ -1155,8 +1152,8 @@ export function getStepDetails(memory, layer, step) {
 		on,
 		reversed,
 		version,
-		grid: Math.floor(step / STEPS_PER_GRID),
-		uiStep: step % STEPS_PER_GRID,
+		grid: step2grid(step),
+		uiStep: step2ui(step),
 		freq: djFreq,
 		q: djQ
 		// djFreq,
@@ -1165,6 +1162,22 @@ export function getStepDetails(memory, layer, step) {
 		// delayTime,
 		// reverb
 	}
+}
+
+/**
+ * @param {number} step
+ * @returns {number}
+ */
+export function step2grid(step) {
+	return Math.floor(step / STEPS_PER_GRID)
+}
+
+/**
+ * @param {number} step
+ * @returns {number}
+ */
+export function step2ui(step) {
+	return step % STEPS_PER_GRID
 }
 
 /**

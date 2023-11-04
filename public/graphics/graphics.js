@@ -29,7 +29,7 @@ let alreadyInit = false
 export async function init() {
 	if (alreadyInit) return
 	alreadyInit = true
-	screenWorker = new Worker("/graphics/worker.js", {type: "module"})
+	screenWorker = new Worker("/graphics/graphics.worker.js", {type: "module"})
 	await customElements.whenDefined("bento-screen")
 	screenElement = document.querySelector("bento-screen")
 	screenElement.canvas.height = screenElement.height * DPI

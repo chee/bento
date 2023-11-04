@@ -233,20 +233,17 @@ export async function init(buffer) {
 	})
 
 	loop.samplers(idx => {
-		let sampler = new AudioWorkletNode(context, "bento-sampler", {
-			processorOptions: {buffer, layerNumber: idx},
-			channelCount: 2,
-			numberOfOutputs: 1,
-			outputChannelCount: [2]
+		let layer = new AudioWorkletNode(context, "bento-layer", {
+			processorOptions: {buffer, layerNumber: idx}
 		})
-		let qp = new AudioWorkletNode(context, "quiet-party", {
-			processorOptions: {buffer, layerNumber: idx},
-			channelCount: 2,
-			numberOfInputs: 1,
-			numberOfOutputs: 1,
-			outputChannelCount: [2]
-		})
-		sampler.connect(qp)
+		// let qp = new AudioWorkletNode(context, "quiet-party", {
+		// 	processorOptions: {buffer, layerNumber: idx},
+		// 	channelCount: 2,
+		// 	numberOfInputs: 1,
+		// 	numberOfOutputs: 1,
+		// 	outputChannelCount: [2]
+		// })
+
 		// qp.connect(context.destination)
 
 		// let pan = new StereoPannerNode(context)
@@ -254,19 +251,43 @@ export async function init(buffer) {
 		let filter = new DjFilter(context)
 		filter.q = 1
 		filter.freq = -16
-		sampler.port.onmessage = event => {
+		layer.port.onmessage = event => {
 			let message = event.data
 			if (message == "step-change") {
 				let step = Memory.getCurrentStepDetails(memory, idx)
 				if (step.on) {
-					filter.freq
+					let portion = step.sound.slice(
+						step.region.start,
+						step.region.end || step.soundLength
+					)
+					if (step.reversed) {
+						portion.reverse()
+					}
+					let ab = new AudioBuffer({
+						length: portion.byteLength,
+						sampleRate: context.sampleRate,
+						numberOfChannels: 1
+					})
+					ab.copyToChannel(portion, 0)
+					let node = new AudioBufferSourceNode(context, {
+						buffer: ab
+					})
+					node.connect(filter.in)
+					let scale = [0, 2, 3, 5, 7, 8, 11]
+					let note = step.pitch
+					let no = Math.floor(note / scale.length) * 12
+					let nm = note % scale.length
+					let f = 1 + (scale[nm] + no)
+					let n = 2 ** (f / 12)
+					node.playbackRate.value = n
+					node.start()
 				}
 			}
 		}
 		// let delay = new Delay(context, {layer: sampler})
 
 		/* layer -> filter */
-		qp.connect(filter.in)
+		// qp.connect(filter.in)
 		filter.out.connect(context.destination)
 
 		// sampler.connect(filter.in)

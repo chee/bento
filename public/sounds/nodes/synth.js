@@ -102,7 +102,7 @@ export default class Synth extends BentoAudioNode {
 		let nm = note % scale.length
 
 		let f = 1 + (scale[nm] + no)
-		this.#frequency = 440 * f ** (1 / 12)
+		this.#frequency = 440 * 2 ** (f / 12)
 		// this.out.gain.value = 1
 		this.out.gain.setValueAtTime(this.#startGain, this.context.currentTime)
 		this.out.gain.linearRampToValueAtTime(

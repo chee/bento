@@ -19,7 +19,7 @@ import {DPI, Screen} from "../graphics/constants.js"
 export default class BentoScreen extends BentoElement {
 	/** @type Record<LayerType, Screen[]> */
 	static screens = {
-		[LayerType.sampler]: [Screen.wav, Screen.mix],
+		[LayerType.sampler]: [Screen.wav, Screen.key, Screen.mix],
 		[LayerType.synth]: [Screen.key, Screen.mix]
 	}
 	/** @type {BentoScreenSelector} */

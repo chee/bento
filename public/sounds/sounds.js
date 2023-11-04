@@ -150,10 +150,13 @@ export async function play() {
 	document.body.append(iphoneSilenceElement)
 	await context.resume()
 	iphoneSilenceElement.play()
-	alreadyFancy = true
 }
 
 export async function start() {
+	await play()
+	if (alreadyFancy) {
+		return
+	}
 	let analyzer = context.createAnalyser()
 	analyzer.fftSize = 2048
 	// todo write analysis to memory periodically
@@ -185,10 +188,7 @@ export async function start() {
 
 		source.connect(context.destination)
 	})
-	await play()
-	if (alreadyFancy) {
-		return
-	}
+
 	alreadyFancy = true
 }
 

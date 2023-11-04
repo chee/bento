@@ -91,6 +91,8 @@ export default class BentoLayerOptions extends BentoElement {
 
 	/** @param {number} val */
 	set speed(val) {
-		this.#speedSelector.value = val.toString()
+		if (val != +this.#speedSelector.value) {
+			this.#speedSelector.value = val.toString()
+		}
 	}
 }

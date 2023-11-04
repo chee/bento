@@ -1,4 +1,4 @@
-import * as Memory from "../../memory/memory.js"
+import * as Memory from "../memory/memory.js"
 
 /*
  * the transport is kept in a worker so that it can keep time uninterupted by
@@ -44,6 +44,7 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		let nextStep = ((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
 		if (nextStep != this.lastStep) {
 			Memory.incrementStep(memory, layerNumber)
+
 			this.port.postMessage("step-change")
 		}
 		this.lastStep = nextStep

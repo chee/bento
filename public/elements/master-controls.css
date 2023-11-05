@@ -12,6 +12,7 @@
 		var(--master-controls-line) 50%,
 		var(--master-controls-fill)
 	);
+	font-size: 0.8em;
 }
 
 :focus {

@@ -47,10 +47,9 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		let speed = Memory.layerSpeed(memory, layerNumber)
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		// you can use all your current variables, but you won't want to
-		let nextStep = ((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
+		let nextStep = (this.tick / samplesPerStep) | 0
 		if (nextStep != this.lastStep) {
 			Memory.incrementStep(memory, layerNumber)
-
 			let currentStep = Memory.currentStep(memory, layerNumber)
 			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
 			if (stepDetails.on) {
@@ -66,14 +65,14 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 			this.port.postMessage("step-change")
 		}
 		this.lastStep = nextStep
-		let quantumPortion = this.portion.subarray(this.point, this.point + 128)
+		let quantumPortionLength = this.portion.length - this.point
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {
 			let p = this.point
-			if (i < quantumPortion.length) {
-				let s0 = this.portion[p | 0] || 0
-				let s1 = this.portion[(p | 0) + 1] || 0
-				let s = s0 + (p % 1) * (s1 - s0) || 0
+			if (i < quantumPortionLength) {
+				let s1 = this.portion[p | 0] || 0
+				let s2 = this.portion[(p | 0) + 1] || 0
+				let s = s1 + (p % 1) * (s2 - s1) || 0
 				left[i] = right[i] = s
 			} else {
 				left[i] = right[i] = 0

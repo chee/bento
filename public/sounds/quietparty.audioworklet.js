@@ -1,9 +1,9 @@
 import * as Memory from "../memory/memory.js"
 
 /** the curve used to make the gain more satisfying */
-let qcurve = new Float32Array(Memory.DYNAMIC_RANGE)
+let qcurve = new Float32Array(Memory.DYNAMIC_RANGE + 1)
 for (let i = 0; i < qcurve.length; i++) {
-	qcurve[i] = 1 - Math.sin((i / (qcurve.length + 1)) * Math.PI * 0.5)
+	qcurve[i] = 1.00001 - Math.sin((i / (qcurve.length + 1)) * Math.PI * 0.5)
 }
 
 class QuietPartyWorklet extends AudioWorkletProcessor {
@@ -75,6 +75,7 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 		let panr = Math.sin((pan * Math.PI) / 2)
 		// let env = this.envelope.g
 		// this.logSometimes(env)
+
 		for (let i = 0; i < 128; i++) {
 			// todo also apply env
 			try {

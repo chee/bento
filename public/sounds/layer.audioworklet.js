@@ -24,6 +24,7 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		this.tick = 0
 	}
 
+	// todo share the "next step" logic with sampler
 	process() {
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {
@@ -40,7 +41,7 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		let speed = Memory.layerSpeed(memory, layerNumber)
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		// you can use all your current variables, but you won't want to
-		let nextStep = ((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
+		let nextStep = (this.tick / samplesPerStep) | 0
 		if (nextStep != this.lastStep) {
 			Memory.incrementStep(memory, layerNumber)
 

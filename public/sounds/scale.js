@@ -1,6 +1,5 @@
 /**
  * @typedef {typeof Scale[keyof typeof Scale]} Scale
- * @readonly
  */
 export const Scale = /** @type const */ ({
 	HarmonicMinor: [0, 2, 3, 5, 7, 8, 11]
@@ -23,8 +22,13 @@ export function pitch2freq(pitch, scale) {
 		noteIndex = 0
 	}
 	let octave = 1
-	if (pitch < 0) {
+	// lol why can i not figure out the math for this
+	if (pitch < 0 - scale.length) {
+		octave = 0.25
+	} else if (pitch < 0) {
 		octave = 0.5
+	} else if (pitch > scale.length * 2) {
+		octave = 4
 	} else if (pitch > scale.length - 1) {
 		octave = 2
 	}

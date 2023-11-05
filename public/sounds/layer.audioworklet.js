@@ -24,7 +24,6 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		this.tick = 0
 	}
 
-	// todo share the "next step" logic with sampler
 	process() {
 		let memory = this.memory
 		if (Memory.playing(memory) && Memory.paused(memory)) {

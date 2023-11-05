@@ -60,13 +60,14 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 		let layerNumber = this.layerNumber
 		let currentStep = Memory.currentStep(memory, layerNumber)
 		if (currentStep != this.lastStep) {
-			// todo it'll be faster to access memory directly rather than creating
-			// an object
-			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
-			if (stepDetails.on) {
+			let stepOn = Memory.stepOn(memory, layerNumber, currentStep)
+			if (stepOn) {
 				this.point = 0
-				this.quiet = stepDetails.quiet
-				this.pan = stepDetails.pan
+				// todo it'll be faster to access memory directly rather than having
+				// Memory allocate an object
+				let deets = Memory.getStepDetails(memory, layerNumber, currentStep)
+				this.quiet = deets.quiet
+				this.pan = deets.pan
 				// todo this.env.a=a this.env.r=r this.env.start()
 			}
 		}
@@ -75,12 +76,13 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 		let panr = Math.sin((pan * Math.PI) / 2)
 		// let env = this.envelope.g
 		// this.logSometimes(env)
-
 		for (let i = 0; i < 128; i++) {
 			// todo also apply env
 			try {
-				output.left[i] = input.left[i] * qcurve[this.quiet] * panl
-				output.right[i] = input.right[i] * qcurve[this.quiet] * panr
+				let l = input.left[i]
+				let r = input.right[i]
+				output.left[i] = l * qcurve[this.quiet] * panl
+				output.right[i] = r * qcurve[this.quiet] * panr
 			} catch {
 				// it's chill
 			}

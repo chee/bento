@@ -33,26 +33,14 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 	 */
 	process(_inputs, outputs, _parameters) {
 		let memory = this.memory
-		if (Memory.playing(memory) && Memory.paused(memory)) {
-			return true
-		} else if (!Memory.playing(memory)) {
-			this.lastStep = -1
-			this.tick = 0
-			return true
-		}
-		this.tick += 128
-		let bpm = Memory.bpm(memory)
-		let samplesPerBeat = (60 / bpm) * sampleRate
-		let layerNumber = this.layerNumber
-		let speed = Memory.layerSpeed(memory, layerNumber)
-		let samplesPerStep = samplesPerBeat / (4 * speed)
-		// you can use all your current variables, but you won't want to
-		let nextStep = (this.tick / samplesPerStep) | 0
-		if (nextStep != this.lastStep) {
-			Memory.incrementStep(memory, layerNumber)
-			let currentStep = Memory.currentStep(memory, layerNumber)
-			let stepDetails = Memory.getStepDetails(memory, layerNumber, currentStep)
-			if (stepDetails.on) {
+		let layer = this.layerNumber
+		let step = Memory.currentStep(memory, layer)
+		if (step != this.lastStep) {
+			let on = Memory.stepOn(memory, layer, step)
+			if (on) {
+				// todo only get the fields you need so Memory doesn't have to allocate
+				// an object (once the worker code has stabilized)
+				let stepDetails = Memory.getStepDetails(memory, layer, step)
 				let {sound, region, soundLength, reversed} = stepDetails
 				this.point = 0
 				this.portion = sound.subarray(region.start, region.end || soundLength)

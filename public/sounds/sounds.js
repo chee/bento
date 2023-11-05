@@ -11,6 +11,8 @@ let memory
 /** @type {SharedArrayBuffer} */
 let sharedarraybuffer
 
+let {LayerType} = Memory
+
 /**
  * normalize audio
  * @param {Float32Array} sound
@@ -183,55 +185,45 @@ export async function start() {
 			outputChannelCount: [2],
 			channelInterpretation: "speakers"
 		})
-
-		let source = new Passthru(context)
-		layer.connect(quiet).connect(source.in)
-		source.connect(context.destination)
-
-		layer.port.onmessage = event => {
-			let message = event.data
-			if (message == "step-change") {
-				let on = Memory.stepOn(memory, idx, Memory.currentStep(memory, idx))
-				if (on) {
-					source.play(Memory.getCurrentStepDetails(memory, idx))
-				}
-			}
+		/** @type {import("./sources/source.js").default | void} */
+		let source
+		let type = Memory.getLayerType(memory, idx)
+		if (type == LayerType.sampler) {
+			let sampler = new AudioWorkletNode(context, "bento-sampler", {
+				processorOptions,
+				numberOfInputs: 0,
+				numberOfOutputs: 1,
+				channelCount: 2,
+				outputChannelCount: [2],
+				channelInterpretation: "speakers"
+			})
+			let passthru = new Passthru(context)
+			sampler.connect(quiet)
+			quiet.connect(passthru.in)
+			passthru.connect(context.destination)
+			source = passthru
+		} else if (type == LayerType.synth) {
+			console.log("making synth")
+			let synth = new Synth(context)
+			synth.connect(quiet)
+			quiet.connect(context.destination)
+			source = synth
+			console.log("done making synth")
 		}
-	})
 
-	loop.synths(idx => {
-		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
 		let layer = new AudioWorkletNode(context, "bento-layer", {
 			processorOptions
 		})
-
-		let source = new Synth(context)
-		// the number of if statements here makes me think this should be two
-		// different loops lol
-
 		layer.port.onmessage = event => {
 			let message = event.data
+			// todo make this unnecesary
 			if (message == "step-change") {
 				let on = Memory.stepOn(memory, idx, Memory.currentStep(memory, idx))
-				if (on) {
+				if (on && source) {
 					source.play(Memory.getCurrentStepDetails(memory, idx))
 				}
 			}
 		}
-
-		let quiet = new AudioWorkletNode(context, "quiet-party", {
-			processorOptions,
-			numberOfInputs: 1,
-			numberOfOutputs: 1,
-			channelCount: 2,
-			outputChannelCount: [2],
-			channelInterpretation: "speakers"
-		})
-
-		// prettier-ignore
-		source
-			.connect(quiet)
-			.connect(context.destination)
 	})
 
 	alreadyFancy = true

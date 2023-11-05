@@ -11,6 +11,7 @@ export const STEPS_PER_GRID = 16
 export const STEPS_PER_LAYER = GRIDS_PER_LAYER * STEPS_PER_GRID
 export const QUANTUM = 128
 export const DYNAMIC_RANGE = 12
+export const NUMBER_OF_KEYS = 16
 /* for a time when there are an odd number of layers */
 export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 

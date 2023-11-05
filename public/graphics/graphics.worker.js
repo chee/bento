@@ -459,8 +459,8 @@ function update(frame = 0, force = false) {
 		mix(frame, force)
 	} else if (screen == "key") {
 		fillRegion(0, context.canvas.width, "black")
-		let xs = context.canvas.width / 33
-		let x = xs * (stepDetails.pitch + 16)
+		let xs = context.canvas.width / (Memory.NUMBER_OF_KEYS + 1)
+		let x = xs * (stepDetails.pitch + Memory.NUMBER_OF_KEYS / 2)
 		fillRegion(x, x + xs, "white")
 		requestAnimationFrame(update)
 	} else {

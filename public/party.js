@@ -195,9 +195,10 @@ function update(_frame = 0) {
 		Memory.layerSelectedGrid(memory, layer, Memory.step2grid(step))
 	}
 
-	setTimeout(() => {
-		requestAnimationFrame(update)
-	}, 50)
+	// consider setting timeout here to lower cpu use on safari
+	// setTimeout(() => {
+	requestAnimationFrame(update)
+	// }, 50)
 }
 
 await init()
@@ -333,7 +334,10 @@ screen.hark("mouse", message => {
 			memory,
 			deets.layer,
 			deets.step,
-			Math.round((message.mouse.x / screen.canvas.width) * 32) - 16
+			Math.round(
+				(message.mouse.x / screen.canvas.width) * Memory.NUMBER_OF_KEYS
+			) -
+				Memory.NUMBER_OF_KEYS / 2
 		)
 		if (message.type == "end") {
 			db.save()

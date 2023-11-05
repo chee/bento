@@ -1,19 +1,5 @@
 import * as Memory from "../memory/memory.js"
-
-/**
-		let cachename = `s${start}e${end}v${version}r${reversed}`
-		if (!this.#cache.has(cachename)) {
-			let portion = step.sound.slice(
-				step.region.start,
-				step.region.end || step.soundLength
-			)
-			if (step.reversed) {
-				portion.reverse()
-			}
-			this.#cache.set(cachename, portion)
-		}
-		let portion = this.#cache.get(cachename)
- */
+import {Scale, pitch2freq} from "./scale.js"
 
 class BentoSamplerWorklet extends AudioWorkletProcessor {
 	/** @param {{processorOptions: {buffer: SharedArrayBuffer, layerNumber:
@@ -37,6 +23,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		/** @type Map<string, Float32Array> */
 		this.cache = new Map()
 		this.portion = new Float32Array(0)
+		this.scale = Scale.HarmonicMinor
 	}
 
 	/**
@@ -73,6 +60,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 				if (reversed) {
 					this.portion = this.portion.slice().reverse()
 				}
+				this.playbackRate = pitch2freq(stepDetails.pitch, this.scale)
 				this.pan = stepDetails.pan / 6 || 0
 			}
 			this.port.postMessage("step-change")
@@ -81,10 +69,17 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		let quantumPortion = this.portion.subarray(this.point, this.point + 128)
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {
-			let s = i < quantumPortion.length ? quantumPortion[i] : 0
-			left[i] = right[i] = s
+			let p = this.point
+			if (i < quantumPortion.length) {
+				let s0 = this.portion[p | 0] || 0
+				let s1 = this.portion[(p | 0) + 1] || 0
+				let s = s0 + (p % 1) * (s1 - s0) || 0
+				left[i] = right[i] = s
+			} else {
+				left[i] = right[i] = 0
+			}
+			this.point += this.playbackRate
 		}
-		this.point += 128
 
 		return true
 	}

@@ -77,8 +77,12 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 		// this.logSometimes(env)
 		for (let i = 0; i < 128; i++) {
 			// todo also apply env
-			output.left[i] = input.left[i] * qcurve[this.quiet] * panl
-			output.right[i] = input.right[i] * qcurve[this.quiet] * panr
+			try {
+				output.left[i] = input.left[i] * qcurve[this.quiet] * panl
+				output.right[i] = input.right[i] * qcurve[this.quiet] * panr
+			} catch {
+				// it's chill
+			}
 		}
 		this.point += 1
 		return true

@@ -175,8 +175,17 @@ export async function start() {
 			channelInterpretation: "speakers"
 		})
 
+		let quiet = new AudioWorkletNode(context, "quiet-party", {
+			processorOptions,
+			numberOfInputs: 1,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
+		})
+
 		let source = new Passthru(context)
-		layer.connect(source.in)
+		layer.connect(quiet).connect(source.in)
 		source.connect(context.destination)
 
 		layer.port.onmessage = event => {
@@ -210,7 +219,19 @@ export async function start() {
 			}
 		}
 
-		source.connect(context.destination)
+		let quiet = new AudioWorkletNode(context, "quiet-party", {
+			processorOptions,
+			numberOfInputs: 1,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
+		})
+
+		// prettier-ignore
+		source
+			.connect(quiet)
+			.connect(context.destination)
 	})
 
 	alreadyFancy = true

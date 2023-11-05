@@ -1,6 +1,8 @@
+import {pitch2freq} from "../scale.js"
 import BentoSoundSource from "./source.js"
 
 export default class Synth extends BentoSoundSource {
+	/** @type number the amount of stereo detune between the samplers */
 	#width
 	/** @type OscillatorOptions["type"] */
 	#type
@@ -30,6 +32,7 @@ export default class Synth extends BentoSoundSource {
 	}
 
 	set width(val) {
+		this.#width = val
 		let detune = val / 2
 		let [left, right] = this.#oscillators
 		left.detune.value = -detune
@@ -83,11 +86,11 @@ export default class Synth extends BentoSoundSource {
 			this.start()
 		}
 
-		let freq = this.note2freq(step.pitch)
+		let freq = pitch2freq(step.pitch, this.scale)
 		this.#frequency = 440 * freq
 		// this.out.gain.value = 1
 		let time = this.context.currentTime
-		// todo this magic should happen in super and be a function of envelope
+		// todo this magic should happen in quiet-party and be a function of envelope
 		this.out.gain.setValueAtTime(this.#startGain, time)
 		this.out.gain.setTargetAtTime(0, time, 0.1)
 	}

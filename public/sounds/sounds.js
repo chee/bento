@@ -166,16 +166,9 @@ export async function start() {
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
 
-	loop.samplers(idx => {
+	loop.layers(idx => {
 		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
-		let layer = new AudioWorkletNode(context, "bento-sampler", {
-			processorOptions,
-			numberOfInputs: 0,
-			numberOfOutputs: 1,
-			channelCount: 2,
-			outputChannelCount: [2],
-			channelInterpretation: "speakers"
-		})
+		console.log(idx)
 
 		let quiet = new AudioWorkletNode(context, "quiet-party", {
 			processorOptions,

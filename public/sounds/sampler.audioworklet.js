@@ -50,9 +50,9 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 				this.playbackRate = pitch2freq(stepDetails.pitch, this.scale)
 				this.pan = stepDetails.pan / 6 || 0
 			}
-			this.port.postMessage("step-change")
 		}
-		this.lastStep = nextStep
+		this.lastStep = step
+
 		let quantumPortionLength = this.portion.length - this.point
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {

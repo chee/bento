@@ -1,4 +1,5 @@
 import {DB_VERSION} from "../db/share.js"
+import {setStep} from "../io/data-transfer.js"
 import migrations from "./migrations.js"
 // ~4.75 seconds at 44.1khz
 // todo stereo
@@ -37,30 +38,43 @@ export const LayerType = /** @type const */ ({
 	synth: 2
 })
 
+/** @typedef {typeof Master[keyof typeof Master]} Master */
+export const Master = /** @type const */ ({
+	bpm: 0,
+	selectedLayer: 1,
+	selectedUiStep: 2,
+	playing: 3,
+	paused: 4,
+	dbversion: 5
+})
+
+// todo when you have the energy make this shaped like:
+//
+// arrays.sounds.length: {type: Uint32Array, size: 123123}
+//
+// it'll require a db migration or a rewrite of save/load to perform the
+// flattening so it's not appealing, but it will make the code better in
+// memorytree
 /**
  * @satisfies {MemoryArrayDefinition}
  */
 export let arrays = {
-	master: {type: Uint8Array, size: 16, default: [120]},
+	master: {
+		type: Uint8Array,
+		size: 16,
+		default: [120]
+	},
 	soundLengths: {
 		type: Uint32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
-	// this monotonic exists just to force a refresh when things change
-	// user may experience unexpected behaviour if they replace a sound more than
-	// 4294967295 times in one session
-	soundVersions: {
-		type: Int32Array,
+	soundDetunes: {
+		type: Int8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
 	layerSelectedGrids: {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
-	},
-	layerSpeeds: {
-		type: Float32Array,
-		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
-		defaultFill: 1
 	},
 	layerTypes: {
 		type: Uint8Array,
@@ -72,6 +86,11 @@ export let arrays = {
 			LayerType.sampler,
 			LayerType.synth
 		]
+	},
+	layerSounds: {
+		type: Float32Array,
+		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) // * 2? then
+		// place the right channel at layer+lpm from the left channel
 	},
 	currentSteps: {
 		type: Uint8Array,
@@ -98,11 +117,31 @@ export let arrays = {
 			}
 		)
 	},
+	gridSpeeds: {
+		type: Float32Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		defaultFill: 1
+	},
+	gridLengths: {
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		defaultFill: STEPS_PER_GRID
+	},
+	gridLoops: {
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		defaultFill: STEPS_PER_GRID
+	},
+	gridJumps: {
+		type: Int8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
+		defaultFill: 0
+	},
 	stepReverseds: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	stepPitches: {
+	stepPitchs: {
 		type: Int8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
@@ -130,11 +169,11 @@ export let arrays = {
 		type: Uint32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	stepDjFreqs: {
+	stepFilterFrequencys: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	stepDjQs: {
+	stepFilterQs: {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
@@ -146,25 +185,12 @@ export let arrays = {
 		type: Float32Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
-	drawingRegion: {type: Float32Array, size: 4},
-	layerSounds: {
+	drawingRegion: {
 		type: Float32Array,
-		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) // * 2? then
-		// place the right channel at layer+lpm from the left channel
+		size: 4
 	},
-	mouse: {type: Float32Array, size: 2},
-	theme: {type: Uint8Array, size: 8}
+	theme: {type: Uint8Array, size: 16}
 }
-
-/** @typedef {typeof Master[keyof typeof Master]} Master */
-export const Master = /** @type const */ ({
-	bpm: 0,
-	selectedLayer: 1,
-	selectedUiStep: 2,
-	playing: 3,
-	paused: 4,
-	dbversion: 5
-})
 
 /**
  * Location of item in the actively drawn region
@@ -242,9 +268,15 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 			if (name == "drawingRegion") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
-				bpm(memory, bpm(safe))
-				selectedLayer(memory, selectedLayer(safe))
-				selectedUiStep(memory, selectedUiStep(safe))
+				memory.master.set([safe.master.at(Master.bpm)], Master.bpm)
+				memory.master.set(
+					[safe.master.at(Master.selectedLayer)],
+					Master.selectedLayer
+				)
+				memory.master.set(
+					[safe.master.at(Master.selectedUiStep)],
+					Master.selectedUiStep
+				)
 				continue
 			}
 			try {
@@ -294,9 +326,15 @@ export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 			if (name == "drawingRegion") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
-				bpm(safe, bpm(memory))
-				selectedLayer(safe, selectedLayer(memory))
-				selectedUiStep(safe, selectedUiStep(memory))
+				memory.master.set([safe.master.at(Master.bpm)], Master.bpm)
+				memory.master.set(
+					[safe.master.at(Master.selectedLayer)],
+					Master.selectedLayer
+				)
+				memory.master.set(
+					[safe.master.at(Master.selectedUiStep)],
+					Master.selectedUiStep
+				)
 				safe.master.set([DB_VERSION], Master.dbversion)
 				continue
 			}
@@ -344,859 +382,629 @@ export function fresh() {
 }
 
 /**
- * @param {MemoryMap} memory
- * @param {number} [val]
- * @returns {number}
+ * @typedef {Object} Layer
+ * @prop {number} index
+ *	@prop {LayerType} type
+ * @prop {number} selectedGrid
  */
-export function selectedLayer(memory, val) {
-	if (typeof val == "number") {
-		memory.master.set([val], Master.selectedLayer)
-	}
-	return memory.master.at(Master.selectedLayer)
+
+/**
+ * @typedef {keyof Omit<Layer, "index">} LayerKey
+ */
+
+/**
+ * @typedef {Object} Grid
+ * @prop {number} index
+ * @prop {number} indexInLayer
+ * @prop {number} layer
+ *	@prop {boolean} on
+ *	@prop {number} speed
+ * @prop {number} jump
+ * @prop {number} loop
+ */
+
+/**
+ * @typedef {keyof Omit<Grid, "index"|"layer"|"indexInLayer">} GridKey
+ */
+
+/**
+ * @typedef {Object} Step
+ * @prop {number} index
+ * @prop {number} indexInLayer
+ * @prop {number} indexInGrid
+ * @prop {number} layer
+ * @prop {number} grid
+
+ * @prop {boolean} on
+ * @prop {boolean} reversed
+ * @prop {number} start
+ * @prop {number} end
+ * @prop {number} attack
+ * @prop {number} release
+ * @prop {number} pitch
+ * @prop {number} quiet
+ * @prop {number} pan
+ * @prop {number} filterFrequency
+ * @prop {number} filterQ
+ */
+
+//class Step {}
+
+/**
+ * @typedef {keyof Omit<Step,
+		"layer"|"grid"|"index"|"indexInLayer"|"indexInGrid">
+	} StepKey
+ */
+
+/**
+ * @typedef {Object} Sound
+ * @prop {number} layer
+ * @prop {Float32Array} left
+ * @prop {Float32Array} right
+ * @prop {number} length
+ * @prop {number} detune
+ */
+
+/**
+ * @typedef {keyof Omit<Sound, "layer">} SoundKey
+ */
+
+/** @type {(layer: number, step: number) => number} */
+export function layerStep2step(layer, step) {
+	return layer * STEPS_PER_LAYER + step
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @returns {LayerType}
- */
-export function getLayerType(memory, layer) {
-	return /** @type LayerType */ (memory.layerTypes.at(layer))
+/** @type {(layer: number, grid: number) => number} */
+export function layerGrid2layer(layer, grid) {
+	return layer * GRIDS_PER_LAYER + grid
 }
 
-/**
- * @typedef {{
-		layer: number
-		selectedGrid: number
-		type: LayerType
-		currentStep: number
-		speed: number
-	}} LayerDetails
- */
-
-/**
- * todo return all the step infos as an array?
- * @param {MemoryMap} memory
- * @returns {LayerDetails}
- */
-export function getSelectedLayerDetails(memory) {
-	let layer = memory.master.at(Master.selectedLayer)
-	let selectedGrid = layerSelectedGrid(memory, layer)
-	let type = getLayerType(memory, layer) || 1 // todo lol remove this 1
-	let step = currentStep(memory, layer)
-	let speed = layerSpeed(memory, layer)
-
-	return {
-		layer,
-		selectedGrid,
-		type,
-		currentStep: step,
-		speed
-	}
+/** @type {(layer: number, grid: number, step: number) => number} */
+export function gridStep2step(layer, grid, step) {
+	return layer * STEPS_PER_LAYER + grid * STEPS_PER_GRID + step
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [val]
- * @returns {number}
- */
-export function layerSelectedGrid(memory, layer, val) {
-	if (typeof val == "number") {
-		memory.layerSelectedGrids.set([val], layer)
-	}
-	return memory.layerSelectedGrids.at(layer)
+/** @type {(step: number) => number} */
+export function step2layerStep(step) {
+	return step % STEPS_PER_LAYER
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [val]
- * @returns {number}
- */
-export function currentStep(memory, layer, val) {
-	if (typeof val == "number") {
-		memory.currentSteps.set([val], layer)
-	}
-	return memory.currentSteps.at(layer)
+/** @type {(step: number) => number} */
+export function step2gridStep(step) {
+	return step % STEPS_PER_GRID
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- */
-export function incrementStep(memory, layer) {
-	let current = memory.currentSteps.at(layer)
-	let activeGrids = Array.from(
-		memory.gridOns.subarray(
-			layer * GRIDS_PER_LAYER,
-			layer * GRIDS_PER_LAYER + GRIDS_PER_LAYER
-		)
-	)
-		.map((on, index) => ({index, on}))
-		.filter(n => n.on)
-	if (current > STEPS_PER_LAYER) {
-		let grid = activeGrids[0]
-		if (grid) {
-			currentStep(memory, layer, grid.index * STEPS_PER_GRID)
-		}
-	} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
-		let absoluteCurrentGrid = Math.floor(current / STEPS_PER_GRID)
-		let nextGrid =
-			activeGrids.find(g => g.index > absoluteCurrentGrid)?.index ||
-			activeGrids[0]?.index ||
-			0
-		let nextStep = nextGrid * STEPS_PER_GRID
-		if (activeGrids.length == 0) {
-			nextStep = -1
-		}
-
-		currentStep(memory, layer, nextStep)
-	} else {
-		let next = current + 1
-		currentStep(memory, layer, next)
-	}
+/** @type {(grid: number) => number} */
+export function grid2layerGrid(grid) {
+	return grid % GRIDS_PER_LAYER
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [val]
- * @returns {number}
- */
-export function layerSpeed(memory, layer, val) {
-	if (typeof val == "number") {
-		memory.layerSpeeds.set([val], layer)
-	}
-	return memory.layerSpeeds.at(layer)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {boolean} [val]
- * @returns {boolean}
- */
-export function stepOn(memory, layer, step, val) {
-	let {stepOns} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "boolean") {
-		stepOns.set([Number(val)], at)
-	}
-
-	return Boolean(stepOns.at(at))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} grid
- * @param {boolean} [val]
- * @returns {boolean}
- */
-export function gridOn(memory, layer, grid, val) {
-	let {gridOns} = memory
-	let at = layer * GRIDS_PER_LAYER + grid
-
-	if (typeof val == "boolean") {
-		gridOns.set([Number(val)], at)
-	}
-
-	return Boolean(gridOns.at(at))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {boolean} [val]
- * @returns {boolean}
- */
-export function stepReversed(memory, layer, step, val) {
-	let {stepReverseds} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "boolean") {
-		stepReverseds.set([Number(val)], at)
-	}
-
-	return Boolean(stepReverseds.at(at))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val]
- * @returns {number}
- */
-export function stepDjFreqs(memory, layer, step, val) {
-	let {stepDjFreqs} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepDjFreqs.set([val], at)
-	}
-
-	return stepDjFreqs.at(at)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val]
- * @returns {number}
- */
-export function stepDjQs(memory, layer, step, val) {
-	let stepDjQs = memory.stepDjQs
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepDjQs.set([val], at)
-	}
-
-	return stepDjQs.at(at)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function stepReverse(memory, layer, step) {
-	stepReversed(memory, layer, step, !stepReversed(memory, layer, step))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val]
- * @returns {number}
- */
-export function stepAttack(memory, layer, step, val) {
-	let {stepAttacks} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepAttacks.set([val], at)
-	}
-
-	return Number(stepAttacks.at(at))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val]
- * @returns {number}
- */
-export function stepRelease(memory, layer, step, val) {
-	let {stepReleases} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepReleases.set([val], at)
-	}
-
-	return Number(stepReleases.at(at))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val]
- * @returns {number}
- */
-export function stepPitch(memory, layer, step, val) {
-	let {stepPitches} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepPitches.set([val], at)
-	}
-
-	return Number(stepPitches.at(at))
-}
-
-/**
- * for those who need a quiet party
- *
- * 12 ought to be enough dynamic range for anybody
- *
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val] between 0 and 12
- * @returns {number} between 0 and 12
- */
-export function stepQuiet(memory, layer, step, val) {
-	let {stepQuiets} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepQuiets.set([Math.clamp(val, 0, DYNAMIC_RANGE)], at)
-	}
-
-	return stepQuiets.at(at)
-}
-
-/**
- * for those who need a quieter party
- *
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function stepQuieter(memory, layer, step) {
-	stepQuiet(memory, layer, step, stepQuiet(memory, layer, step) + 1)
-}
-
-/**
- * for those who need a louder party
- *
- * 12 should be enough dynamic range for anyone
- *
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function stepLouder(memory, layer, step) {
-	stepQuiet(memory, layer, step, stepQuiet(memory, layer, step) - 1)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {number} [val] between -12 and 12
- * @returns {number} between -12 and 12
- */
-export function stepPan(memory, layer, step, val) {
-	let {stepPans} = memory
-	let at = layer * STEPS_PER_LAYER + step
-
-	if (typeof val == "number") {
-		stepPans.set(
-			[Math.clamp(val, -(DYNAMIC_RANGE / 2), DYNAMIC_RANGE / 2)],
-			at
-		)
-	}
-
-	return stepPans.at(at)
-}
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function stepPanLeft(memory, layer, step) {
-	stepPan(memory, layer, step, stepPan(memory, layer, step) - 1)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function stepPanRight(memory, layer, step) {
-	stepPan(memory, layer, step, stepPan(memory, layer, step) + 1)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- */
-export function toggleStep(memory, layer, step) {
-	let {stepOns} = memory
-	let at = layer * STEPS_PER_LAYER + step
-	stepOns.set([stepOns.at(at) ^ 1], at)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} grid
- */
-export function toggleGrid(memory, layer, grid) {
-	let {gridOns} = memory
-	let layerStart = layer * GRIDS_PER_LAYER
-	let at = layerStart + grid
-	let layerGridOns = gridOns.subarray(layerStart, layerStart + GRIDS_PER_LAYER)
-	let currentState = gridOns.at(at)
-	let nextState = currentState ^ 1
-	// todo allow turning off the last grid in Advanced+ Mode
-	if (layerGridOns.filter(Boolean).length < 2 && !nextState) {
-		return
-	}
-	gridOns.set([nextState], at)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} [val]
- * @returns {number}
- */
-export function selectedUiStep(memory, val) {
-	if (typeof val == "number") {
-		memory.master.set([val], Master.selectedUiStep)
-	}
-	return memory.master.at(Master.selectedUiStep)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {boolean} [val]
- * @returns {boolean}
- */
-export function playing(memory, val) {
-	if (typeof val == "boolean") {
-		memory.master.set([Number(val)], Master.playing)
-	}
-	return Boolean(memory.master.at(Master.playing))
-}
-
-/**
- * @param {MemoryMap} memory
- */
-export function play(memory) {
-	memory.master.set([0], Master.paused)
-	memory.master.set([1], Master.playing)
-}
-/**
- * @param {MemoryMap} memory
- */
-export function pause(memory) {
-	memory.master.set([1], Master.paused)
-}
-/**
- * @param {MemoryMap} memory
- */
-export function stop(memory) {
-	memory.master.set([0], Master.playing)
-	memory.master.set([0], Master.paused)
-	memory.currentSteps.set(
-		Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(-1)
-	)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {boolean} [val]
- * @returns {boolean}
- */
-export function paused(memory, val) {
-	if (typeof val == "boolean") {
-		memory.master.set([Number(val)], Master.paused)
-	}
-	return Boolean(memory.master.at(Master.paused))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {boolean} pause
- * @returns {boolean}
- */
-export function togglePlaying(memory, pause = false) {
-	if (!pause) {
-		for (let layer of [0, 1, 2, 3]) {
-			currentStep(memory, layer, 0)
-		}
-	}
-	return playing(memory, !playing(memory))
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} [val]
- * @returns {number}
- */
-export function bpm(memory, val) {
-	if (typeof val == "number") {
-		memory.master.set([val], Master.bpm)
-	}
-	return memory.master.at(Master.bpm)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} val
- * @returns {number}
- */
-// your evening of swing has been canceled
-// export function swing(memory, val) {
-// 	if (typeof val == "number") {
-// 		memory.swing.set([val])
-// 	}
-// 	return memory.swing.at(0)
-// }
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {Float32Array} [sound]
- * @returns {Float32Array}
- */
-export function sound(memory, layer, sound) {
-	let start = layer * SOUND_SIZE
-	// todo instanceof
-	if (typeof sound != "undefined") {
-		memory.layerSounds.set(sound, start)
-		// todo rememeber why i turned this off?
-		// fixRegions(memory, layer)
-		memory.soundLengths.set([sound.length], layer)
-		memory.soundVersions.set([memory.soundVersions.at(layer) + 1], layer)
-	}
-
-	return memory.layerSounds.subarray(start, start + SOUND_SIZE)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} [length]
- * @returns {number}
- */
-export function soundLength(memory, layer, length) {
-	if (typeof length == "number") {
-		memory.soundLengths.set([length], layer)
-	}
-	return memory.soundLengths.at(layer)
-}
-
-/**
- * NOTE: Sets drawingRegion start AND clears drawingRegion end AND clears drawingRegion x
- * @param {MemoryMap} memory
- * @param {number} [x]
- * @returns {number}
- */
-export function drawingRegionStart(memory, x) {
-	if (typeof x == "number") {
-		memory.drawingRegion.set([x], DrawingRegion.start)
-		// note this happening
-		memory.drawingRegion.set([x], DrawingRegion.x)
-		memory.drawingRegion.set([-1], DrawingRegion.end)
-	}
-
-	return memory.drawingRegion.at(DrawingRegion.start)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} [x]
- * @returns {number}
- */
-export function drawingRegionX(memory, x) {
-	if (typeof x == "number") memory.drawingRegion.set([x], DrawingRegion.x)
-	return memory.drawingRegion.at(DrawingRegion.x)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} [x]
- * @returns {number}
- */
-export function drawingRegionEnd(memory, x) {
-	if (typeof x == "number") {
-		memory.drawingRegion.set([x], DrawingRegion.end)
-		let [start, end] = [drawingRegionStart(memory), drawingRegionEnd(memory)]
-		let details = getSelectedStepDetails(memory)
-		let m = drawingRegionXMultiplier(memory)
-		;[start, end] = [start / m, end / m]
-		if (start > end) {
-			;[start, end] = [end, start]
-		}
-		if (details.reversed) {
-			;[start, end] = [details.soundLength - end, details.soundLength - start]
-		}
-		if ((start | 0) == (end | 0)) {
-			;[start, end] = [0, 0]
-		}
-
-		selectedStepDrawingRegion(memory, {
-			start,
-			end
-		})
-	}
-	return memory.drawingRegion.at(DrawingRegion.end)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} [xm]
- * @returns {number}
- */
-
-export function drawingRegionXMultiplier(memory, xm) {
-	if (typeof xm == "number")
-		memory.drawingRegion.set([xm], DrawingRegion.xMultiplier)
-	return memory.drawingRegion.at(DrawingRegion.xMultiplier)
-}
-
-/**
- * @param {MemoryMap} memory
- * @returns {boolean}
- */
-export function regionIsBeingDrawn(memory) {
-	return (
-		memory.drawingRegion.at(DrawingRegion.start) != -1 &&
-		memory.drawingRegion.at(DrawingRegion.end) == -1
-	)
-}
-
-/**
- * @typedef {Object} Region
- * @property {number} Region.start
- * @property {number} Region.end
- */
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @param {Region} [region]
- * @returns {Region}
- */
-export function stepRegion(memory, layer, step, region) {
-	let offset = layer * STEPS_PER_LAYER + step
-	if (typeof region !== "undefined") {
-		let {start, end} = region
-		memory.stepStarts.set([start], offset)
-		memory.stepEnds.set([end], offset)
-	}
-	return {
-		start: memory.stepStarts.at(offset),
-		end: memory.stepEnds.at(offset)
-	}
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- */
-export function clearRegions(memory, layer) {
-	memory.stepStarts.set(Array(STEPS_PER_LAYER).fill(0), layer)
-	memory.stepEnds.set(Array(STEPS_PER_LAYER).fill(0), layer)
-}
-
-/**
- * todo maybe only clear the regions if they are beyond the bounds?
- * @param {MemoryMap} memory
- * @param {number} layer
- */
-export function fixRegions(memory, layer) {
-	clearRegions(memory, layer)
-}
-
-/**
- * @typedef {Object} MousePoint
- * @prop {number} x
- * @prop {number} y
- */
-/**
- * @param {MemoryMap} memory
- * @param {MousePoint} [point]
- * @returns {MousePoint}
- */
-export function mouse(memory, point) {
-	if (point && typeof point.x == "number" && typeof point.y == "number") {
-		memory.mouse.set([point.x, point.y])
-	}
-	return {
-		x: memory.mouse.at(0),
-		y: memory.mouse.at(1)
-	}
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {Region} [region]
- * @returns {Region}
- */
-export function selectedStepDrawingRegion(memory, region) {
-	let layer = selectedLayer(memory)
-	let step = getActualSelectedStep(memory)
-	return stepRegion(memory, layer, step, region)
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {Float32Array} [val]
- * @returns {Float32Array}
- */
-export function selectedLayerSound(memory, val) {
-	let layer = selectedLayer(memory)
-	return sound(memory, layer, val)
-}
-
-/*
- * Some read-only functions starting with `get'
- */
-
-/**
- * @param {MemoryMap} memory
- * @returns {number}
- */
-export function getSelectedGrid(memory) {
-	let layer = selectedLayer(memory)
-	return layerSelectedGrid(memory, layer)
-}
-
-/**
- * @param {MemoryMap} memory
- * @returns {number}
- */
-export function getActualSelectedStep(memory) {
-	return getSelectedGrid(memory) * STEPS_PER_GRID + selectedUiStep(memory)
-}
-
-/**
- * @typedef {Object} SoundDetails
- * @property {Float32Array} SoundDetails.sound
- * @property {number} SoundDetails.soundLength the layer's soundLength
- * @property {number} SoundDetails.layer
- * @property {number} SoundDetails.version
- */
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @returns {SoundDetails}
- */
-export function getSoundDetails(memory, layer) {
-	return {
-		layer,
-		sound: sound(memory, layer),
-		soundLength: soundLength(memory, layer),
-		version: memory.soundVersions.at(layer)
-	}
-}
-
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @returns {boolean[][]}
- */
-export function getLayerGridStepOns(memory, layer) {
-	let start = layer * STEPS_PER_LAYER
-	let end = start + STEPS_PER_LAYER
-
-	return Array.from(memory.stepOns.subarray(start, end))
-		.map(Boolean)
-		.chunk(STEPS_PER_GRID)
-}
-
-// i cannot get @extends or @augments or &intersection to work
-/**
- * @typedef {SoundDetails & {
- layer: number
- version: number
- region: Region
- step: number
- uiStep: number
- grid: number
- attack: number
- release: number
- pitch: number
- quiet: number
- pan: number
- on: boolean
- reversed: boolean
- freq: number
- q: number
-}} StepDetails
-
- */
-
-// todo caching of these bigger objects
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @param {number} step
- * @returns {StepDetails}
- */
-export function getStepDetails(memory, layer, step) {
-	let snd = sound(memory, layer)
-	let length = soundLength(memory, layer)
-	let region = stepRegion(memory, layer, step)
-	let attack = stepAttack(memory, layer, step)
-	let release = stepRelease(memory, layer, step)
-	let quiet = stepQuiet(memory, layer, step)
-	let pan = stepPan(memory, layer, step)
-	let pitch = stepPitch(memory, layer, step)
-	let on = stepOn(memory, layer, step)
-	let reversed = stepReversed(memory, layer, step)
-	let djFreq = stepDjFreqs(memory, layer, step)
-	let djQ = stepDjQs(memory, layer, step)
-	// let delay = stepDelayGains.at(layer, step)
-	// let delayTime = stepDelayTimes.at(layer, step)
-	// let reverb = stepReverbs.at(layer, step)
-	let version = memory.soundVersions.at(layer)
-
-	return {
-		sound: snd,
-		soundLength: length,
-		region,
-		layer,
-		attack,
-		release,
-		quiet,
-		pitch,
-		pan,
-		step,
-		on,
-		reversed,
-		version,
-		grid: step2grid(step),
-		uiStep: step2ui(step),
-		freq: djFreq,
-		q: djQ
-		// djFreq,
-		// djQ,
-		// delay,
-		// delayTime,
-		// reverb
-	}
-}
-
-/**
- * @param {number} step
- * @returns {number}
- */
+/** @type {(step: number) => number} */
 export function step2grid(step) {
 	return Math.floor(step / STEPS_PER_GRID)
 }
 
-/**
- * @param {number} step
- * @returns {number}
- */
-export function step2ui(step) {
-	return step % STEPS_PER_GRID
+/** @type {(step: number) => number} */
+export function step2layer(step) {
+	return Math.floor(step / STEPS_PER_LAYER)
 }
 
-/**
- * @param {MemoryMap} memory
- * @returns {StepDetails}
- */
-export function getSelectedStepDetails(memory) {
-	let layer = selectedLayer(memory)
-	return getStepDetails(memory, layer, getActualSelectedStep(memory))
+/** @type {(grid: number) => number} */
+export function grid2layer(grid) {
+	return Math.floor(grid / GRIDS_PER_LAYER)
 }
 
-/**
- * @param {MemoryMap} memory
- * @param {number} layer
- * @returns {StepDetails}
- */
-export function getCurrentStepDetails(memory, layer) {
-	return getStepDetails(memory, layer, currentStep(memory, layer))
+/** @type {(layer: number, grid: number) => number} */
+export function layerGrid2grid(layer, grid) {
+	return layer * GRIDS_PER_LAYER + grid
+}
+
+export class MemoryTree {
+	/** @type {MemoryMap} */
+	#mem
+
+	/** @param {MemoryMap} map */
+	constructor(map) {
+		this.#mem = map
+	}
+
+	/** @type {Map<number, Readonly<Layer>>} */
+	#layers = new Map()
+	get layers() {
+		return this.#grids
+	}
+
+	/** @type {Map<number, Readonly<Grid>>} */
+	#grids = new Map()
+	get grids() {
+		return this.#grids
+	}
+
+	/** @type {Map<number, Readonly<Step>>} */
+	#steps = new Map()
+	get steps() {
+		return this.#grids
+	}
+
+	/** @type {Map<number, Readonly<Sound>>} */
+	#sounds = new Map()
+	get sounds() {
+		return this.#grids
+	}
+
+	/** @type {Set<() => void>} */
+	#listeners = new Set()
+
+	/**
+	 * @param {"layers"|"grids"|"steps"|"sounds"|"master"} item
+	 * @param {number} index
+	 */
+	announce(item, index) {
+		for (let listener of this.#listeners) {
+			listener()
+		}
+		if (item && index) {
+			// something in here for the workers
+		}
+	}
+
+	/** @type {(fn: () => void) => () => void} */
+	listen(fn) {
+		this.#listeners.add(fn)
+		return () => this.#listeners.delete(fn)
+	}
+
+	/** @param {number} index */
+	getSound(index) {
+		if (!this.#sounds.has(index)) {
+			let mem = this.#mem
+			let data = mem.layerSounds.subarray(index, index + SOUND_SIZE)
+			/** @type Sound */
+			let sound = {
+				layer: index,
+				left: data,
+				right: data,
+				length: mem.soundLengths.at(index),
+				detune: mem.soundDetunes.at(index)
+			}
+			this.#sounds.set(index, Object.freeze(sound))
+		}
+		return this.#sounds.get(index)
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {Layer}
+	 */
+	getLayer(index) {
+		if (!this.#layers.has(index)) {
+			let mem = this.#mem
+			/** @type Layer */
+			let layer = {
+				index,
+				selectedGrid: mem.layerSelectedGrids.at(index),
+				type:
+					/** @type LayerType */ (mem.layerTypes.at(index)) ||
+					LayerType.sampler
+			}
+			this.#layers.set(index, Object.freeze(layer))
+		}
+		return this.#layers.get(index)
+	}
+
+	/**
+	 * @param {number} index
+	 * @returns {Readonly<Grid>}
+	 */
+	getGrid(index) {
+		if (!this.#grids.has(index)) {
+			let mem = this.#mem
+			/** @type Grid */
+			let grid = {
+				index,
+				indexInLayer: grid2layerGrid(index),
+				on: Boolean(mem.gridOns.at(index)),
+				layer: grid2layer(index),
+				jump: mem.gridJumps.at(index),
+				loop: mem.gridLoops.at(index),
+				speed: mem.gridSpeeds.at(index)
+			}
+			this.#grids.set(index, Object.freeze(grid))
+		}
+		return this.#grids.get(index)
+	}
+
+	/** @type {(layer: number, grid: number) => Grid} */
+	getLayerGrid(layer, grid) {
+		return this.getGrid(layerGrid2layer(layer, grid))
+	}
+
+	/** @type {(index: number) => Readonly<Step>} */
+	getStep(index) {
+		if (!this.#steps.has(index)) {
+			let mem = this.#mem
+			let layerIdx = step2layer(index)
+			/** @type Step */
+			let step = {
+				index,
+				on: Boolean(mem.stepOns.at(index)),
+				attack: mem.stepAttacks.at(index),
+				release: mem.stepReleases.at(index),
+				filterFrequency: mem.stepFilterFrequencys.at(index),
+				filterQ: mem.stepFilterQs.at(index),
+				indexInGrid: step2gridStep(index),
+				indexInLayer: step2layerStep(index),
+				grid: step2grid(index),
+				layer: layerIdx,
+				pan: mem.stepPans.at(index),
+				pitch: mem.stepPitchs.at(index),
+				quiet: mem.stepQuiets.at(index),
+				start: mem.stepStarts.at(index) || 0,
+				end: mem.stepStarts.at(index) || this.getSound(layerIdx).length,
+				reversed: Boolean(mem.stepReverseds.at(index))
+			}
+			this.#steps.set(index, Object.freeze(step))
+		}
+		return this.#steps.get(index)
+	}
+
+	/** @type {(layer: number, step: number) => Readonly<Step>} */
+	getLayerStep(layer, step) {
+		return this.getStep(layerStep2step(layer, step))
+	}
+
+	/** @type {(layer: number, grid: number, step: number) => Readonly<Step>} */
+	getGridStep(layer, grid, step) {
+		return this.getStep(gridStep2step(layer, grid, step))
+	}
+
+	/**
+	 * @template {LayerKey} Key
+	 * @param {number} layer
+	 * @param {Key} prop
+	 * @param {Layer[Key]} val
+	 */
+	setLayerValue(layer, prop, val) {
+		let p = prop.replace(/(.)/, $1 => $1.toUpperCase())
+		// yikes?
+		this.#mem[`layer${p}s`].set(val, layer)
+		this.#layers.delete(layer)
+		this.announce("layers", layer)
+	}
+
+	/**
+	 * @param {number} grid
+	 */
+	toggleGrid(grid) {
+		this.setGridValue(grid, "on", !this.getGrid(grid).on)
+	}
+
+	/**
+	 * @param {number} layer
+	 * @param {number} grid
+	 */
+	toggleLayerGrid(layer, grid) {
+		this.setGridValue(
+			layerGrid2grid(layer, grid),
+			"on",
+			!this.getGrid(grid).on
+		)
+	}
+
+	/**
+	 * @template {GridKey} Key
+	 * @param {number} grid
+	 * @param {Key} prop
+	 * @param {Grid[Key]} val
+	 */
+	setGridValue(grid, prop, val) {
+		let p = prop.replace(/(.)/, $1 => $1.toUpperCase())
+		// yikes?
+		this.#mem[`grid${p}s`].set(val, grid)
+		this.#grids.delete(grid)
+		this.announce("grids", grid)
+	}
+
+	/**
+	 * @template {GridKey} Key
+	 * @param {number} layer
+	 * @param {number} grid
+	 * @param {Key} prop
+	 * @param {Grid[Key]} val
+	 */
+	setLayerGridValue(layer, grid, prop, val) {
+		this.setGridValue(layerGrid2layer(layer, grid), prop, val)
+	}
+
+	/**
+	 * @template {StepKey} Key
+	 * @param {number} step
+	 * @param {Key} prop
+	 * @param {Step[Key]} val
+	 */
+	setStepValue(step, prop, val) {
+		let p = prop.replace(/(.)/, $1 => $1.toUpperCase())
+		// yikes?
+		this.#mem[`step${p}s`].set(val, step)
+		this.#steps.delete(step)
+		this.announce("steps", step)
+	}
+
+	/**
+	 * @param {number} step
+	 * @param {boolean} [force]
+	 */
+	toggleStep(step, force) {
+		let state = force == null ? !this.getStep(step) : force
+		this.setStepValue(step, "on", state)
+	}
+
+	/**
+	 * @param {number} layer
+	 * @param {number} step
+	 */
+	toggleLayerStep(layer, step) {
+		this.toggleStep(layerStep2step(layer, step))
+	}
+
+	/**
+	 * @param {number} layer
+	 * @param {number} grid
+	 * @param {number} step
+	 */
+	toggleGridStep(layer, grid, step) {
+		this.toggleStep(gridStep2step(layer, grid, step))
+	}
+
+	/**
+	 * @template {StepKey} Key
+	 * @param {number} layer
+	 * @param {number} step
+	 * @param {Key} prop
+	 * @param {Step[Key]} val
+	 */
+	setLayerStepValue(layer, step, prop, val) {
+		this.setStepValue(layerStep2step(layer, step), prop, val)
+	}
+
+	/**
+	 * @template {StepKey} Key
+	 * @param {number} layer
+	 * @param {number} grid
+	 * @param {number} step
+	 * @param {Key} prop
+	 * @param {Step[Key]} val
+	 */
+	setGridStepValue(layer, grid, step, prop, val) {
+		this.setStepValue(gridStep2step(layer, grid, step), prop, val)
+	}
+
+	/**
+	 * @template {StepKey} Key
+	 * @param {Key} prop
+	 * @param {Step[Key]} val
+	 */
+	setSelectedStepValue(prop, val) {
+		this.setStepValue(this.selectedStep, prop, val)
+	}
+
+	/**
+	 * @param {number} index
+	 * @param {Float32Array} val
+	 */
+	setSound(index, val) {
+		let mem = this.#mem
+		let start = index * SOUND_SIZE
+		mem.layerSounds.set(val, start)
+		mem.soundLengths.set([val.length], index)
+		this.#layers.delete(index)
+		this.announce("sounds", index)
+	}
+
+	/**
+	 * @param {number} val
+	 */
+	set selectedLayer(val) {
+		this.#mem.master.set([val], Master.selectedLayer)
+		this.announce("master", Master.selectedLayer)
+	}
+
+	get selectedLayer() {
+		return this.#mem.master.at(Master.selectedLayer)
+	}
+
+	get bpm() {
+		return this.#mem.master.at(Master.bpm)
+	}
+
+	/**
+	 * @param {number} val
+	 */
+	set bpm(val) {
+		this.#mem.master.set([val], Master.bpm)
+	}
+
+	get selectedUiStep() {
+		return this.#mem.master.at(Master.selectedUiStep)
+	}
+
+	/**
+	 * @param {number} val
+	 */
+	set selectedUiStep(val) {
+		this.#mem.master.set([val], Master.selectedUiStep)
+	}
+
+	play() {
+		this.#mem.master.set([0], Master.paused)
+		this.#mem.master.set([1], Master.playing)
+	}
+
+	pause() {
+		this.#mem.master.set([1], Master.paused)
+	}
+
+	stop() {
+		this.#mem.master.set([0], Master.playing)
+		this.#mem.master.set([0], Master.paused)
+		this.#mem.currentSteps.set(
+			Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(-1)
+		)
+	}
+
+	get playing() {
+		return Boolean(this.#mem.master.at(Master.playing))
+	}
+
+	get paused() {
+		return Boolean(this.#mem.master.at(Master.playing))
+	}
+
+	/** @param {number} layer */
+	getCurrentStep(layer) {
+		return this.#mem.currentSteps.at(layer)
+	}
+
+	incrementStep(layer) {
+		let current = this.getCurrentStep(layer)
+
+		let activeGrids = Array.from(
+			this.#mem.gridOns.subarray(
+				layer * GRIDS_PER_LAYER,
+				layer * GRIDS_PER_LAYER + GRIDS_PER_LAYER
+			)
+		)
+			.map((on, index) => ({index, on}))
+			.filter(n => n.on)
+		if (current > STEPS_PER_LAYER) {
+			let grid = activeGrids[0]
+			if (grid) {
+				this.#mem.currentSteps.set([grid.index * STEPS_PER_GRID], layer)
+			}
+		} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
+			let absoluteCurrentGrid = Math.floor(current / STEPS_PER_GRID)
+			let nextGrid =
+				activeGrids.find(g => g.index > absoluteCurrentGrid)?.index ||
+				activeGrids[0]?.index ||
+				0
+			let nextStep = nextGrid * STEPS_PER_GRID
+			if (activeGrids.length == 0) {
+				nextStep = -1
+			}
+			this.#mem.currentSteps.set([nextStep], layer)
+		} else {
+			let next = current + 1
+			this.#mem.currentSteps.set([next], layer)
+		}
+	}
+
+	/** @param {number} x */
+	set drawingRegionStart(x) {
+		this.#mem.drawingRegion.set([x], DrawingRegion.start)
+	}
+
+	get drawingRegionStart() {
+		return this.#mem.drawingRegion.at(DrawingRegion.start)
+	}
+
+	/** @param {number} x */
+	set drawingRegionX(x) {
+		this.#mem.drawingRegion.set([x], DrawingRegion.x)
+	}
+
+	get drawingRegionX() {
+		return this.#mem.drawingRegion.at(DrawingRegion.x)
+	}
+
+	/** @param {number} x */
+	set drawingRegionEnd(x) {
+		this.#mem.drawingRegion.set([x], DrawingRegion.end)
+	}
+
+	get drawingRegionEnd() {
+		return this.#mem.drawingRegion.at(DrawingRegion.end)
+	}
+
+	/** @param {number} x */
+	set drawingRegionXMultiplier(x) {
+		this.#mem.drawingRegion.set([x], DrawingRegion.xMultiplier)
+	}
+
+	get drawingRegionXMultiplier() {
+		return this.#mem.drawingRegion.at(DrawingRegion.xMultiplier)
+	}
+
+	get regionIsBeingDrawn() {
+		return this.drawingRegionStart != -1 && this.drawingRegionEnd == -1
+	}
+
+	/** @param {number} x */
+	startDrawingRegion(x) {
+		this.drawingRegionStart = x
+		this.drawingRegionX = x
+		this.drawingRegionEnd = -1
+	}
+
+	/** @param {number} x */
+	finishDrawingRegion(end) {
+		let start = this.drawingRegionStart
+		let m = this.drawingRegionXMultiplier
+		;[start, end] = [start / m, end / m]
+		let selectedStep = this.getSelectedStep()
+		let selectedSound = this.getSound(this.selectedLayer)
+		if (selectedStep.reversed) {
+			;[start, end] = [
+				selectedSound.length - end,
+				selectedSound.length - start
+			]
+		}
+		if ((start | 0) == (end | 0)) {
+			;[start, end] = [0, 0]
+		}
+		this.setStepValue(selectedStep.index, "start", start)
+		this.setStepValue(selectedStep.index, "end", end)
+		this.drawingRegionEnd = -1
+		this.drawingRegionStart = -1
+		this.drawingRegionX = -1
+	}
+
+	getSelectedStep() {
+		let selectedLayer = this.selectedLayer
+		let selectedGrid = this.getLayer(selectedLayer).selectedGrid
+		return this.getStep(
+			gridStep2step(selectedLayer, selectedGrid, this.selectedUiStep)
+		)
+	}
+
+	getSelectedLayer() {
+		return this.getLayer(this.selectedLayer)
+	}
+
+	getSelectedLayerSelectedGrid() {
+		return this.getGrid(this.getSelectedLayer().selectedGrid)
+	}
+
+	get selectedStep() {
+		let selectedLayer = this.selectedLayer
+		let selectedGrid = this.getLayer(selectedLayer).selectedGrid
+		return this.getStep(
+			gridStep2step(selectedLayer, selectedGrid, this.selectedUiStep)
+		).index
+	}
+
+	/** @param {number} layer */
+	clearRegions(layer) {
+		this.#mem.stepStarts.set(Array(STEPS_PER_LAYER).fill(0), layer)
+		this.#mem.stepEnds.set(Array(STEPS_PER_LAYER).fill(0), layer)
+	}
+
+	/**
+	 * todo maybe only clear the regions if they are beyond the bounds?
+	 * @param {number} layer
+	 */
+	fixRegions(layer) {
+		this.clearRegions(layer)
+	}
 }
 
 /**
@@ -1205,73 +1013,73 @@ export function getCurrentStepDetails(memory, layer) {
  * @param {number} from
  * @param {number} to
  */
-export function copyStepWithinSelectedLayer(memory, from, to) {
-	let layer = selectedLayer(memory)
-	let fromDetails = getStepDetails(memory, layer, from)
+// export function copyStepWithinSelectedLayer(memory, from, to) {
+// 	let layer = selectedLayer(memory)
+// 	let fromDetails = getStepDetails(memory, layer, from)
 
-	stepRegion(memory, layer, to, fromDetails.region)
-	stepQuiet(memory, layer, to, fromDetails.quiet)
-	stepPan(memory, layer, to, fromDetails.pan)
-	stepOn(memory, layer, to, fromDetails.on)
-	stepReversed(memory, layer, to, fromDetails.reversed)
-	stepPitch(memory, layer, to, fromDetails.pitch)
-	// attack, relese, sound
-}
+// 	stepRegion(memory, layer, to, fromDetails.region)
+// 	stepQuiet(memory, layer, to, fromDetails.quiet)
+// 	stepPan(memory, layer, to, fromDetails.pan)
+// 	stepOn(memory, layer, to, fromDetails.on)
+// 	stepReversed(memory, layer, to, fromDetails.reversed)
+// 	stepPitch(memory, layer, to, fromDetails.pitch)
+// 	// attack, relese, sound
+// }
 
-/**
- * copy one step's copyable details to another
- * @param {MemoryMap} memory
- * @param {number} from
- * @param {number} to
- */
-export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
-	let layer = selectedLayer(memory)
-	let grid = layerSelectedGrid(memory, layer)
+// /**
+//  * copy one step's copyable details to another
+//  * @param {MemoryMap} memory
+//  * @param {number} from
+//  * @param {number} to
+//  */
+// export function copyStepWithinSelectedLayerAndGrid(memory, from, to) {
+// 	let layer = selectedLayer(memory)
+// 	let grid = layerSelectedGrid(memory, layer)
 
-	let absoluteFrom = grid * STEPS_PER_GRID + from
-	let absoluteTo = grid * STEPS_PER_GRID + to
-	copyStepWithinSelectedLayer(memory, absoluteFrom, absoluteTo)
-}
+// 	let absoluteFrom = grid * STEPS_PER_GRID + from
+// 	let absoluteTo = grid * STEPS_PER_GRID + to
+// 	copyStepWithinSelectedLayer(memory, absoluteFrom, absoluteTo)
+// }
 
-/**
- * copy one grid's steps details to another
- * @param {MemoryMap} memory
- * @param {number} from
- * @param {number} to
- */
-export function copyGridWithinSelectedLayer(memory, from, to) {
-	for (let i = 0; i < STEPS_PER_GRID; i++) {
-		copyStepWithinSelectedLayer(
-			memory,
-			from * STEPS_PER_GRID + i,
-			to * STEPS_PER_GRID + i
-		)
-	}
-	gridOn(
-		memory,
-		selectedLayer(memory),
-		to,
-		gridOn(memory, selectedLayer(memory), from)
-	)
-}
+// /**
+//  * copy one grid's steps details to another
+//  * @param {MemoryMap} memory
+//  * @param {number} from
+//  * @param {number} to
+//  */
+// export function copyGridWithinSelectedLayer(memory, from, to) {
+// 	for (let i = 0; i < STEPS_PER_GRID; i++) {
+// 		copyStepWithinSelectedLayer(
+// 			memory,
+// 			from * STEPS_PER_GRID + i,
+// 			to * STEPS_PER_GRID + i
+// 		)
+// 	}
+// 	gridOn(
+// 		memory,
+// 		selectedLayer(memory),
+// 		to,
+// 		gridOn(memory, selectedLayer(memory), from)
+// 	)
+// }
 
-/**
- * copy one grid's steps details to another
- * @param {MemoryMap} memory
- * @param {number} uiStep
- */
-export function trimSelectedLayerSoundToStepRegion(memory, uiStep) {
-	let layer = selectedLayer(memory)
-	let grid = layerSelectedGrid(memory, layer)
-	let absoluteStep = grid * STEPS_PER_GRID + uiStep
-	let deets = getStepDetails(memory, layer, absoluteStep)
-	let region = deets.region
-	if (region.start || region.end) {
-		sound(
-			memory,
-			layer,
-			sound(memory, layer).subarray(region.start, region.end)
-		)
-		clearRegions(memory, layer)
-	}
-}
+// /**
+//  * copy one grid's steps details to another
+//  * @param {MemoryMap} memory
+//  * @param {number} uiStep
+//  */
+// export function trimSelectedLayerSoundToStepRegion(memory, uiStep) {
+// 	let layer = selectedLayer(memory)
+// 	let grid = layerSelectedGrid(memory, layer)
+// 	let absoluteStep = grid * STEPS_PER_GRID + uiStep
+// 	let deets = getStepDetails(memory, layer, absoluteStep)
+// 	let region = deets.region
+// 	if (region.start || region.end) {
+// 		sound(
+// 			memory,
+// 			layer,
+// 			sound(memory, layer).subarray(region.start, region.end)
+// 		)
+// 		clearRegions(memory, layer)
+// 	}
+// }

@@ -1,4 +1,4 @@
-import {BentoElement} from "./base.js"
+import {bentoElements, BentoElement} from "./base.js"
 
 /** @typedef {Object} ControlSpec
  * @prop {string} name
@@ -6,7 +6,7 @@ import {BentoElement} from "./base.js"
  * @prop {string} [label]
  * @prop {string} [ariaLabel]
  */
-export default class BentoMasterControls extends BentoElement {
+export default class BentoSettings extends BentoElement {
 	/** @type {HTMLButtonElement[]} */
 	#buttons = []
 	/**
@@ -82,3 +82,5 @@ export default class BentoMasterControls extends BentoElement {
 		}
 	}
 }
+
+bentoElements.define("bento-settings", BentoSettings)

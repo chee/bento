@@ -5,58 +5,25 @@
 // event. the setting is done in the main event loop when memory changes.  ui
 // state is strictly a representation of memory, and user interactions are
 // events handled by the machine (the machine connects memory to components)
-import {BentoElement, BentoEvent} from "./base.js"
-import BentoMasterControls from "./master-controls.js"
-import BentoSettings from "./settings.js"
-import BentoLayerSelector from "./layer-selector.js"
-import BentoLayerOptions from "./layer-options.js"
-import BentoScreen from "./screen.js"
-import BentoScreenSelector from "./screen-selector.js"
-import BentoGrid from "./grid.js"
-import BentoBox from "./box.js"
-import BentoGridSelector from "./grid-selector.js"
-import BentoMiniGrid from "./mini-grid.js"
-import BentoTape from "./tape.js"
-import BentoNav from "./nav.js"
+import {bentoElements} from "./base.js"
 
-export {
-	BentoElement,
-	BentoEvent,
-	BentoTape,
-	BentoNav,
-	BentoMasterControls,
-	BentoSettings,
-	BentoLayerSelector,
-	BentoLayerOptions,
-	BentoScreen,
-	BentoScreenSelector,
-	BentoGrid,
-	BentoBox,
-	BentoGridSelector,
-	BentoMiniGrid as BentoGridSelectorBox
-}
+import "./party.js"
+import "./machine.js"
+import "./master-controls.js"
+import "./settings.js"
+import "./layer-selector.js"
+import "./screen-controls.js"
+import "./control-button.js"
+import "./screen.js"
+import "./screen-selector.js"
+import "./grid.js"
+import "./box.js"
+import "./grid-controls.js"
+import "./grid-selector.js"
+import "./mini-grid.js"
+import "./tape.js"
+import "./nav.js"
 
 export function init() {
-	// todo maybe if i defined the element name as, say,
-	//    `static elementName = "bento-*"`
-	// on the component, then i could iterate through instead of
-	// naming them all here
-	customElements.define("bento-master-controls", BentoMasterControls)
-	customElements.define("bento-tape", BentoTape)
-	customElements.define("bento-nav", BentoNav)
-
-	customElements.define("bento-settings", BentoSettings)
-	customElements.define("bento-layer-selector", BentoLayerSelector)
-	customElements.define("bento-layer-options", BentoLayerOptions)
-	customElements.define("bento-screen", BentoScreen)
-	customElements.define("bento-screen-selector", BentoScreenSelector)
-	customElements.define("bento-grid", BentoGrid)
-	customElements.define("bento-box", BentoBox)
-
-	customElements.define("bento-mini-grid", BentoMiniGrid)
-	customElements.define("bento-grid-selector", BentoGridSelector)
-	customElements.define(
-		"bento-party",
-		class BentoParty extends BentoElement {}
-	)
+	bentoElements.register()
 }

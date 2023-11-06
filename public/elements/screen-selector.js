@@ -1,26 +1,12 @@
-import {BentoElement} from "./base.js"
-import {Screen} from "../graphics/constants.js"
+import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoScreenSelector extends BentoElement {
-	static observedAttributes = ["screens", "selected"]
+	#screen = this.closest("bento-screen")
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<nav></nav>`
 		this.attachStylesheet("screen-selector")
-		this.shadow.addEventListener(
-			"click",
-			/** @param {MouseEvent} event */
-			event => {
-				event.stopImmediatePropagation()
-				if (event.target instanceof HTMLButtonElement) {
-					this.announce("screen", {
-						screen: /** @type Screen */ (event.target.name)
-					})
-				} else {
-					this.announce("open")
-				}
-			}
-		)
+
 		this.addEventListener("mousedown", event => {
 			event.stopImmediatePropagation()
 		})
@@ -28,41 +14,5 @@ export default class BentoScreenSelector extends BentoElement {
 			event.stopImmediatePropagation()
 		})
 	}
-
-	#selectedIndex() {
-		let kids = Array.from(this.shadow.firstElementChild.children)
-		let sel = kids.findIndex(n => n.hasAttribute("aria-checked"))
-		return sel
-	}
-
-	attributeChangedCallback(attr, old, value) {
-		if (attr == "screens") {
-			if (old == value) {
-				return
-			}
-			let nav = this.shadow.firstElementChild
-			let sel = this.#selectedIndex()
-			nav.textContent = ""
-			// todo the joining and splitting of this is wasteful. use a prop instead
-			let names = value.split(/\s+/)
-
-			for (let name of names) {
-				let button = document.createElement("button")
-				button.textContent = name
-				button.name = name
-				nav.appendChild(button)
-			}
-
-			sel = Math.clamp(sel, 0, nav.children.length - 1)
-
-			nav.children[sel].setAttribute("aria-checked", "true")
-			this.announce("screen", {
-				screen: names[sel]
-			})
-		} else if (attr == "selected") {
-			Array.from(this.shadow.querySelectorAll("button")).forEach(button => {
-				button.toggleAttribute("aria-checked", button.name == value)
-			})
-		}
-	}
 }
+bentoElements.define("bento-screen-selector", BentoScreenSelector)

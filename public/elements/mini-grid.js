@@ -1,4 +1,4 @@
-import {BentoElement} from "./base.js"
+import {bentoElements, BentoElement} from "./base.js"
 import * as loop from "../convenience/loop.js"
 import * as dt from "../io/data-transfer.js"
 
@@ -112,3 +112,5 @@ export default class BentoMiniGrid extends BentoElement {
 		})
 	}
 }
+
+bentoElements.define("bento-mini-grid", BentoMiniGrid)

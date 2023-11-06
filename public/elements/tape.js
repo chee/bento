@@ -1,4 +1,4 @@
-import {BentoElement} from "./base.js"
+import {BentoElement, bentoElements} from "./base.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -46,3 +46,4 @@ export default class BentoTape extends BentoElement {
 		}
 	}
 }
+bentoElements.define("bento-tape", BentoTape)

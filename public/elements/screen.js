@@ -1,8 +1,9 @@
-import {BentoElement, BentoEvent} from "./base.js"
+import {bentoElements, BentoElement, BentoEvent} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../io/data-transfer.js"
 import {LayerType} from "../memory/memory.js"
 import {DPI, Screen} from "../graphics/constants.js"
+import BentoScreenControls from "./screen-controls.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -24,6 +25,9 @@ export default class BentoScreen extends BentoElement {
 	}
 	/** @type {BentoScreenSelector} */
 	#screenSelector
+	/** @type {BentoScreenControls} */
+	#screenControls
+	/** @type {LayerType} */
 	#layerType = 1
 	canvas = document.createElement("canvas")
 	/** @type Screen */
@@ -34,34 +38,29 @@ export default class BentoScreen extends BentoElement {
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
 		this.setAttribute("screen", this.screen)
-		customElements.whenDefined("bento-screen-selector").then(() => {
-			this.#screenSelector = /** @type BentoScreenSelector */ (
-				document.createElement("bento-screen-selector")
+		customElements.whenDefined("bento-screen-controls").then(() => {
+			this.#screenControls = document.createElement("bento-screen-controls")
+			this.shadow.insertBefore(
+				this.#screenControls,
+				this.shadow.firstElementChild
 			)
+			this.#screenControls.controls = ["record"]
+		})
+		customElements.whenDefined("bento-screen-selector").then(() => {
+			this.#screenSelector = document.createElement("bento-screen-selector")
 			this.shadow.appendChild(this.#screenSelector)
 		})
-		this.shadow.addEventListener(
-			"screen",
-			/** @param {BentoEvent} event */
-			event => {
-				if (this.screen == event.detail.screen) {
-					if (this.screen == Screen.wav) {
-						this.announce("change", {
-							change: "reverse"
-						})
-					}
-				}
-				this.announce("screen", {
-					screen: event.detail.screen
-				})
-				let screen = event.detail.screen
-				this.screen = screen
-				this.setAttribute("screen", screen)
-				if (event.target instanceof BentoScreenSelector) {
-					event.target.setAttribute("selected", screen)
-				}
-			}
-		)
+
+		this.hark("screen", (message, event) => {
+			this.announce("change", {
+				change: "screen",
+				value: message.screen
+			})
+			let screen = message.screen
+			this.screen = screen
+			this.setAttribute("screen", screen)
+			event.target.setAttribute("selected", screen)
+		})
 		this.shadow.addEventListener("open", () => {
 			this.announce("open")
 		})
@@ -185,12 +184,14 @@ export default class BentoScreen extends BentoElement {
 		let finger = event.touches.item(0)
 		let mouse = resolveMouseFromEvent(finger, bounds)
 		this.#mouse({type: "start", mouse})
+
 		/** @param {TouchEvent} event */
-		function move(event) {
+		let move = event => {
 			let moved = findFinger(finger, event.changedTouches)
+
 			if (moved) {
 				let mouse = resolveMouseFromEvent(moved, bounds)
-				this.#mouse({type: "start", mouse})
+				this.#mouse({type: "move", mouse})
 			}
 		}
 		window.addEventListener("touchmove", move)
@@ -214,6 +215,7 @@ export default class BentoScreen extends BentoElement {
 	#mouse(message) {
 		let {type, mouse} = message
 		let screen = this.screen
+
 		this.announce("mouse", {type, mouse, screen})
 	}
 
@@ -363,3 +365,5 @@ function findFinger(finger, touches) {
 		touch => touch.identifier == finger.identifier
 	)
 }
+
+bentoElements.define("bento-screen", BentoScreen)

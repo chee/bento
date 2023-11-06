@@ -1,6 +1,6 @@
-import {BentoElement} from "./base.js"
+import {bentoElements, BentoElement} from "./base.js"
 
-export default class BentoLayerOptions extends BentoElement {
+export default class BentoGridControls extends BentoElement {
 	static speeds = [
 		{
 			value: 0.25,
@@ -39,12 +39,12 @@ export default class BentoLayerOptions extends BentoElement {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
 			<fieldset>
-				<legend screenreader>layer options</legend>
+				<legend screenreader>grid controls</legend>
 			</fieldset>`
-		this.attachStylesheet("layer-options")
+		this.attachStylesheet("grid-controls")
 		let fieldset = this.shadow.firstElementChild
 		let speedSelector = document.createElement("select")
-		for (let speed of BentoLayerOptions.speeds) {
+		for (let speed of BentoGridControls.speeds) {
 			let option = document.createElement("option")
 			option.textContent = speed.label
 			option.value = speed.value.toString()
@@ -59,22 +59,12 @@ export default class BentoLayerOptions extends BentoElement {
 			})
 		})
 
-		let record = document.createElement("button")
-		record.ariaLabel = "Record a sound"
-		record.textContent = "●"
-		record.id = "record"
-		fieldset.appendChild(record)
-		record.addEventListener("click", () => {
-			record.blur()
-			this.announce("record")
-		})
-
 		// not fully convinced i should include these
 		// they make it easier to make bad music
 		// let optgroup = document.createElement("optgroup")
 		// this.#speedSelector.appendChild(optgroup)
 		// optgroup.label = "ethically non-monogamous"
-		// for (let speed of BentoLayerOptions.polyamorousSpeeds) {
+		// for (let speed of BentoGridControls.polyamorousSpeeds) {
 		// 	let option = document.createElement("option")
 		// 	option.textContent = speed.label
 		// 	option.value = speed.value.toString()
@@ -96,3 +86,5 @@ export default class BentoLayerOptions extends BentoElement {
 		}
 	}
 }
+
+bentoElements.define("bento-grid-controls", BentoGridControls)

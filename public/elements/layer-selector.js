@@ -1,5 +1,5 @@
 import * as loop from "../convenience/loop.js"
-import {BentoElement} from "./base.js"
+import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoLayerSelector extends BentoElement {
 	/** @type {HTMLInputElement[]} */
@@ -56,3 +56,4 @@ export default class BentoLayerSelector extends BentoElement {
 		})
 	}
 }
+bentoElements.define("bento-layer-selector", BentoLayerSelector)

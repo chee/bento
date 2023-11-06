@@ -81,8 +81,6 @@
 		</g>
 	</svg>
 
-
-
 	<bento-party>
 		<bento-nav></bento-nav>
 		<bento-machine>
@@ -90,13 +88,14 @@
 				<bento-master-controls></bento-master-controls>
 				<bento-settings></bento-settings>
 				<bento-layer-selector></bento-layer-selector>
-				<bento-layer-options></bento-layer-options>
 				<bento-screen></bento-screen>
 			</header>
 			<main>
 				<bento-grid autofocus></bento-grid>
 			</main>
+			<bento-grid-controls></bento-grid-controls>
 			<bento-grid-selector></bento-grid-selector>
+			<!-- todo put this in an elements.js/poweroff -->
 			<bento-poweroff>
 				<p id="power-icon">
 					<svg
@@ -140,4 +139,4 @@
 		preload="auto">
 	</audio>
 
-	<script type="module" src="/party.js"></script>
+	<script type="module" src="/bento.js"></script>

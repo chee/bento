@@ -23,25 +23,15 @@ themeObserver.observe(root, {
 })
 
 let machine = document.querySelector("bento-machine")
-/** @type {import("./elements/bento-elements.js").BentoMasterControls} */
 let master = document.querySelector("bento-master-controls")
-/** @type {import("./elements/bento-elements.js").BentoNav} */
 let nav = document.querySelector("bento-nav")
-/** @type {import("./elements/bento-elements.js").BentoLayerSelector} */
 let layerSelector = machine.querySelector("bento-layer-selector")
-/** @type {import("./elements/bento-elements.js").BentoLayerOptions} */
-let layerOptions = machine.querySelector("bento-layer-options")
-/** @type {import("./elements/bento-elements.js").BentoGrid} */
 let grid = machine.querySelector("bento-grid")
 let boxes = grid.boxes
-/** @type {import("./elements/bento-elements.js").BentoGridSelector} */
+let gridControls = machine.querySelector("bento-grid-controls")
 let gridSelector = machine.querySelector("bento-grid-selector")
-
-/** @type {import("./elements/bento-elements.js").BentoScreen} */
 let screen = machine.querySelector("bento-screen")
-/** @type {import("./elements/bento-elements.js").BentoSettings} */
 let settings = machine.querySelector("bento-settings")
-/** @type {import("./elements/bento-elements.js").BentoTape} */
 let tape = party.querySelector("bento-tape")
 let buffer = new SharedArrayBuffer(Memory.size)
 let memory = Memory.map(buffer)
@@ -143,7 +133,7 @@ function update(_frame = 0) {
 	let type = Memory.getLayerType(memory, selectedLayer) || 1
 	let speed = Memory.layerSpeed(memory, selectedLayer)
 
-	layerOptions.speed = Memory.layerSpeed(memory, speed)
+	gridControls.speed = Memory.layerSpeed(memory, speed)
 
 	screen.layerType = type
 
@@ -233,7 +223,9 @@ layerSelector.hark("change", message => {
 	}
 })
 
-layerOptions.hark("change", message => {
+console.log(gridControls)
+
+gridControls.hark("change", message => {
 	if (message.change == "speed") {
 		Memory.layerSpeed(memory, Memory.selectedLayer(memory), message.value)
 		db.save()
@@ -270,14 +262,17 @@ gridSelector.hark("toggle", message => {
 	}
 })
 
-layerOptions.hark("record", async () => {
-	if (party.hasAttribute("recording")) {
-		return
+screen.hark("press", async name => {
+	console.log({name})
+	if (name == "record") {
+		if (party.hasAttribute("recording")) {
+			return
+		}
+		party.setAttribute("recording", "recording")
+		let audio = await sounds.recordSound()
+		sounds.setSound(memory, Memory.selectedLayer(memory), audio)
+		db.save()
 	}
-	party.setAttribute("recording", "recording")
-	let audio = await sounds.recordSound()
-	sounds.setSound(memory, Memory.selectedLayer(memory), audio)
-	db.save()
 })
 
 screen.hark("change", async message => {

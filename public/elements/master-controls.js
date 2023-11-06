@@ -1,4 +1,4 @@
-import {BentoElement} from "./base.js"
+import {BentoElement, bentoElements} from "./base.js"
 
 /** @typedef {Object} ControlSpec
  * @param {string} name
@@ -121,3 +121,5 @@ export default class BentoMasterControls extends BentoElement {
 		}
 	}
 }
+
+bentoElements.define("bento-master-controls", BentoMasterControls)

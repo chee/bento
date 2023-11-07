@@ -10,16 +10,18 @@ import {
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
 
+let sharedarraybuffer = new SharedArrayBuffer(MEMORY_SIZE)
+
+class BentoState extends MemoryTree {
+	/** @param {ArrayBufferLike} sharedarraybuffer */
+	constructor(sharedarraybuffer) {
+		super(map(sharedarraybuffer))
+	}
+}
+
+let memtree = new BentoState(sharedarraybuffer)
 let party = document.querySelector("bento-party")
-
-let buffer = new SharedArrayBuffer(MEMORY_SIZE)
-let memtree = new MemoryTree(map(buffer))
-
-let dialog = /** @type {HTMLDialogElement} */ (
-	document.getElementById("dialog")
-)
-
-let ask = new Ask(dialog)
+let ask = new Ask(document.querySelector("dialog"))
 
 let fancyListeners = ["keydown", "click", "touchstart"]
 
@@ -43,7 +45,7 @@ async function getFancy() {
 		}
 
 		if (sounds.fancy() && !graphics.fancy()) {
-			graphics.start(buffer)
+			graphics.start(sharedarraybuffer)
 		}
 
 		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
@@ -76,9 +78,9 @@ fancyListeners.map(name =>
 )
 
 async function init() {
-	await db.init(buffer)
+	await db.init(sharedarraybuffer)
 	await graphics.init()
-	await sounds.init(buffer)
+	await sounds.init(sharedarraybuffer)
 }
 
 await init()
@@ -105,17 +107,6 @@ party.hark("set-bpm", message => {
 	// todo base these saves on memtree.update() in db.js
 	db.save()
 })
-
-/*
-thinking about how to arrange events...
-maybe it's
-this.announce("select", {
-target: "layer",
-value: 1
-})
-or maybe it's
-this.announce("select-layer", {value: 1})
- */
 
 party.hark("select-layer", message => {
 	memtree.selectedLayer = message.layer.index

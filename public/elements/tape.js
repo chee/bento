@@ -46,4 +46,5 @@ export default class BentoTape extends BentoElement {
 		}
 	}
 }
+
 bentoElements.define("bento-tape", BentoTape)

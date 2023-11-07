@@ -4,7 +4,7 @@ import {
 	step2gridStep,
 	step2layer,
 	step2layerStep
-} from "../convert"
+} from "../convert.js"
 
 export default class Step {
 	static properties = /** @type const */ ({
@@ -36,6 +36,7 @@ export default class Step {
 		this.gridIndex = step2grid(index)
 		this.gridIndexInLayer = grid2layerGrid(step2grid(index))
 		this.layerIndex = step2layer(index)
+		// todo make the above computer properties non-writeable
 	}
 
 	get on() {

@@ -1,12 +1,65 @@
-let mem = this.#mem
-/** @type Grid */
-let grid = {
-	index,
-	indexInLayer: grid2layerGrid(index),
-	on: Boolean(mem.gridOns.at(index)),
-	layer: grid2layer(index),
-	jump: mem.gridJumps.at(index),
-	loop: mem.gridLoops.at(index),
-	speed: mem.gridSpeeds.at(index)
+import {grid2layer, grid2layerGrid} from "../convert.js"
+
+export default class Grid {
+	/** @type {import("../memory").MemoryMap} */
+	#mem
+
+	/**
+	 * @param {import("../memory").MemoryMap} mem
+	 * @param {number} index
+	 */
+	constructor(mem, index) {
+		this.#mem = mem
+		this.index = index
+		this.layerIndex = grid2layer(index)
+		this.indexInLayer = grid2layerGrid(index)
+	}
+
+	set on(val) {
+		this.#mem.gridOns.set([+val], this.index)
+	}
+
+	get on() {
+		return this.#mem.gridOns.at(this.index)
+	}
+
+	get jump() {
+		return this.#mem.gridJumps.at(this.index)
+	}
+
+	set jump(val) {
+		this.#mem.gridJumps.set([val], this.index)
+	}
+
+	get loop() {
+		return this.#mem.gridLoops.at(this.index)
+	}
+
+	set loop(val) {
+		this.#mem.gridLoops.set([val], this.index)
+	}
+
+	get speed() {
+		return this.#mem.gridSpeeds.at(this.index)
+	}
+
+	set speed(val) {
+		this.#mem.gridSpeeds.set([val], this.index)
+	}
+
+	toJSON() {
+		return {
+			index: this.index,
+			indexInLayer: this.indexInLayer,
+			layerIndex: this.layerIndex,
+			on: this.on,
+			jump: this.jump,
+			loop: this.loop,
+			speed: this.speed
+		}
+	}
+
+	get view() {
+		return Object.freeze(this.toJSON())
+	}
 }
-this.#grids.set(index, Object.freeze(grid))

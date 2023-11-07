@@ -1,4 +1,4 @@
-import {SOUND_SIZE} from "../constants"
+import {SOUND_SIZE} from "../constants.js"
 
 export default class Sound {
 	/** @type {import("../memory").MemoryMap} */

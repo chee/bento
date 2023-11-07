@@ -3,7 +3,6 @@ import Sound from "./sound.js"
 import Grid from "./grid.js"
 import Step from "./step.js"
 import {
-	grid2layer,
 	grid2layerGrid,
 	gridStep2step,
 	layerGrid2layer,
@@ -37,7 +36,7 @@ export default class MemoryTree {
 
 	/** @type {Layer[]} */
 	#layers = []
-	/** @type {Grid[]>} */
+	/** @type {Grid[]} */
 	#grids = []
 	/** @type {Step[]} */
 	#steps = []
@@ -60,7 +59,7 @@ export default class MemoryTree {
 		}
 	}
 
-	/** @type {(fn: () => void) => () => void} */
+	/** @param {() => void} fn */
 	listen(fn) {
 		this.#listeners.add(fn)
 		return () => this.#listeners.delete(fn)
@@ -130,7 +129,7 @@ export default class MemoryTree {
 
 	/**
 	 * @param {number} layer
-	 * @param {(step: Step) => void} fn
+	 * @param {(layer: Layer) => void} fn
 	 */
 	alterLayer(layer, fn) {
 		fn(this.#layers[layer])

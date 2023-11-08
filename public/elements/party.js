@@ -71,27 +71,42 @@ export default class BentoParty extends BentoElement {
 			this.grid.selectedStepIndex = memtree.selectedUiStep
 		})
 
-		this.set(
-			"selectedLayerCurrentStepIndex",
-			memtree.selectedLayerCurrentStep,
-			() => {
-				this.grid.currentStepIndex = memtree.selectedLayerCurrentGridStep
-				this.gridSelector.currentGridIndex = memtree.selectedLayerCurrentGrid
-				this.gridSelector.currentGridStepIndex =
-					memtree.selectedLayerCurrentGridStep
-			}
-		)
-
 		this.grid.steps = getSelectedGridSteps(memtree)
 		// todo this is expensive to do every loop
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
-
-		this.grid.currentStepIndex = memtree.selectedLayerCurrentGridStep
 	}
 
 	/** @type number */
 	get selectedLayerCurrentStepIndex() {
 		return this.get("selectedLayerCurrentStepIndex")
+	}
+
+	set selectedLayerCurrentStepIndex(val) {
+		this.set("selectedLayerCurrentStepIndex", val, () => {
+			this.gridSelector.currentGridStepIndex = val
+		})
+	}
+
+	/** @type number */
+	get selectedLayerCurrentGridIndex() {
+		return this.get("selectedLayerCurrentGridIndex")
+	}
+
+	set selectedLayerCurrentGridIndex(val) {
+		this.set("selectedLayerCurrentGridIndex", val, () => {
+			this.gridSelector.currentGridIndex = val
+		})
+	}
+
+	/** @type number */
+	get selectedLayerCurrentGridStepIndex() {
+		return this.get("selectedLayerCurrentGridStepIndex")
+	}
+
+	set selectedLayerCurrentGridStepIndex(val) {
+		this.set("selectedLayerCurrentGridStepIndex", val, () => {
+			this.grid.currentStepIndex = val
+		})
 	}
 
 	/** @type number */
@@ -134,8 +149,8 @@ function getSelectedLayerSteps(memtree) {
 
 /** @param {MemoryTree} memtree */
 function getSelectedLayerGrids(memtree) {
-	return loop.grids(
-		index => memtree.getLayerGrid(memtree.selectedLayer, index).view
+	return loop.grids(index =>
+		memtree.getLayerGrid(memtree.selectedLayer, index)
 	)
 }
 

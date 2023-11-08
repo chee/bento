@@ -88,11 +88,10 @@ export async function exists(id = getSlugFromLocation()) {
 }
 
 export function save(id = getSlugFromLocation()) {
-	// worker.postMessage({
-	// type: "save",
-	// id
-	// })
-	share.save(id)
+	worker.postMessage({
+		type: "save",
+		id
+	})
 }
 
 export async function reset(id = getSlugFromLocation()) {

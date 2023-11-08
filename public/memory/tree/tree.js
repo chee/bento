@@ -22,7 +22,7 @@ import {
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER
 } from "../constants.js"
-import {map} from "../memory.js"
+import {map, size} from "../memory.js"
 
 /**
  * @typedef {Object} AlterSelectedMap
@@ -34,6 +34,9 @@ import {map} from "../memory.js"
 export default class MemoryTree {
 	/** @type {import("../memory").MemoryMap} */
 	#mem
+
+	/** @type {Int32Array} */
+	#notify
 
 	/** @type {Layer[]} */
 	#layers
@@ -50,6 +53,7 @@ export default class MemoryTree {
 	/** @param {import("../memory").MemoryMap} mem */
 	constructor(mem) {
 		this.#mem = mem
+		this.#notify = mem.notify
 		this.#layers = loop.layers(index => new Layer(mem, index))
 		this.#sounds = loop.layers(index => new Sound(mem, index))
 		this.#grids = loop.grids(index => new Grid(mem, index))
@@ -72,8 +76,9 @@ export default class MemoryTree {
 		for (let listener of this.#listeners) {
 			listener()
 		}
-		if (item && index) {
+		if (item && index != null) {
 			// something in here for the workers
+			Atomics.notify(this.#notify, 0, 1)
 		}
 	}
 
@@ -81,6 +86,14 @@ export default class MemoryTree {
 	listen(fn) {
 		this.#listeners.add(fn)
 		return () => this.#listeners.delete(fn)
+	}
+
+	async waitAsync() {
+		return Atomics.waitAsync(this.#notify, 0, 1)
+	}
+
+	wait() {
+		return Atomics.wait(this.#notify, 0, 1)
 	}
 
 	/** @param {number} index */
@@ -232,14 +245,14 @@ export default class MemoryTree {
 	}
 
 	get bpm() {
-		return this.#mem.master.at(Master.bpm)
+		return this.#mem.master.at(Master.bpm) || 120
 	}
 
 	/**
 	 * @param {number} val
 	 */
 	set bpm(val) {
-		this.#mem.master.set([val], Master.bpm)
+		this.#mem.master.set([val || 120], Master.bpm)
 		this.announce("master", Master.bpm)
 	}
 
@@ -281,6 +294,10 @@ export default class MemoryTree {
 
 	get paused() {
 		return Boolean(this.#mem.master.at(Master.paused))
+	}
+
+	get still() {
+		return this.playing && !this.paused
 	}
 
 	/** @param {number} layer */
@@ -332,7 +349,7 @@ export default class MemoryTree {
 			let next = current + 1
 			this.#mem.currentSteps.set([next], layer)
 		}
-		// this.announce("steps", 0)
+		this.announce("steps", -1)
 	}
 
 	// todo drawingRegion should be its own class

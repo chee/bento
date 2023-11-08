@@ -60,6 +60,16 @@ async function getFancy() {
 		memtree.listen(() => {
 			party.tree = memtree
 		})
+		// todo delay the request animation frame by bpm/60/4/2 maybe
+		;(async function updateCurrentStep() {
+			party.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
+			party.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
+			party.selectedLayerCurrentGridStepIndex =
+				memtree.selectedLayerCurrentGridStep
+			// todo no exist in firefox
+			// await memtree.waitAsync()
+			requestAnimationFrame(updateCurrentStep)
+		})()
 	}
 }
 
@@ -219,8 +229,7 @@ party.when("clip-sound", message => {
 
 party.when("select-step", index => {
 	memtree.selectedUiStep = index
-	console.log(memtree)
-	// db.save()
+	db.save()
 })
 
 party.when("update-step", message => {

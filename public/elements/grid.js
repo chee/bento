@@ -68,10 +68,7 @@ export default class BentoGrid extends BentoElement {
 					let arrow = event.key.toLowerCase().match(/arrow(\w+)/)?.[1]
 					if (arrow) {
 						let nextIndex = index + directions[arrow]
-						this.announce("change", {
-							change: "selected",
-							box: nextIndex
-						})
+						this.announce("select-step", nextIndex)
 						this.boxes[nextIndex].focus()
 					}
 				}
@@ -118,7 +115,6 @@ export default class BentoGrid extends BentoElement {
 	}
 
 	set currentStepIndex(val) {
-		console.log(val)
 		this.set("currentStepIndex", val, () => {
 			for (let box of this.boxes) {
 				box.playing = box.step.indexInGrid == val

@@ -176,7 +176,8 @@ export let arrays = {
 		type: Float32Array,
 		size: 4
 	},
-	theme: {type: Uint8Array, size: 16}
+	theme: {type: Uint8Array, size: 16},
+	notify: {type: Int32Array, size: 1}
 }
 
 export let size = Object.values(arrays).reduce(
@@ -241,6 +242,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 		if (fields.has(name)) {
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
+			if (name == "notify") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
 				memory.master.set([safe.master.at(Master.bpm)], Master.bpm)
@@ -296,19 +298,21 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
  */
 export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 	for (let [name] of Object.entries(arrays)) {
-		console.debug(name)
+		// console.debug(name)
 		if (fields.has(name)) {
+			// todo field for this
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
+			if (name == "notify") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
-				memory.master.set([safe.master.at(Master.bpm)], Master.bpm)
-				memory.master.set(
-					[safe.master.at(Master.selectedLayer)],
+				safe.master.set([memory.master.at(Master.bpm)], Master.bpm)
+				safe.master.set(
+					[memory.master.at(Master.selectedLayer)],
 					Master.selectedLayer
 				)
-				memory.master.set(
-					[safe.master.at(Master.selectedUiStep)],
+				safe.master.set(
+					[memory.master.at(Master.selectedUiStep)],
 					Master.selectedUiStep
 				)
 				safe.master.set([DB_VERSION], Master.dbversion)

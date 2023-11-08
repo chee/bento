@@ -39,9 +39,6 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		let stepIndex = memtree.getCurrentStepIndex(layerIndex)
 		if (stepIndex != this.lastStep) {
 			let step = memtree.getLayerStep(layerIndex, stepIndex)
-			if (layerIndex == 0) {
-				console.log(step)
-			}
 
 			if (step.on) {
 				let sound = memtree.getSound(layerIndex)

@@ -7,14 +7,7 @@ import Ask from "./io/ask.js"
 
 let sharedarraybuffer = new SharedArrayBuffer(MEMORY_SIZE)
 
-class BentoState extends MemoryTree {
-	/** @param {ArrayBufferLike} sharedarraybuffer */
-	constructor(sharedarraybuffer) {
-		super(map(sharedarraybuffer))
-	}
-}
-
-let memtree = new BentoState(sharedarraybuffer)
+let memtree = MemoryTree.from(sharedarraybuffer)
 let party = document.querySelector("bento-party")
 let ask = new Ask(document.querySelector("dialog"))
 
@@ -45,10 +38,6 @@ async function getFancy() {
 
 		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
 			party.fancy = true
-			party.tree = memtree
-			memtree.listen(() => {
-				party.tree = memtree
-			})
 		}
 	} catch {}
 
@@ -67,6 +56,10 @@ async function getFancy() {
 				: `/patterns/${slug}/` + location.search
 		)
 		party.slug = slug
+		party.tree = memtree
+		memtree.listen(() => {
+			party.tree = memtree
+		})
 	}
 }
 
@@ -107,8 +100,9 @@ party.when("set-bpm", message => {
 	db.save()
 })
 
-party.when("select-layer", message => {
-	memtree.selectedLayer = message.layer.index
+party.when("select-layer", index => {
+	memtree.selectedLayer = index
+	db.save()
 })
 
 party.when("update-grid", message => {
@@ -118,9 +112,9 @@ party.when("update-grid", message => {
 	db.save()
 })
 
-party.when("select-grid", message => {
+party.when("select-grid", indexInLayer => {
 	memtree.alterSelected("layer", layer => {
-		layer.selectedGrid = message.grid.indexInLayer
+		layer.selectedGrid = indexInLayer
 	})
 	db.save()
 })
@@ -130,6 +124,7 @@ party.when("copy-grid", message => {
 		grid.paste()
 	})
 	memtree.copyGrid(memtree.selectedLayer, message.from, message.to)
+	db.save()
 })
 
 party.when("toggle-grid", index => {
@@ -224,29 +219,35 @@ party.when("clip-sound", message => {
 
 party.when("select-step", index => {
 	memtree.selectedUiStep = index
+	console.log(memtree)
+	// db.save()
 })
 
 party.when("update-step", message => {
 	memtree.alterStep(message.index, step => {
 		step[message.property] = message.value
 	})
+	db.save()
 })
 
 party.when("toggle-step", index => {
 	memtree.alterStep(index, step => {
 		step.toggle()
 	})
+	db.save()
 })
 
 party.when("turn-step-on", index => {
 	memtree.alterStep(index, step => {
 		step.toggle(true)
 	})
+	db.save()
 })
 
 party.when("turn-step-off", index => {
 	memtree.alterStep(index, step => {
 		step.toggle(false)
+		db.save()
 	})
 })
 
@@ -254,36 +255,42 @@ party.when("flip-step", index => {
 	memtree.alterStep(index, step => {
 		step.flip()
 	})
+	db.save()
 })
 
 party.when("copy-step", message => {
 	memtree.alterStep(message.to, step => {
 		step.paste(memtree.getStep(message.from))
 	})
+	db.save()
 })
 
 party.when("step-softly", index => {
 	memtree.alterStep(index, step => {
 		step.quieter()
 	})
+	db.save()
 })
 
 party.when("step-loudly", index => {
 	memtree.alterStep(index, step => {
 		step.louder()
 	})
+	db.save()
 })
 
 party.when("pan-step-left", index => {
 	memtree.alterStep(index, step => {
 		step.lefter()
 	})
+	db.save()
 })
 
 party.when("pan-step-right", index => {
 	memtree.alterStep(index, step => {
 		step.righter()
 	})
+	db.save()
 })
 
 // todo fire this on the party in sounds

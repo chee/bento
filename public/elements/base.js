@@ -129,6 +129,17 @@ export class BentoElement extends HTMLElement {
 	}
 
 	/**
+	 * Only use this in the constructor
+	 *
+	 * @template {keyof this} P
+	 * @param {P} prop
+	 * @param {this[P]} val
+	 */
+	setDefault(prop, val) {
+		this.#props.set(prop, val)
+	}
+
+	/**
 	 * @template {keyof this} P
 	 * @param {P} prop
 	 * @returns {this[P]}

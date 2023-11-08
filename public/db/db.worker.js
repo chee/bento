@@ -1,11 +1,11 @@
 import * as share from "./share.js"
 
-onmessage = async event => {
+onmessage = event => {
 	let message = event.data
 	if (message.type == "init") {
-		await share.init(message.sharedarraybuffer)
+		share.init(message.sharedarraybuffer)
 	}
 	if (message.type == "save") {
-		await share.save(message.id)
+		share.save(message.id)
 	}
 }

@@ -93,7 +93,7 @@ export default class MemoryTree {
 
 	/** @returns boolean */
 	karaoke() {
-		this.#mem.layerSounds.every(n => !n)
+		return this.#mem.layerSounds.every(n => !n)
 	}
 
 	/**
@@ -113,10 +113,13 @@ export default class MemoryTree {
 		if (!this.#grids[index]) {
 			this.#grids[index] = new Grid(this.#mem, index)
 		}
-		return this.#grids[index]
+		return this.#grids[index].view
 	}
 
-	/** @type {(layer: number, grid: number) => Grid} */
+	/**
+	 * @param {number} layer
+	 * @param {number} grid
+	 */
 	getLayerGrid(layer, grid) {
 		return this.getGrid(layerGrid2layer(layer, grid))
 	}
@@ -237,6 +240,7 @@ export default class MemoryTree {
 	 */
 	set bpm(val) {
 		this.#mem.master.set([val], Master.bpm)
+		this.announce("master", Master.bpm)
 	}
 
 	get selectedUiStep() {
@@ -248,15 +252,18 @@ export default class MemoryTree {
 	 */
 	set selectedUiStep(val) {
 		this.#mem.master.set([val], Master.selectedUiStep)
+		this.announce("master", Master.selectedUiStep)
 	}
 
 	play() {
-		this.#mem.master.set([0], Master.paused)
 		this.#mem.master.set([1], Master.playing)
+		this.#mem.master.set([0], Master.paused)
+		this.announce("master", Master.playing)
 	}
 
 	pause() {
 		this.#mem.master.set([1], Master.paused)
+		this.announce("master", Master.paused)
 	}
 
 	stop() {
@@ -265,6 +272,7 @@ export default class MemoryTree {
 		this.#mem.currentSteps.set(
 			Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(-1)
 		)
+		this.announce("master", Master.playing)
 	}
 
 	get playing() {
@@ -272,7 +280,7 @@ export default class MemoryTree {
 	}
 
 	get paused() {
-		return Boolean(this.#mem.master.at(Master.playing))
+		return Boolean(this.#mem.master.at(Master.paused))
 	}
 
 	/** @param {number} layer */
@@ -285,7 +293,7 @@ export default class MemoryTree {
 	}
 
 	get selectedLayerCurrentGrid() {
-		return step2grid(this.selectedLayerCurrentStep)
+		return grid2layerGrid(step2grid(this.selectedLayerCurrentStep))
 	}
 
 	get selectedLayerCurrentGridStep() {
@@ -324,6 +332,7 @@ export default class MemoryTree {
 			let next = current + 1
 			this.#mem.currentSteps.set([next], layer)
 		}
+		// this.announce("steps", 0)
 	}
 
 	// todo drawingRegion should be its own class
@@ -451,15 +460,18 @@ export default class MemoryTree {
 		let bpm = this.bpm
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		let currentStepIndex = this.getCurrentStepIndex(layerIndex)
-		let currentStep = this.#steps.at(currentStepIndex)
-		let currentGrid = this.#grids.at(currentStep.gridIndex)
+		let currentStep = this.getStep(currentStepIndex)
+		let currentGrid = this.getGrid(currentStep?.gridIndex || 0)
 		let speed = currentGrid.speed
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		let nextStepIndex = (tick / samplesPerStep) | 0
-		if (nextStepIndex != currentStepIndex) {
-			this.incrementStep(nextStepIndex)
+
+		if (nextStepIndex != this.lastNextStep) {
+			this.incrementStep(layerIndex)
+			this.lastNextStep = nextStepIndex
 			return true
 		}
+
 		return false
 	}
 }

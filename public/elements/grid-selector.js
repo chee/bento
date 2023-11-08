@@ -26,7 +26,7 @@ export default class BentoGridSelector extends BentoElement {
 	set selectedGridIndex(val) {
 		this.set("selectedGridIndex", val, () => {
 			for (let minigrid of this.minigrids) {
-				minigrid.grid.selected.indexInLayer == val
+				minigrid.selected = minigrid.grid?.indexInLayer == val
 			}
 		})
 	}
@@ -44,6 +44,7 @@ export default class BentoGridSelector extends BentoElement {
 	set grids(val) {
 		this.set("grids", val, () => {
 			for (let grid of val) {
+				if (!grid) continue
 				this.minigrids[grid.indexInLayer].grid = grid
 			}
 		})
@@ -57,7 +58,7 @@ export default class BentoGridSelector extends BentoElement {
 	set currentGridIndex(val) {
 		this.set("currentGridIndex", val, () => {
 			for (let minigrid of this.minigrids) {
-				minigrid.playing = minigrid.grid.index == val
+				minigrid.playing = minigrid.grid?.index == val
 			}
 		})
 	}
@@ -82,7 +83,7 @@ export default class BentoGridSelector extends BentoElement {
 		this.set("steps", val, () => {
 			let perGrid = val.chunk(STEPS_PER_GRID)
 			for (let minigrid of this.minigrids) {
-				minigrid.steps = perGrid[minigrid.grid.indexInLayer]
+				minigrid.steps = perGrid[minigrid.grid?.indexInLayer]
 			}
 		})
 	}

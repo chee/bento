@@ -71,9 +71,6 @@ export default class Grid {
 	#view
 
 	get view() {
-		if (!this.#view) {
-			this.#view = Object.freeze(this.toJSON())
-		}
-		return this.#view
+		return Object.freeze(this.toJSON())
 	}
 }

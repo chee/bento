@@ -1,4 +1,4 @@
-import {bentoElements, BentoElement, BentoEvent} from "./base.js"
+import {bentoElements, BentoElement} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../io/data-transfer.js"
 import {LayerType} from "../memory/memory.js"
@@ -36,6 +36,8 @@ export default class BentoScreen extends BentoElement {
 		this.shadow.innerHTML = `<figure></figure>`
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
+
+		this.set("selectedScreen", "wav", () => {})
 
 		customElements.whenDefined("bento-screen-controls").then(() => {
 			this.controls = document.createElement("bento-screen-controls")
@@ -196,7 +198,6 @@ export default class BentoScreen extends BentoElement {
 	/** @param {BentoMouseDetail} message */
 	#mouse(message) {
 		let {type, mouse} = message
-		let screen = this.screen
 
 		this.announce("mouse", {type, mouse, screen})
 	}
@@ -291,6 +292,17 @@ export default class BentoScreen extends BentoElement {
 			} else {
 				console.error(`no screen for LayerType ${val}`)
 			}
+		})
+	}
+
+	/** @type {Screen} */
+	get selectedScreen() {
+		return this.get("selectedScreen")
+	}
+
+	set selectedScreen(name) {
+		this.set("selectedScreen", name, () => {
+			this.selector.selectedScreen = name
 		})
 	}
 }

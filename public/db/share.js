@@ -53,7 +53,7 @@ export async function init(sab) {
 }
 
 /** @param {string} id */
-export async function save(id) {
+export function save(id) {
 	if (!db || !memory) {
 		throw new Error("hey! tried to save before init")
 	}
@@ -66,7 +66,7 @@ export async function save(id) {
 	// object.id = id
 	Memory.save(memory, map)
 	store.put(map, id)
-	await new Promise(yay => {
+	return new Promise(yay => {
 		trans.oncomplete = yay
 	})
 }

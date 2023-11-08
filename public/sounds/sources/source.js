@@ -1,3 +1,4 @@
+import Step from "../../memory/tree/step.js"
 import BentoDjFilter from "../effects/dj-filter.js"
 import BentoAudioNode from "../node.js"
 import {Scale} from "../scale.js"
@@ -29,12 +30,12 @@ export default class BentoSoundSource extends BentoAudioNode {
 	}
 
 	/**
-	 * @param {import("public/public/memory/memory.js").StepDetails} step
+	 * @param {Step["view"]} step
 	 */
 	play(step) {
 		// TODO use bpm to calculate a value for targetValueAtTime
-		this.filter.freq = step.freq
-		this.filter.q = step.q
+		this.filter.freq = step.filterFrequency
+		this.filter.q = step.filterQ
 	}
 
 	/**

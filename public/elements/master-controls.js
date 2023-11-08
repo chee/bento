@@ -103,22 +103,41 @@ export default class BentoMasterControls extends BentoElement {
 			this.announce("toggle-settings")
 		})
 		fieldset.appendChild(settingsButton)
+		this.setDefault("bpm", 120)
 	}
 
+	/** @type number */
 	get bpm() {
-		if (this.#bpmElement) {
-			let el = this.#bpmElement
-			return Math.clamp(+el.value, +el.min, +el.max) || 120
-		} else {
-			return 120
-		}
+		return this.get("bpm")
 	}
 
 	set bpm(val) {
-		let el = this.#bpmElement
-		if (el && this.shadow.activeElement != el) {
+		this.set("bpm", val, () => {
+			let el = this.#bpmElement
 			el.value = val ? Math.clamp(val, +el.min, +el.max).toString() : ""
-		}
+		})
+	}
+
+	/** @type boolean */
+	get playing() {
+		return this.get("playing")
+	}
+
+	set playing(val) {
+		this.set("playing", val, () => {
+			this.toggleAttribute("playing", val)
+		})
+	}
+
+	/** @type boolean */
+	get paused() {
+		return this.get("paused")
+	}
+
+	set paused(val) {
+		this.set("paused", val, () => {
+			this.toggleAttribute("paused", val)
+		})
 	}
 }
 

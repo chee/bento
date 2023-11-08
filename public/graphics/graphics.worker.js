@@ -25,7 +25,7 @@ let memtree
 /**
  * @type Screen
  */
-let screen
+let screen = "wav"
 
 /**
  * Clear the canvas and reset the tools
@@ -399,6 +399,7 @@ function mix(_frame = 0, force = false) {
 	requestAnimationFrame(update)
 }
 
+/** @type Screen */
 let lastScreen = screen
 let lastStepDetails
 let lastStyles = styles
@@ -419,6 +420,7 @@ function update(frame = 0, force = false) {
 	) {
 		return requestAnimationFrame(update)
 	}
+
 	// Send the current line to the window so it can be used as the step button's
 	// background colour. Don't update while the region is being drawn, that's
 	// silly and would be v slow

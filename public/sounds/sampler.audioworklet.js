@@ -35,14 +35,22 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 	process(_inputs, outputs, _parameters) {
 		// todo share this logic
 		let memtree = this.memtree
-		let layer = this.layerNumber
-		let stepIndex = memtree.getCurrentStepIndex(layer)
+		let layerIndex = this.layerNumber
+		let stepIndex = memtree.getCurrentStepIndex(layerIndex)
 		if (stepIndex != this.lastStep) {
-			let step = memtree.getLayerStep(layer, stepIndex)
+			let step = memtree.getLayerStep(layerIndex, stepIndex)
+			if (layerIndex == 0) {
+				console.log(step)
+			}
+
 			if (step.on) {
-				let sound = memtree.getSound(layer)
+				let sound = memtree.getSound(layerIndex)
 				this.point = 0
-				this.portion = sound.subarray(step.start, step.end || sound.length)
+				// todo stereo?
+				this.portion = sound.left.subarray(
+					step.start,
+					step.end || sound.length
+				)
 				if (step.reversed) {
 					this.portion = this.portion.slice().reverse()
 				}
@@ -50,6 +58,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 				this.pan = step.pan / (DYNAMIC_RANGE / 2) || 0
 			}
 		}
+
 		this.lastStep = stepIndex
 
 		let quantumPortionLength = this.portion.length - this.point

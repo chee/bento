@@ -118,6 +118,7 @@ export default class BentoGrid extends BentoElement {
 	}
 
 	set currentStepIndex(val) {
+		console.log(val)
 		this.set("currentStepIndex", val, () => {
 			for (let box of this.boxes) {
 				box.playing = box.step.indexInGrid == val

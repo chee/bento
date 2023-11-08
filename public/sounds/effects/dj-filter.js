@@ -39,17 +39,17 @@ export default class BentoDjFilter extends BentoEffect {
 		} else if (val > 0) {
 			this.#filter.type = "highpass"
 			// todo make this good
-			this.#filter.frequency.exponentialRampToValueAtTime(
+			this.#filter.frequency.setValueAtTime(
 				(sampleRate / 2) * Math.sin((val / 17) * Math.PI * 0.5),
 				// todo base this on bpm
-				this.context.currentTime + 0.01
+				this.context.currentTime
 			)
 		} else {
 			this.#filter.type = "lowpass"
-			this.#filter.frequency.exponentialRampToValueAtTime(
+			this.#filter.frequency.setValueAtTime(
 				((sampleRate / 2) * Math.sin((Math.abs(val) / 17) * Math.PI * 0.5)) /
 					2,
-				this.context.currentTime + 0.01
+				this.context.currentTime
 			)
 		}
 	}

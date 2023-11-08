@@ -117,9 +117,9 @@ export default class BentoBox extends BentoElement {
 	#click() {
 		let {selected, on} = this
 		if (selected) {
-			this.announce("turn-step-on", this.step.index)
+			this.announce("toggle-step", this.step.index)
 		} else {
-			this.announce("select-step", this.step.index)
+			this.announce("select-step", this.step.indexInGrid)
 		}
 	}
 
@@ -136,6 +136,7 @@ export default class BentoBox extends BentoElement {
 	set selected(val) {
 		this.set("selected", val, () => {
 			this.toggleAttribute("selected", val)
+			this.ariaSelected = val.toString()
 		})
 	}
 

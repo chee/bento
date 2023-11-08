@@ -296,6 +296,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
  */
 export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 	for (let [name] of Object.entries(arrays)) {
+		console.debug(name)
 		if (fields.has(name)) {
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue

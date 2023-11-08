@@ -42,7 +42,7 @@ export async function init() {
 			type: "init",
 			canvas: offscreen,
 			styles: screenElement.getStyles(),
-			screen: screenElement.screen
+			screen: screenElement.selectedScreen
 		},
 		[offscreen]
 	)

@@ -96,7 +96,7 @@ export default class BentoMiniGrid extends BentoElement {
 			this.dots.forEach((dot, index) => {
 				// todo if the individial dots were a component this would be
 				// cheaper
-				toggleAttribute.call(dot, "on", this.steps[index].on)
+				toggleAttribute.call(dot, "on", this.steps?.[index].on)
 			})
 		})
 	}

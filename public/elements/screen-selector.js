@@ -13,5 +13,16 @@ export default class BentoScreenSelector extends BentoElement {
 			event.stopImmediatePropagation()
 		})
 	}
+
+	/** @type {Screen} */
+	get selectedScreen() {
+		return this.get("selectedScreen")
+	}
+
+	set selectedScreen(name) {
+		this.set("selectedScreen", name, () => {
+			this.selector.selectedScreen = name
+		})
+	}
 }
 bentoElements.define("bento-screen-selector", BentoScreenSelector)

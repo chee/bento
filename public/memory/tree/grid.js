@@ -17,10 +17,11 @@ export default class Grid {
 
 	set on(val) {
 		this.#mem.gridOns.set([+val], this.index)
+		this.#view = null
 	}
 
 	get on() {
-		return this.#mem.gridOns.at(this.index)
+		return Boolean(this.#mem.gridOns.at(this.index))
 	}
 
 	get jump() {
@@ -29,6 +30,7 @@ export default class Grid {
 
 	set jump(val) {
 		this.#mem.gridJumps.set([val], this.index)
+		this.#view = null
 	}
 
 	get loop() {
@@ -37,6 +39,7 @@ export default class Grid {
 
 	set loop(val) {
 		this.#mem.gridLoops.set([val], this.index)
+		this.#view = null
 	}
 
 	get speed() {
@@ -45,6 +48,11 @@ export default class Grid {
 
 	set speed(val) {
 		this.#mem.gridSpeeds.set([val], this.index)
+		this.#view = null
+	}
+
+	toggle() {
+		this.on = !this.on
 	}
 
 	toJSON() {
@@ -59,7 +67,13 @@ export default class Grid {
 		}
 	}
 
+	/** @type {ReturnType<Grid["toJSON"]>} */
+	#view
+
 	get view() {
-		return Object.freeze(this.toJSON())
+		if (!this.#view) {
+			this.#view = Object.freeze(this.toJSON())
+		}
+		return this.#view
 	}
 }

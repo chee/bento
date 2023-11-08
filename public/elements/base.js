@@ -73,7 +73,7 @@ export class BentoElement extends HTMLElement {
 	 * @param {(message: BentoEvents[Name], event: (BentoEvent<Name> & {target: BentoElement})) => void} fn
 	 * @param {boolean | AddEventListenerOptions} [options]
 	 */
-	hark(name, fn, options) {
+	when(name, fn, options) {
 		let el = this
 		let cb = (/** @type BentoEvent & {target: BentoElement} */ event) => {
 			fn.call(el, event.detail, event)

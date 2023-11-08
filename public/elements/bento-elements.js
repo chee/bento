@@ -20,7 +20,7 @@ import "./grid.js"
 import "./box.js"
 import "./grid-controls.js"
 import "./grid-selector.js"
-import "./mini-grid.js"
+import "./minigrid.js"
 import "./tape.js"
 import "./nav.js"
 

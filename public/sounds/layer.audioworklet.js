@@ -1,4 +1,4 @@
-import * as Memory from "../memory/memory.js"
+import MemoryTree from "../memory/tree/tree.js"
 
 /*
  * the transport is kept in a worker so that it can keep time uninterupted by
@@ -18,35 +18,29 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 			})
 			throw new Error(msg)
 		}
-		this.memory = Memory.map(buffer)
+		this.memtree = MemoryTree.from(buffer)
 		this.layerNumber = layerNumber
-		this.lastStep = -1
+		this.lastStepIndex = -1
 		this.tick = 0
 	}
 
 	process() {
-		let memory = this.memory
-		if (Memory.playing(memory) && Memory.paused(memory)) {
+		let memtree = this.memtree
+
+		if (memtree.playing && memtree.paused) {
 			return true
-		} else if (!Memory.playing(memory)) {
-			this.lastStep = -1
+		} else if (!memtree.playing) {
+			this.lastStepIndex = -1
 			this.tick = 0
 			return true
 		}
-		this.tick += 128
-		let bpm = Memory.bpm(memory)
-		let samplesPerBeat = (60 / bpm) * sampleRate
-		let layerNumber = this.layerNumber
-		let speed = Memory.layerSpeed(memory, layerNumber)
-		let samplesPerStep = samplesPerBeat / (4 * speed)
-		// you can use all your current variables, but you won't want to
-		let nextStep = (this.tick / samplesPerStep) | 0
-		if (nextStep != this.lastStep) {
-			Memory.incrementStep(memory, layerNumber)
 
+		this.tick += 128
+
+		if (memtree.tick(this.tick, this.layerNumber, sampleRate)) {
 			this.port.postMessage("step-change")
 		}
-		this.lastStep = nextStep
+
 		return true
 	}
 }

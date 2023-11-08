@@ -2,12 +2,17 @@ import Layer from "./layer.js"
 import Sound from "./sound.js"
 import Grid from "./grid.js"
 import Step from "./step.js"
+import * as loop from "../../loop.js"
+
 import {
 	grid2layerGrid,
 	gridStep2step,
 	layerGrid2layer,
-	layerStep2step
+	layerStep2step,
+	step2grid,
+	step2gridStep
 } from "../convert.js"
+
 import {
 	DrawingRegion,
 	GRIDS_PER_LAYER,
@@ -17,6 +22,7 @@ import {
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER
 } from "../constants.js"
+import {map} from "../memory.js"
 
 /**
  * @typedef {Object} AlterSelectedMap
@@ -29,19 +35,31 @@ export default class MemoryTree {
 	/** @type {import("../memory").MemoryMap} */
 	#mem
 
-	/** @param {import("../memory").MemoryMap} map */
-	constructor(map) {
-		this.#mem = map
+	/** @type {Layer[]} */
+	#layers
+
+	/** @type {Sound[]} */
+	#sounds
+
+	/** @type {Grid[]} */
+	#grids
+
+	/** @type {Step[]} */
+	#steps
+
+	/** @param {import("../memory").MemoryMap} mem */
+	constructor(mem) {
+		this.#mem = mem
+		this.#layers = loop.layers(index => new Layer(mem, index))
+		this.#sounds = loop.layers(index => new Sound(mem, index))
+		this.#grids = loop.grids(index => new Grid(mem, index))
+		this.#steps = loop.steps(index => new Step(mem, index))
 	}
 
-	/** @type {Layer[]} */
-	#layers = []
-	/** @type {Grid[]} */
-	#grids = []
-	/** @type {Step[]} */
-	#steps = []
-	/** @type {Sound[]} */
-	#sounds = []
+	/** @param {ArrayBufferLike} buffer */
+	static from(buffer) {
+		return new MemoryTree(map(buffer))
+	}
 
 	/** @type {Set<() => void>} */
 	#listeners = new Set()
@@ -71,6 +89,11 @@ export default class MemoryTree {
 			this.#sounds[index] = new Sound(this.#mem, index)
 		}
 		return this.#sounds[index].view
+	}
+
+	/** @returns boolean */
+	karaoke() {
+		this.#mem.layerSounds.every(n => !n)
 	}
 
 	/**
@@ -133,7 +156,7 @@ export default class MemoryTree {
 	 */
 	alterLayer(layer, fn) {
 		fn(this.#layers[layer])
-		delete this.#layers[layer]
+		// delete this.#layers[layer]
 		this.announce("layers", layer)
 	}
 
@@ -143,7 +166,7 @@ export default class MemoryTree {
 	 */
 	alterSound(sound, fn) {
 		fn(this.#sounds[sound])
-		delete this.#sounds[sound]
+		// delete this.#sounds[sound]
 		this.announce("sounds", sound)
 	}
 
@@ -153,7 +176,8 @@ export default class MemoryTree {
 	 */
 	alterStep(step, fn) {
 		fn(this.#steps[step])
-		delete this.#steps[step]
+		// todo i don't need to do this if i delete the `view' in step instead
+		// delete this.#steps[step]
 		this.announce("steps", step)
 	}
 
@@ -163,7 +187,7 @@ export default class MemoryTree {
 	 */
 	alterGrid(grid, fn) {
 		fn(this.#grids[grid])
-		delete this.#grids[grid]
+		// delete this.#grids[grid]
 		this.announce("grids", grid)
 	}
 
@@ -173,9 +197,7 @@ export default class MemoryTree {
 	 * @param {(step: Grid) => void} fn
 	 */
 	alterLayerGrid(grid, fn) {
-		fn(this.#grids[grid2layerGrid(grid)])
-		delete this.#grids[grid]
-		this.announce("grids", grid)
+		this.alterGrid(grid2layerGrid(grid), fn)
 	}
 
 	/**
@@ -254,13 +276,25 @@ export default class MemoryTree {
 	}
 
 	/** @param {number} layer */
-	getCurrentStep(layer) {
+	getCurrentStepIndex(layer) {
 		return this.#mem.currentSteps.at(layer)
+	}
+
+	get selectedLayerCurrentStep() {
+		return this.getCurrentStepIndex(this.selectedLayer)
+	}
+
+	get selectedLayerCurrentGrid() {
+		return step2grid(this.selectedLayerCurrentStep)
+	}
+
+	get selectedLayerCurrentGridStep() {
+		return step2gridStep(this.selectedLayerCurrentStep)
 	}
 
 	/** @param {number} layer */
 	incrementStep(layer) {
-		let current = this.getCurrentStep(layer)
+		let current = this.getCurrentStepIndex(layer)
 
 		let activeGrids = Array.from(
 			this.#mem.gridOns.subarray(
@@ -406,5 +440,26 @@ export default class MemoryTree {
 	 */
 	fixRegions(layer) {
 		this.clearRegions(layer)
+	}
+
+	/**
+	 * @param {number} tick
+	 * @param {number} layerIndex
+	 * @param {number} sampleRate
+	 */
+	tick(tick, layerIndex, sampleRate) {
+		let bpm = this.bpm
+		let samplesPerBeat = (60 / bpm) * sampleRate
+		let currentStepIndex = this.getCurrentStepIndex(layerIndex)
+		let currentStep = this.#steps.at(currentStepIndex)
+		let currentGrid = this.#grids.at(currentStep.gridIndex)
+		let speed = currentGrid.speed
+		let samplesPerStep = samplesPerBeat / (4 * speed)
+		let nextStepIndex = (tick / samplesPerStep) | 0
+		if (nextStepIndex != currentStepIndex) {
+			this.incrementStep(nextStepIndex)
+			return true
+		}
+		return false
 	}
 }

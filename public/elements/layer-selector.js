@@ -3,7 +3,7 @@ import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoLayerSelector extends BentoElement {
 	/** @type {HTMLInputElement[]} */
-	#radios = []
+	selectors = []
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
@@ -17,7 +17,7 @@ export default class BentoLayerSelector extends BentoElement {
 			let label = document.createElement("label")
 			label.htmlFor = id
 			label.draggable = true
-			label.textContent = ["a", "b", "c", "d", "s"][lidx] || lidx.toString()
+			label.textContent = ["a", "b", "c", "d"][lidx] || lidx.toString()
 			fieldset.appendChild(label)
 			let radio = document.createElement("input")
 			radio.type = "radio"
@@ -27,33 +27,37 @@ export default class BentoLayerSelector extends BentoElement {
 			radio.checked = lidx == 0
 			radio.value = id
 			label.appendChild(radio)
-			this.#radios.push(radio)
+			this.selectors.push(radio)
 		})
 
 		this.shadow.addEventListener(
 			"change",
 			/** @param {InputEvent} event */
 			event => {
-				let index = this.#radios.indexOf(
+				let index = this.selectors.indexOf(
 					/** @type {HTMLInputElement} */ (event.target)
 				)
 				if (index != null) {
-					this.announce("change", {
-						change: "layer",
-						value: index
-					})
+					this.announce("select-layer", index)
 				}
 			}
 		)
 	}
 
-	/** @param {number} val */
-	set selected(val) {
-		this.#radios.forEach((radio, index) => {
-			radio.toggleAttribute("checked", index == val)
-			radio.checked = index == val
-			radio.parentElement.classList.toggle("checked", index == val)
+	/** @type number */
+	get selectedLayerIndex() {
+		return this.get("selectedLayerIndex")
+	}
+
+	set selectedLayerIndex(val) {
+		this.set("selectedLayerIndex", val, () => {
+			this.selectors.forEach((radio, index) => {
+				radio.toggleAttribute("checked", index == val)
+				radio.checked = index == val
+				radio.parentElement.classList.toggle("checked", index == val)
+			})
 		})
 	}
 }
+
 bentoElements.define("bento-layer-selector", BentoLayerSelector)

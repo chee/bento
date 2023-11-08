@@ -18,6 +18,7 @@ export default class Layer {
 
 	set selectedGrid(val) {
 		this.#mem.layerSelectedGrids.set([val], this.index)
+		this.#view = null
 	}
 
 	get type() {
@@ -29,6 +30,7 @@ export default class Layer {
 
 	set type(val) {
 		this.#mem.layerTypes.set([val], this.index)
+		this.#view = null
 	}
 
 	toJSON() {
@@ -39,7 +41,13 @@ export default class Layer {
 		}
 	}
 
+	/** @type {ReturnType<Layer["toJSON"]>} */
+	#view
+
 	get view() {
-		return Object.freeze(this.toJSON())
+		if (!this.#view) {
+			this.#view = Object.freeze(this.toJSON())
+		}
+		return this.#view
 	}
 }

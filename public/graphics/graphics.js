@@ -47,10 +47,10 @@ export async function init() {
 		[offscreen]
 	)
 
-	screenElement.addEventListener("screen", event => {
+	screenElement.when("select-screen", message => {
 		screenWorker.postMessage({
 			type: "screen",
-			screen: event.detail.screen
+			screen: message.name
 		})
 	})
 }

@@ -3,7 +3,7 @@ import {
 	GRIDS_PER_LAYER,
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER
-} from "./memory.js"
+} from "./memory/constants.js"
 
 /**
  * Create a range from `start` to `end` by `step`.

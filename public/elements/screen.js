@@ -4,6 +4,7 @@ import * as dt from "../io/data-transfer.js"
 import {LayerType} from "../memory/memory.js"
 import {DPI, Screen} from "../graphics/constants.js"
 import BentoScreenControls from "./screen-controls.js"
+import Layer from "../memory/tree/layer.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -19,50 +20,32 @@ import BentoScreenControls from "./screen-controls.js"
 
 export default class BentoScreen extends BentoElement {
 	/** @type Record<LayerType, Screen[]> */
-	static screens = {
+	static screenNames = {
 		[LayerType.sampler]: [Screen.wav, Screen.key, Screen.mix],
 		[LayerType.synth]: [Screen.key, Screen.mix]
 	}
 	/** @type {BentoScreenSelector} */
-	#screenSelector
+	selector
 	/** @type {BentoScreenControls} */
-	#screenControls
-	/** @type {LayerType} */
-	#layerType = 1
+	controls
+
 	canvas = document.createElement("canvas")
-	/** @type Screen */
-	screen = BentoScreen.screens[LayerType.sampler][0]
+
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<figure></figure>`
 		this.shadow.firstElementChild.appendChild(this.canvas)
 		this.attachStylesheet("screen")
-		this.setAttribute("screen", this.screen)
+
 		customElements.whenDefined("bento-screen-controls").then(() => {
-			this.#screenControls = document.createElement("bento-screen-controls")
-			this.shadow.insertBefore(
-				this.#screenControls,
-				this.shadow.firstElementChild
-			)
-			this.#screenControls.controls = ["record"]
-		})
-		customElements.whenDefined("bento-screen-selector").then(() => {
-			this.#screenSelector = document.createElement("bento-screen-selector")
-			this.shadow.appendChild(this.#screenSelector)
+			this.controls = document.createElement("bento-screen-controls")
+			this.shadow.insertBefore(this.controls, this.shadow.firstElementChild)
+			this.controls.controls = ["record"]
 		})
 
-		this.hark("screen", (message, event) => {
-			this.announce("change", {
-				change: "screen",
-				value: message.screen
-			})
-			let screen = message.screen
-			this.screen = screen
-			this.setAttribute("screen", screen)
-			event.target.setAttribute("selected", screen)
-		})
-		this.shadow.addEventListener("open", () => {
-			this.announce("open")
+		customElements.whenDefined("bento-screen-selector").then(() => {
+			this.selector = document.createElement("bento-screen-selector")
+			this.shadow.appendChild(this.selector)
 		})
 
 		/* this runs once when drag enters the target's zone */
@@ -132,17 +115,16 @@ export default class BentoScreen extends BentoElement {
 				for (let item of Array.from(event.dataTransfer.items)) {
 					if (item.kind == "file") {
 						let file = item.getAsFile()
-						this.announce("change", {
-							change: "sound",
-							value: file
+						this.announce("set-sound", {
+							audio: file
 						})
 					}
 				}
 			}
 			let step = await dt.getStep(event.dataTransfer)
 			if (step != null) {
-				this.announce("commit-sound", {
-					step
+				this.announce("clip-sound", {
+					from: step
 				})
 			}
 		})
@@ -267,12 +249,15 @@ export default class BentoScreen extends BentoElement {
 		}
 	}
 
+	/** @type boolean */
 	get open() {
-		return this.hasAttribute("open")
+		return this.get("open")
 	}
 
 	set open(val) {
-		this.toggleAttribute("open", val)
+		this.set("open", val, () => {
+			this.toggleAttribute("open", val)
+		})
 	}
 
 	get empx() {
@@ -293,21 +278,20 @@ export default class BentoScreen extends BentoElement {
 		return this.empx * 4
 	}
 
-	get layerType() {
-		return this.#layerType
+	/** @type {Layer["view"]} */
+	get layer() {
+		return this.get("layer")
 	}
-	/** @param {LayerType} val */
-	set layerType(val) {
-		let screen = BentoScreen.screens[val]
-		this.#layerType = val
-		if (screen) {
-			this.#screenSelector.setAttribute(
-				"screens",
-				BentoScreen.screens[this.#layerType].join(" ")
-			)
-		} else {
-			console.error(`no screen for LayerType ${val}`)
-		}
+
+	set layer(val) {
+		this.set("layer", val, () => {
+			let screens = BentoScreen.screenNames[val.type]
+			if (screens) {
+				this.selector.screens = screens
+			} else {
+				console.error(`no screen for LayerType ${val}`)
+			}
+		})
 	}
 }
 

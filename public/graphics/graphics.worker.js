@@ -1,6 +1,13 @@
 import "../convenience/extend-native-prototypes.js"
-import * as Memory from "../memory/memory.js"
 import {DPI, Screen} from "./constants.js"
+import MemoryTree from "../memory/tree/tree.js"
+import Step from "../memory/tree/step.js"
+import Sound from "../memory/tree/sound.js"
+import {
+	DYNAMIC_RANGE,
+	NUMBER_OF_KEYS,
+	STEPS_PER_LAYER
+} from "../memory/constants.js"
 
 /** @type {Record<string, import("../elements/screen.js").StyleMap>}*/
 let styles
@@ -11,9 +18,9 @@ let styles
 let context
 
 /**
- * @type {Memory.MemoryMap} [memory]
+ * @type {MemoryTree} [memory]
  */
-let memory
+let memtree
 
 /**
  * @type Screen
@@ -49,7 +56,7 @@ function fillRegion(start, end, fill) {
 
 /**
  * @typedef {Object} DrawSampleLineArguments
- * @prop {import("./graphics").StyleM} style
+ * @prop {import("../elements/screen.js").StyleMap} style
  * @prop {Float32Array} array
  * @prop {number} x
  * @prop {number} xm
@@ -88,8 +95,8 @@ function drawSampleLine({style, array, x, xm, height}) {
 }
 
 /**
- * @param {Memory.StepDetails | Memory.SoundDetails} one
- * @param {Memory.StepDetails | Memory.SoundDetails} two
+ * @param {Step["view"] | Sound["view"]} one
+ * @param {Step["view"] | Sound["view"]} two
  */
 function same(one, two) {
 	if (Object.is(one, two)) return true
@@ -105,75 +112,51 @@ function same(one, two) {
 			}
 		}
 	}
-	if ("region" in one && "region" in two) {
-		if (
-			one.region.start != two.region.start ||
-			one.region.end != two.region.end
-		) {
-			return false
-		}
-	}
 	return same
 }
 
 /**
- * @param {Memory.Region} region
- * @param {number} soundLength
- * @returns {Memory.Region}
- */
-function getReversedRegion(region, soundLength) {
-	return {
-		start: soundLength - region.end,
-		end: soundLength - region.start
-	}
-}
-/**
  * Get the visible portion of a sound, in the right direction.
  *
- * @param {Memory.StepDetails} stepDetails
+ * @param {Step["view"]} step
+ * @param {Sound["view"]} sound
  */
-function getVisibleSound(stepDetails) {
-	let {sound, soundLength, reversed} = stepDetails
-	let visibleSound = sound.subarray(0, soundLength)
-	if (reversed) {
-		let reversedVisibleSound
+function getVisibleSound(step, sound) {
+	// TODO stereo?
+	let visibleSound = sound.left.subarray(0, sound.length)
+	if (step.reversed) {
 		// TODO replace with toReversed when support is better (february 2024)
-		reversedVisibleSound = new Float32Array(visibleSound.length)
-		reversedVisibleSound.set(visibleSound)
+		let reversedVisibleSound = visibleSound.slice(0, visibleSound.length)
 		reversedVisibleSound.reverse()
 		visibleSound = reversedVisibleSound
 	}
 	return visibleSound
 }
 
-// todo use indexeddb for the bitmap cache:)
 let bitmapCache = {}
 /**
  * Create and post the bitmap for a step
 
- * @param {Memory.MemoryMap} memory
+ * @param {MemoryTree} memtree
  * @param {OffscreenCanvasRenderingContext2D} context
- * @param {number} layer
- * @param {number} step
+ * @param {number} layerIndex
+ * @param {number} stepIndex
  */
-function postBitmap(memory, context, layer, step) {
+function postBitmap(memtree, context, layerIndex, stepIndex) {
 	clear(context)
-
-	let stepDetails = Memory.getStepDetails(memory, layer, step)
-	let {region, reversed, soundLength, version} = stepDetails
-	let visibleSound = getVisibleSound(stepDetails)
-	let hasRegion = region.start || region.end
-	let reversedRegion = getReversedRegion(region, visibleSound.length)
-	let length = hasRegion ? region.end - region.start : soundLength
-
-	let r = reversed ? reversedRegion : region
-	let start = hasRegion ? r.start : 0
-	let end = hasRegion ? r.end : soundLength
+	let step = memtree.getLayerStep(layerIndex, stepIndex)
+	let sound = memtree.getSound(layerIndex)
+	let visibleSound = getVisibleSound(step, sound)
+	let hasRegion = step.start || step.end
+	let length = hasRegion ? step.end - step.start : sound.length
+	let [start, end] = step.reversed
+		? [step.end | sound.length, step.start]
+		: [step.start, step.end || sound.length]
 	let array = visibleSound.subarray(start, end)
-	let on = stepDetails.on
+	let on = step.on
 	let style = styles.boxOn
 	let color = style.line
-	let cachename = `s${start}e${end}r${reversed}v${version}l${layer}o${on}c${color}g${stepDetails.grid}`
+	let cachename = `s${start}e${end}r${step.reversed}v${sound.version}l${layerIndex}o${on}c${color}g${step.gridIndexInLayer}`
 
 	if (!bitmapCache[cachename]) {
 		let beforeheight = context.canvas.height
@@ -197,25 +180,25 @@ function postBitmap(memory, context, layer, step) {
 	globalThis.postMessage({
 		type: "waveform",
 		bmp: bitmapCache[cachename],
-		layer,
-		uiStep: stepDetails.uiStep,
-		grid: stepDetails.grid,
+		layer: layerIndex,
+		uiStep: step.indexInGrid,
+		grid: step.gridIndexInLayer,
 		cachename
 	})
 }
 
 /**
  * Create and post the bitmap for a step
-
- * @param {Memory.MemoryMap} memory
+ * @param {MemoryTree} memtree
  * @param {OffscreenCanvasRenderingContext2D} context
  */
-function postAllBitmaps(memory, context) {
-	let layerNumber = Memory.selectedLayer(memory)
+function postAllBitmaps(memtree, context) {
+	let layerNumber = memtree.selectedLayer
 	// todo send for current grid
-	for (let stepNumber = 0; stepNumber < Memory.STEPS_PER_LAYER; stepNumber++) {
-		if (Memory.stepOn(memory, layerNumber, stepNumber)) {
-			postBitmap(memory, context, layerNumber, stepNumber)
+	for (let stepNumber = 0; stepNumber < STEPS_PER_LAYER; stepNumber++) {
+		let step = memtree.getLayerStep(layerNumber, stepNumber)
+		if (step.on) {
+			postBitmap(memtree, context, layerNumber, stepNumber)
 		}
 	}
 }
@@ -244,30 +227,29 @@ function getXMultiplier(context, soundLength) {
 }
 
 function wav(_frame = 0, force = false) {
-	if (!context || !memory) {
+	if (!context || !memtree) {
 		return requestAnimationFrame(update)
 	}
-	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let step = memtree.getSelectedStep()
 
 	let {canvas} = context
-	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
+	let regionIsBeingDrawn = memtree.regionIsBeingDrawn
 
 	clear(context)
 
-	let {region, reversed} = stepDetails
-
-	let visibleSound = getVisibleSound(stepDetails)
+	let sound = memtree.getSound(step.layerIndex)
+	let visibleSound = getVisibleSound(step, sound)
 	let width = canvas.width
 	let height = canvas.height
 
 	// the horizontal distance between each point
 	let xm = getXMultiplier(context, visibleSound.length)
-	Memory.drawingRegionXMultiplier(memory, xm)
+	memtree.drawingRegionXMultiplier = xm
 
 	let drawingRegion = {
-		start: Memory.drawingRegionStart(memory),
+		start: memtree.drawingRegionStart,
 		// regionX because end will be -1 while region is being drawn
-		end: Memory.drawingRegionX(memory)
+		end: memtree.drawingRegionX
 	}
 
 	if (drawingRegion.start > drawingRegion.end) {
@@ -278,12 +260,10 @@ function wav(_frame = 0, force = false) {
 	}
 
 	let pixelRegion = {
-		start: region.start * xm,
-		end: region.end * xm
+		start: step.start * xm,
+		end: step.end * xm
 	}
 	let hasRegion = pixelRegion.start || pixelRegion.end
-
-	let reversedRegion = getReversedRegion(region, visibleSound.length)
 
 	// this is more draws than the previous version, so it is slower.
 	// but the logic is a lot simpler, so i am forgiven.
@@ -300,13 +280,20 @@ function wav(_frame = 0, force = false) {
 	if (hasRegion) {
 		let fillStart = pixelRegion.start
 		let fillEnd = pixelRegion.end
-		if (reversed) {
+
+		if (step.reversed) {
 			fillStart = width - pixelRegion.end
 			fillEnd = width - pixelRegion.start
 		}
+
 		fillRegion(fillStart, fillEnd, styles.region.fill)
-		let r = reversed ? reversedRegion : region
-		let array = visibleSound.subarray(r.start, r.end)
+
+		let [start, end] = step.reversed
+			? [step.end || sound.length, step.start]
+			: [step.start, step.end || sound.length]
+
+		let array = visibleSound.subarray(start, end)
+
 		drawSampleLine({
 			style: styles.region,
 			array,
@@ -342,19 +329,20 @@ function wav(_frame = 0, force = false) {
 }
 
 function mix(_frame = 0, force = false) {
-	if (!context || !memory) {
+	if (!context || !memtree) {
 		return requestAnimationFrame(update)
 	}
-	let stepDetails = Memory.getSelectedStepDetails(memory)
+	let step = memtree.getSelectedStep()
 
 	clear(context)
 	let {width, height} = context.canvas
-	let b = Memory.DYNAMIC_RANGE
+	let b = DYNAMIC_RANGE
+	let hb = DYNAMIC_RANGE / 2
 
 	let h = height
 	let w = width
-	let quietY = (stepDetails.quiet / b) * h
-	let panX = ((stepDetails.pan + 6) / b) * w
+	let quietY = (step.quiet / b) * h
+	let panX = ((step.pan + hb) / b) * w
 
 	context.strokeStyle = "white"
 
@@ -418,16 +406,15 @@ let lastSoundDetails
 function update(frame = 0, force = false) {
 	force = force || lastScreen != screen
 	lastScreen = screen
-	let soundDetails = Memory.getSoundDetails(
-		memory,
-		Memory.selectedLayer(memory)
-	)
-	let stepDetails = Memory.getSelectedStepDetails(memory)
-	let regionIsBeingDrawn = Memory.regionIsBeingDrawn(memory)
+	let layer = memtree.getSelectedLayer()
+	let sound = memtree.getSound(layer.index)
+	let step = memtree.getSelectedStep()
+	let drawing = memtree.regionIsBeingDrawn
+
 	if (
 		!force &&
-		!regionIsBeingDrawn &&
-		same(stepDetails, lastStepDetails) &&
+		!drawing &&
+		same(step, lastStepDetails) &&
 		styles == lastStyles
 	) {
 		return requestAnimationFrame(update)
@@ -438,20 +425,20 @@ function update(frame = 0, force = false) {
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too
 	if (
-		!same(soundDetails, lastSoundDetails) ||
+		!same(sound, lastSoundDetails) ||
 		styles != lastStyles ||
 		lastStepDetails.grid != lastSoundDetails.grid
 	) {
-		if (!regionIsBeingDrawn) {
-			postAllBitmaps(memory, context)
+		if (!drawing) {
+			postAllBitmaps(memtree, context)
 		}
 	}
-	if (!regionIsBeingDrawn) {
-		postBitmap(memory, context, stepDetails.layer, stepDetails.step)
+	if (!drawing) {
+		postBitmap(memtree, context, step.layerIndex, step.indexInLayer)
 	}
-	lastSoundDetails = soundDetails
+	lastSoundDetails = sound
 	lastStyles = styles
-	lastStepDetails = stepDetails
+	lastStepDetails = step
 
 	if (screen == "wav") {
 		wav(frame, force)
@@ -459,8 +446,8 @@ function update(frame = 0, force = false) {
 		mix(frame, force)
 	} else if (screen == "key") {
 		fillRegion(0, context.canvas.width, "black")
-		let xs = context.canvas.width / (Memory.NUMBER_OF_KEYS + 1)
-		let x = xs * (stepDetails.pitch + Memory.NUMBER_OF_KEYS / 2)
+		let xs = context.canvas.width / (NUMBER_OF_KEYS + 1)
+		let x = xs * (step.pitch + NUMBER_OF_KEYS / 2)
 		fillRegion(x, x + xs, "white")
 		requestAnimationFrame(update)
 	} else {
@@ -511,7 +498,6 @@ onmessage = async event => {
 		context.textBaseline = "bottom"
 		let text = `press ▶ to start`
 
-		// TODO this is inaccessible. where should this go for a screenreader?
 		f.load().finally(() => {
 			context.fillText(text, canvas.width / 2, canvas.height - 5)
 		})
@@ -519,7 +505,7 @@ onmessage = async event => {
 
 	if (message.type == "start") {
 		let {buffer} = message
-		memory = Memory.map(buffer)
+		memtree = MemoryTree.from(buffer)
 		requestAnimationFrame(update)
 	}
 

@@ -1,12 +1,7 @@
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
-import {
-	MemoryTree,
-	size as MEMORY_SIZE,
-	map,
-	grid2layer,
-	step2layerStep
-} from "./memory/memory.js"
+import {size as MEMORY_SIZE, map} from "./memory/memory.js"
+import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
 
@@ -50,15 +45,19 @@ async function getFancy() {
 
 		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
 			party.fancy = true
+			party.tree = memtree
+			memtree.listen(() => {
+				party.tree = memtree
+			})
 		}
 	} catch {}
 
 	if (party.fancy) {
-		if (!party.isSettingsOpen()) {
-			setTimeout(() => {
-				party.openScreen()
-			}, 200)
-		}
+		// if (!party.isSettingsOpen()) {
+		setTimeout(() => {
+			openScreen()
+		}, 200)
+		// }
 		let slug = db.slugify(db.getSlugFromLocation())
 		history.replaceState(
 			{slug},
@@ -86,56 +85,61 @@ async function init() {
 await init()
 getFancy()
 
-party.hark("play", () => {
+party.when("play", () => {
 	memtree.play()
 	// todo base this on memtree.update() in sounds.js
 	sounds.play()
 })
 
-party.hark("pause", () => {
+party.when("pause", () => {
 	memtree.pause()
 	sounds.pause()
 })
 
-party.hark("stop", () => {
+party.when("stop", () => {
 	memtree.stop()
 	sounds.pause()
 })
 
-party.hark("set-bpm", message => {
+party.when("set-bpm", message => {
 	memtree.bpm = message.value
 	// todo base these saves on memtree.update() in db.js
 	db.save()
 })
 
-party.hark("select-layer", message => {
+party.when("select-layer", message => {
 	memtree.selectedLayer = message.layer.index
 })
 
-party.hark("update-grid", message => {
-	memtree.setGridValue(message.grid.index, message.property, message.value)
+party.when("update-grid", message => {
+	memtree.alterGrid(message.grid.index, grid => {
+		grid[message.property] = message.value
+	})
 	db.save()
 })
 
-party.hark("select-grid", message => {
-	memtree.setLayerValue(
-		message.grid.layer,
-		"selectedGrid",
-		message.grid.indexInLayer
-	)
+party.when("select-grid", message => {
+	memtree.alterSelected("layer", layer => {
+		layer.selectedGrid = message.grid.indexInLayer
+	})
 	db.save()
 })
 
-party.hark("copy-grid", message => {
-	// let {from, to} = message
-	// memtree.copyGrid(memtree.selectedLayer, from, to)
+party.when("copy-grid", message => {
+	memtree.alterGrid(message.to, grid => {
+		grid.paste()
+	})
+	memtree.copyGrid(memtree.selectedLayer, message.from, message.to)
 })
 
-party("toggle-grid", message => {
-	memtree.toggleGrid(message.grid.index)
+party.when("toggle-grid", index => {
+	memtree.alterGrid(index, grid => {
+		grid.toggle()
+	})
+	db.save()
 })
 
-party("start-recording", async () => {
+party.when("start-recording", async () => {
 	// todo stopPropagation in party:)
 	// if (party.hasAttribute("recording")) {
 	// 		return
@@ -143,27 +147,36 @@ party("start-recording", async () => {
 	//
 	party.recording = true
 	let audio = await sounds.recordSound()
-	memtree.setSound(memtree.selectedLayer, audio)
+	memtree.alterSound(memtree.selectedLayer, sound => {
+		sound.audio = audio
+	})
 	db.save()
 })
 
-party.hark("set-sound", async message => {
-	let audio = await sounds.decode(message.value)
-	memtree.setSound(memtree.selectedLayer, audio)
+party.when("set-sound", async message => {
+	let audio = await sounds.decode(message.audio)
+	memtree.alterSound(memtree.selectedLayer, sound => {
+		sound.audio = audio
+	})
 	db.save()
 })
 
-party.hark("flip-sound", async message => {
-	memtree.setStepValue(message.step.index, "reversed", !message.step.reversed)
+party.when("flip-sound", async message => {
+	memtree.alterSound(message.soundIndex, sound => {
+		sound.flip()
+	})
 	db.save()
 })
 
-// party.hark("clip-sound", message => {
-// 	let basedOn = message.from
-// 	memtree.setStepValue(step.index, "reversed", !step.reversed)
-// 	db.save()
-// })
+party.when("clip-sound", message => {
+	let from = message.from
+	memtree.alterSound(message.soundIndex, sound => {
+		sound.clip(from.start, from.end)
+	})
+	db.save()
+})
 
+/** TODO this is the screen's business */
 // /** @param {Memory.MousePoint} mouse */
 // function getMixFromMouse(mouse) {
 // 	let pan = Math.round((mouse.x / screen.canvas.width) * 12 - 6)
@@ -209,44 +222,71 @@ party.hark("flip-sound", async message => {
 // 	}
 // })
 
-party.hark("select-step", message => {
-	let step = /** @type {import("./memory/memory.js").Step} */ (message.step)
-	memtree.selectedUiStep = step.indexInGrid
+party.when("select-step", index => {
+	memtree.selectedUiStep = index
 })
 
-party.hark("update-step", message => {
-	memtree.setStepValue(message.step.index, message.property, message.value)
+party.when("update-step", message => {
+	memtree.alterStep(message.index, step => {
+		step[message.property] = message.value
+	})
 })
 
-party.hark("turn-step-on", message => {
-	memtree.toggleStep(message.step.index, true)
+party.when("toggle-step", index => {
+	memtree.alterStep(index, step => {
+		step.toggle()
+	})
 })
 
-party.hark("turn-step-off", message => {
-	memtree.toggleStep(message.step.index, false)
+party.when("turn-step-on", index => {
+	memtree.alterStep(index, step => {
+		step.toggle(true)
+	})
 })
 
-party.hark("copy-step", message => {
-	// memtree.copyStep
+party.when("turn-step-off", index => {
+	memtree.alterStep(index, step => {
+		step.toggle(false)
+	})
 })
 
-// else if (message.change == "quieter") {
-// 			Memory.stepQuieter(memory, layer, step)
-// 			db.save()
-// 		} else if (message.change == "louder") {
-// 			Memory.stepLouder(memory, layer, step)
-// 			db.save()
-// 		} else if (message.change == "pan-left") {
-// 			Memory.stepPanLeft(memory, layer, step)
-// 			db.save()
-// 		} else if (message.change == "pan-right") {
-// 			Memory.stepPanRight(memory, layer, step)
-// 			db.save()
-// 		} else if (message.change == "reverse") {
-// 			Memory.stepReverse(memory, layer, step)
-// 			db.save()
-// 		}
+party.when("flip-step", index => {
+	memtree.alterStep(index, step => {
+		step.flip()
+	})
+})
 
+party.when("copy-step", message => {
+	memtree.alterStep(message.to, step => {
+		step.paste(memtree.getStep(message.from))
+	})
+})
+
+party.when("step-softly", index => {
+	memtree.alterStep(index, step => {
+		step.quieter()
+	})
+})
+
+party.when("step-loudly", index => {
+	memtree.alterStep(index, step => {
+		step.louder()
+	})
+})
+
+party.when("pan-step-left", index => {
+	memtree.alterStep(index, step => {
+		step.lefter()
+	})
+})
+
+party.when("pan-step-right", index => {
+	memtree.alterStep(index, step => {
+		step.righter()
+	})
+})
+
+// todo fire this on the party in sounds
 window.onmessage = function (event) {
 	let message = event.data
 	if (message.type == "recording") {
@@ -259,6 +299,7 @@ window.onmessage = function (event) {
 }
 
 let stepWaveformCanvas = document.createElement("canvas")
+
 // todo maybe keep this in the bento grid?
 // maybe all this?
 let stepWaveformUrlCache = {}
@@ -279,37 +320,41 @@ document.addEventListener(
 		// does i need to make a state tree that combines values from memtree to
 		// create a single state tree?
 		// let box = boxes[uiStep]
-		// if (!stepWaveformUrlCache[cachename]) {
-		// 	let context = stepWaveformCanvas.getContext("bitmaprenderer")
-		// 	context.transferFromImageBitmap(bmp)
-		// 	stepWaveformUrlCache[cachename] =
-		// 		stepWaveformCanvas.toDataURL("image/webp")
-		// }
+		if (!stepWaveformUrlCache[cachename]) {
+			let context = stepWaveformCanvas.getContext("bitmaprenderer")
+			context.transferFromImageBitmap(bmp)
+			stepWaveformUrlCache[cachename] =
+				stepWaveformCanvas.toDataURL("image/webp")
+		}
 
-		// box.wav = stepWaveformUrlCache[cachename]
+		let box = party.machine.grid.boxes[uiStep]
+		box.wav = stepWaveformUrlCache[cachename]
 	}
 )
 
 // todo move below to some kind of machine/settings.js
 
-machine.addEventListener("toggle-settings", () => {
-	settings.open = !settings.open
+party.when("toggle-settings", () => {
+	party.settings.open = !party.settings.open
 	setTimeout(() => {
-		screen.open = !settings.open
+		party.screen.open = !party.settings.open
 	})
 })
 
 function openScreen() {
-	settings.open = false
-	screen.open = true
+	party.settings.open = false
+	party.machine.screen.open = true
+	// todo
+	// party.openScreen()
 }
 
-screen.hark("screen", openScreen)
-screen.hark("open", openScreen)
-layerSelector.addEventListener("click", openScreen)
-grid.addEventListener("click", openScreen)
+// this is for party to handle
+// party.screen.hark("screen", openScreen)
+// party.screen.hark("open", openScreen)
+// party.layerSelector.hark("click", openScreen)
+// party.grid.hark("click", openScreen)
 
-settings.addEventListener("reset", async () => {
+party.settings.when("reset", async () => {
 	let ok = await ask.confirm(
 		"this will delete the current pattern from your disk FOREVER. ok?"
 	)
@@ -323,7 +368,7 @@ settings.addEventListener("reset", async () => {
 addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	await db.load(slug)
-	nav.slug = slug
+	party.slug = slug
 })
 
 async function saveAs(/** @type {string} */ name) {
@@ -354,9 +399,8 @@ async function saveAs(/** @type {string} */ name) {
 				"",
 				slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 			)
-			nav.slug = slug
-			screen.open = true
-			settings.open = false
+			party.slug = slug
+			openScreen()
 		}
 	}
 }
@@ -374,9 +418,8 @@ async function loadPattern() {
 			"",
 			slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 		)
-		nav.slug = slug
-		screen.open = true
-		settings.open = false
+		party.slug = slug
+		openScreen()
 	}
 }
 
@@ -395,28 +438,27 @@ async function newPattern() {
 	)
 	await db.load(slug)
 	await sounds.loadDefaultKit()
-	nav.slug = slug
-	screen.open = true
-	settings.open = false
+	party.slug = slug
+	openScreen()
 }
 
-settings.addEventListener("load-pattern", async () => {
+party.settings.when("load-pattern", async () => {
 	await loadPattern()
 })
 
-settings.addEventListener("save-as", async () => {
+party.settings.when("save-as", async () => {
 	await saveAs()
 })
 
-settings.addEventListener("new-pattern", async () => {
+party.settings.when("new-pattern", async () => {
 	await newPattern()
 })
 
-settings.addEventListener("rename-pattern", async () => {
+party.settings.when("rename-pattern", async () => {
 	await renamePattern()
 })
 
 let featureflags = new URLSearchParams(location.search.slice(1))
 for (let [flag, value] of featureflags.entries()) {
-	root.setAttribute(flag, value)
+	document.documentElement.setAttribute(flag, value)
 }

@@ -1,4 +1,5 @@
-import * as Memory from "../memory/memory.js"
+import {DYNAMIC_RANGE} from "../memory/constants.js"
+import MemoryTree from "../memory/tree/tree.js"
 import {Scale, pitch2freq} from "./scale.js"
 
 class BentoSamplerWorklet extends AudioWorkletProcessor {
@@ -15,7 +16,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 			})
 			throw new Error(msg)
 		}
-		this.memory = Memory.map(buffer)
+		this.memtree = MemoryTree.from(buffer)
 		this.layerNumber = layerNumber
 		this.lastStep = -1
 		this.tick = 0
@@ -32,26 +33,24 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 	 * @param {Record<string, Float32Array>} _parameters
 	 */
 	process(_inputs, outputs, _parameters) {
-		let memory = this.memory
+		// todo share this logic
+		let memtree = this.memtree
 		let layer = this.layerNumber
-		let step = Memory.currentStep(memory, layer)
-		if (step != this.lastStep) {
-			let on = Memory.stepOn(memory, layer, step)
-			if (on) {
-				// todo only get the fields you need so Memory doesn't have to allocate
-				// an object (once the worker code has stabilized)
-				let stepDetails = Memory.getStepDetails(memory, layer, step)
-				let {sound, region, soundLength, reversed} = stepDetails
+		let stepIndex = memtree.getCurrentStepIndex(layer)
+		if (stepIndex != this.lastStep) {
+			let step = memtree.getLayerStep(layer, stepIndex)
+			if (step.on) {
+				let sound = memtree.getSound(layer)
 				this.point = 0
-				this.portion = sound.subarray(region.start, region.end || soundLength)
-				if (reversed) {
+				this.portion = sound.subarray(step.start, step.end || sound.length)
+				if (step.reversed) {
 					this.portion = this.portion.slice().reverse()
 				}
-				this.playbackRate = pitch2freq(stepDetails.pitch, this.scale)
-				this.pan = stepDetails.pan / 6 || 0
+				this.playbackRate = pitch2freq(step.pitch, this.scale)
+				this.pan = step.pan / (DYNAMIC_RANGE / 2) || 0
 			}
 		}
-		this.lastStep = step
+		this.lastStep = stepIndex
 
 		let quantumPortionLength = this.portion.length - this.point
 		let [left, right] = outputs[0]

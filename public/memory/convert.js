@@ -1,4 +1,4 @@
-import {GRIDS_PER_LAYER, STEPS_PER_GRID, STEPS_PER_LAYER} from "./constants"
+import {GRIDS_PER_LAYER, STEPS_PER_GRID, STEPS_PER_LAYER} from "./constants.js"
 
 /** @type {(layer: number, step: number) => number} */
 export function layerStep2step(layer, step) {

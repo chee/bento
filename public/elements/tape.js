@@ -1,13 +1,5 @@
 import {BentoElement, bentoElements} from "./base.js"
 
-/**
- * @typedef {Object} StyleMap
- * @prop {string} fill
- * @prop {string} line
- * @prop {string} [text]
- * @prop {string} [font]
- */
-
 export default class BentoTape extends BentoElement {
 	static defaultMessage = "placing the cassette into the sanyo"
 	/** @type {number} */

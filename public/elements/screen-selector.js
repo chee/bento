@@ -1,7 +1,6 @@
 import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoScreenSelector extends BentoElement {
-	#screen = this.closest("bento-screen")
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<nav></nav>`

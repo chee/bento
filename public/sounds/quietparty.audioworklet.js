@@ -1,7 +1,8 @@
-import * as Memory from "../memory/memory.js"
+import {DYNAMIC_RANGE} from "../memory/constants.js"
+import MemoryTree from "../memory/tree/tree.js"
 
 /** the curve used to make the gain more satisfying */
-let qcurve = new Float32Array(Memory.DYNAMIC_RANGE + 1)
+let qcurve = new Float32Array(DYNAMIC_RANGE + 1)
 for (let i = 0; i < qcurve.length; i++) {
 	qcurve[i] = 1.00001 - Math.sin((i / (qcurve.length + 1)) * Math.PI * 0.5)
 }
@@ -18,7 +19,7 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 			})
 			throw new Error(msg)
 		}
-		this.memory = Memory.map(buffer)
+		this.memtree = MemoryTree.from(buffer)
 		this.point = 0
 		// this.envelope = new Envelope(4, 4)
 		this.lastStep = -1
@@ -50,28 +51,25 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 			left: outputs[0][0],
 			right: outputs[0][1]
 		}
-		let memory = this.memory
-		if (Memory.playing(memory) && Memory.paused(memory)) {
+		let memtree = this.memtree
+		if (memtree.playing && memtree.paused) {
 			return true
-		} else if (!Memory.playing(memory)) {
+		} else if (!memtree.playing) {
 			this.lastStep = -1
 			return true
 		}
 		let layerNumber = this.layerNumber
-		let currentStep = Memory.currentStep(memory, layerNumber)
+		let currentStep = memtree.getCurrentStepIndex(layerNumber)
 		if (currentStep != this.lastStep) {
-			let stepOn = Memory.stepOn(memory, layerNumber, currentStep)
-			if (stepOn) {
+			let step = memtree.getLayerStep(layerNumber, currentStep)
+			if (step.on) {
 				this.point = 0
-				// todo it'll be faster to access memory directly rather than having
-				// Memory allocate an object
-				let deets = Memory.getStepDetails(memory, layerNumber, currentStep)
-				this.quiet = deets.quiet
-				this.pan = deets.pan
+				this.quiet = step.quiet
+				this.pan = step.pan
 				// todo this.env.a=a this.env.r=r this.env.start()
 			}
 		}
-		let pan = (this.pan + Memory.DYNAMIC_RANGE / 2) / Memory.DYNAMIC_RANGE
+		let pan = (this.pan + DYNAMIC_RANGE / 2) / DYNAMIC_RANGE
 		let panl = Math.cos((pan * Math.PI) / 2)
 		let panr = Math.sin((pan * Math.PI) / 2)
 		// let env = this.envelope.g

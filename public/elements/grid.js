@@ -2,6 +2,7 @@ import {BentoElement, BentoEvent, bentoElements} from "./base.js"
 import * as loop from "../convenience/loop.js"
 import BentoBox from "./box.js"
 import Modmask from "../io/modmask.js"
+import Step from "../memory/tree/step.js"
 
 export default class BentoGrid extends BentoElement {
 	/** @type {BentoBox[]} */
@@ -14,7 +15,7 @@ export default class BentoGrid extends BentoElement {
 
 		customElements.whenDefined("bento-box").then(() => {
 			loop.gridSteps(stepIdx => {
-				let box = /** @type {BentoBox} */ (document.createElement("bento-box"))
+				let box = document.createElement("bento-box")
 				this.boxes.push(box)
 				box.selected = stepIdx == 0
 				box.playing = stepIdx == 0
@@ -81,11 +82,47 @@ export default class BentoGrid extends BentoElement {
 	}
 
 	set on(val) {
-		this.toggleAttribute("on", val)
+		this.set("on", val, () => {
+			this.toggleAttribute("on", val)
+		})
 	}
 
+	/** @type Boolean */
 	get on() {
-		return this.hasAttribute("on")
+		return this.get("on")
+	}
+
+	/** @param {Step["view"][]} steps */
+	set steps(steps) {
+		for (let step of steps) {
+			this.boxes[step.indexInGrid].step = step
+		}
+	}
+
+	/** @type number */
+	get selectedStepIndex() {
+		return this.get("selectedStepIndex")
+	}
+
+	set selectedStepIndex(val) {
+		this.set("selectedStepIndex", val, () => {
+			for (let box of this.boxes) {
+				box.selected = val == box.step.indexInGrid
+			}
+		})
+	}
+
+	/** @type number */
+	get currentStepIndex() {
+		return this.get("currentStepIndex")
+	}
+
+	set currentStepIndex(val) {
+		this.set("currentStepIndex", val, () => {
+			for (let box of this.boxes) {
+				box.playing = box.step.indexInGrid == val
+			}
+		})
 	}
 
 	/** @param {KeyboardEvent} event */

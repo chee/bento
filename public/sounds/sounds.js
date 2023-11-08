@@ -1,17 +1,16 @@
-import * as Memory from "../memory/memory.js"
+import {SOUND_SIZE, LayerType} from "../memory/constants.js"
 import * as loop from "../convenience/loop.js"
 import Synth from "./sources/synth.js"
 import Passthru from "./sources/passthru.js"
+import MemoryTree from "../memory/tree/tree.js"
 let context = new AudioContext()
 // in milliseconds
-let MAX_RECORDING_LENGTH = (Memory.SOUND_SIZE / context.sampleRate) * 1000
+let MAX_RECORDING_LENGTH = (SOUND_SIZE / context.sampleRate) * 1000
 let iphoneSilenceElement = document.querySelector("audio")
-/** @type {Memory.MemoryMap} */
-let memory
+/** @type {MemoryTree} */
+let memtree
 /** @type {SharedArrayBuffer} */
 let sharedarraybuffer
-
-let {LayerType} = Memory
 
 /**
  * normalize audio
@@ -51,13 +50,11 @@ function trim(sound) {
 /**
  * @param {Blob | Response | File} blob
  */
-export async function decode(blob, begin = 0, end = Memory.SOUND_SIZE) {
-	return (
-		(await context.decodeAudioData(await blob.arrayBuffer()))
-			// TODO stereo?
-			.getChannelData(0)
-			.subarray(begin, end)
-	)
+export async function decode(blob, begin = 0, end = SOUND_SIZE) {
+	// TODO stereo?
+	return (await context.decodeAudioData(await blob.arrayBuffer()))
+		.getChannelData(0)
+		.subarray(begin, end)
 }
 
 async function wait(millis = 0) {
@@ -87,7 +84,6 @@ export async function recordSound() {
 			trim(await decode(new Blob(blobs, {type: blobs[0].type})))
 		)
 	} catch (error) {
-		// TODO show error in UI
 		alert(
 			":( i failed. :< can you record in other apps? if it's just bento that is broken try restarting your browser or e-mail bento@chee.party"
 		)
@@ -107,27 +103,16 @@ async function fetchSound(url) {
 		console.error(`:< unable to fetch the audio file at ${url}`, error)
 	}
 }
-
-/**
- * set the sound in memory
- * @param {import("../memory/memory.js").MemoryMap} memory
- * @param {number} layerNumber
- * @param {Float32Array} sound
- */
-export function setSound(memory, layerNumber, sound) {
-	Memory.sound(memory, layerNumber, sound)
-}
-
 let alreadyFancy = false
 export function fancy() {
 	return alreadyFancy
 }
 
 document.addEventListener("visibilitychange", () => {
-	if (!memory || !memory.master) {
+	if (!memtree) {
 		return
 	}
-	if (document.hidden && Memory.paused(memory)) {
+	if (document.hidden && (memtree.paused || !memtree.playing)) {
 		context.suspend()
 		iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
 		alreadyFancy = false
@@ -167,8 +152,8 @@ export async function start() {
 	// let analysis = new Float32Array(analyzer.fftSize)
 
 	loop.layers(idx => {
+		let layer = memtree.getLayer(idx)
 		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
-		console.log(idx)
 
 		let quiet = new AudioWorkletNode(context, "quiet-party", {
 			processorOptions,
@@ -178,9 +163,11 @@ export async function start() {
 			outputChannelCount: [2],
 			channelInterpretation: "speakers"
 		})
+
 		/** @type {import("./sources/source.js").default | void} */
 		let source
-		let type = Memory.getLayerType(memory, idx)
+		let type = layer.type
+
 		if (type == LayerType.sampler) {
 			let sampler = new AudioWorkletNode(context, "bento-sampler", {
 				processorOptions,
@@ -196,24 +183,23 @@ export async function start() {
 			passthru.connect(context.destination)
 			source = passthru
 		} else if (type == LayerType.synth) {
-			console.log("making synth")
 			let synth = new Synth(context)
 			synth.connect(quiet)
 			quiet.connect(context.destination)
 			source = synth
-			console.log("done making synth")
 		}
 
-		let layer = new AudioWorkletNode(context, "bento-layer", {
+		let transport = new AudioWorkletNode(context, "bento-layer", {
 			processorOptions
 		})
-		layer.port.onmessage = event => {
+
+		transport.port.onmessage = event => {
 			let message = event.data
 			// todo make this unnecesary
 			if (message == "step-change") {
-				let on = Memory.stepOn(memory, idx, Memory.currentStep(memory, idx))
-				if (on && source) {
-					source.play(Memory.getCurrentStepDetails(memory, idx))
+				let step = memtree.getStep(idx)
+				if (step.on && source) {
+					source.play(step)
 				}
 			}
 		}
@@ -227,7 +213,10 @@ export async function start() {
  */
 export async function loadKit(...urls) {
 	for (let [index, url] of Object.entries(urls)) {
-		setSound(memory, +index, await fetchSound(url))
+		let audio = await fetchSound(url)
+		memtree.alterSound(+index, sound => {
+			sound.audio = audio
+		})
 	}
 }
 
@@ -245,7 +234,7 @@ export async function loadDefaultKit() {
 }
 
 export function empty() {
-	return memory.layerSounds.every(n => !n)
+	return memtree.karaoke()
 }
 
 /**
@@ -254,7 +243,7 @@ export function empty() {
  */
 export async function init(buffer) {
 	sharedarraybuffer = buffer
-	memory = Memory.map(buffer)
+	memtree = MemoryTree.from(buffer)
 }
 
 await context.audioWorklet.addModule("/sounds/layer.audioworklet.js")

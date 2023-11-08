@@ -11,7 +11,7 @@ export default class BentoControlButton extends BentoElement {
 		})
 		this.shadow.appendChild(button)
 		this.#button = button
-		this.attachStylesheet("bento-control-button")
+		this.attachStylesheet("control-button")
 	}
 
 	/** @type {SVGElement} */

@@ -11,13 +11,16 @@ export default class Sound {
 	constructor(mem, layer) {
 		this.#mem = mem
 		this.layer = layer
+		this.version = 0
 	}
 
 	/** @param {Float32Array} val */
-	set data(val) {
+	set audio(val) {
 		let start = this.layer * SOUND_SIZE
 		this.#mem.layerSounds.set(val, start)
 		this.#mem.soundLengths.set([val.length], this.layer)
+		this.#view = null
+		this.version += 1
 	}
 
 	get left() {
@@ -30,6 +33,7 @@ export default class Sound {
 
 	set length(val) {
 		this.#mem.soundLengths.set([val], this.layer)
+		this.#view = null
 	}
 
 	get length() {
@@ -38,6 +42,7 @@ export default class Sound {
 
 	set detune(val) {
 		this.#mem.soundDetunes.set([val], this.layer)
+		this.#view = null
 	}
 
 	get detune() {
@@ -45,16 +50,23 @@ export default class Sound {
 	}
 
 	toJSON() {
-		return {
+		return /** @type const */ ({
 			layer: this.layer,
 			detune: this.detune,
 			length: this.length,
 			left: this.left,
-			right: this.right
-		}
+			right: this.right,
+			version: this.version
+		})
 	}
 
+	/** @type {ReturnType<Sound["toJSON"]>} */
+	#view
+
 	get view() {
-		return Object.freeze(this.toJSON())
+		if (!this.#view) {
+			this.#view = Object.freeze(this.toJSON())
+		}
+		return this.#view
 	}
 }

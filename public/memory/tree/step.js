@@ -1,3 +1,4 @@
+import {DYNAMIC_RANGE, NUMBER_OF_KEYS} from "../constants.js"
 import {
 	grid2layerGrid,
 	step2grid,
@@ -5,6 +6,10 @@ import {
 	step2layer,
 	step2layerStep
 } from "../convert.js"
+
+/**
+ * @typedef {Step["view"]} StepView
+ */
 
 export default class Step {
 	static properties = /** @type const */ ({
@@ -45,6 +50,7 @@ export default class Step {
 
 	set on(val) {
 		this.#mem.stepOns.set([+val], this.index)
+		this.#view = null
 	}
 
 	get attack() {
@@ -53,6 +59,7 @@ export default class Step {
 
 	set attack(val) {
 		this.#mem.stepAttacks.set([val], this.index)
+		this.#view = null
 	}
 
 	get release() {
@@ -61,6 +68,7 @@ export default class Step {
 
 	set release(val) {
 		this.#mem.stepReleases.set([val], this.index)
+		this.#view = null
 	}
 
 	get filterFrequency() {
@@ -69,6 +77,7 @@ export default class Step {
 
 	set filterFrequency(val) {
 		this.#mem.stepFilterFrequencies.set([val], this.index)
+		this.#view = null
 	}
 
 	get filterQ() {
@@ -77,6 +86,7 @@ export default class Step {
 
 	set filterQ(val) {
 		this.#mem.stepFilterQs.set([val], this.index)
+		this.#view = null
 	}
 
 	get pan() {
@@ -84,7 +94,9 @@ export default class Step {
 	}
 
 	set pan(val) {
+		val = Math.clamp(val, -(DYNAMIC_RANGE / 2), DYNAMIC_RANGE / 2)
 		this.#mem.stepPans.set([val], this.index)
+		this.#view = null
 	}
 
 	get pitch() {
@@ -92,7 +104,9 @@ export default class Step {
 	}
 
 	set pitch(val) {
+		val = Math.clamp(val, -(NUMBER_OF_KEYS / 2), NUMBER_OF_KEYS / 2)
 		this.#mem.stepPitches.set([val], this.index)
+		this.#view = null
 	}
 
 	get quiet() {
@@ -100,7 +114,9 @@ export default class Step {
 	}
 
 	set quiet(val) {
+		val = Math.clamp(val, 0, DYNAMIC_RANGE)
 		this.#mem.stepQuiets.set([val], this.index)
+		this.#view = null
 	}
 
 	get start() {
@@ -109,6 +125,7 @@ export default class Step {
 
 	set start(val) {
 		this.#mem.stepStarts.set([val], this.index)
+		this.#view = null
 	}
 
 	get end() {
@@ -117,6 +134,7 @@ export default class Step {
 
 	set end(val) {
 		this.#mem.stepEnds.set([val], this.index)
+		this.#view = null
 	}
 
 	get reversed() {
@@ -125,6 +143,7 @@ export default class Step {
 
 	set reversed(val) {
 		this.#mem.stepReverseds.set([+val], this.index)
+		this.#view = null
 	}
 
 	/**
@@ -133,6 +152,18 @@ export default class Step {
 	toggle(force) {
 		this.on = force == null ? !this.on : force
 	}
+
+	/**
+	 * @param {boolean} [force]
+	 */
+	flip(force) {
+		this.reversed = force == null ? !this.reversed : force
+	}
+
+	quieter() {}
+	louder() {}
+	lefter() {}
+	righter() {}
 
 	toJSON() {
 		return /** @type const */ ({
@@ -156,11 +187,17 @@ export default class Step {
 		})
 	}
 
+	/** @type {ReturnType<Step["toJSON"]>} */
+	#view
+
 	get view() {
-		return Object.freeze(this.toJSON())
+		if (!this.#view) {
+			this.#view = Object.freeze(this.toJSON())
+		}
+		return this.#view
 	}
 
-	/** @param {Step} from */
+	/** @param {Step["view"]} from */
 	paste(from) {
 		this.attack = from.attack
 		this.release = from.release

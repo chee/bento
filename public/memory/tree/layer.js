@@ -45,6 +45,7 @@ export default class Layer {
 	#view
 
 	get view() {
+		return Object.freeze(this.toJSON())
 		if (!this.#view) {
 			this.#view = Object.freeze(this.toJSON())
 		}

@@ -61,16 +61,19 @@ async function getFancy() {
 			party.tree = memtree
 		})
 		// todo delay the request animation frame by bpm/60/4/2 maybe
-		;(async function updateCurrentStep() {
-			party.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
-			party.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
-			party.selectedLayerCurrentGridStepIndex =
-				memtree.selectedLayerCurrentGridStep
-			// todo no exist in firefox
-			// await memtree.waitAsync()
-			requestAnimationFrame(updateCurrentStep)
-		})()
+		// ;(async function updateCurrentStep() {
+		// 	// todo no exist in firefox
+		// 	// await memtree.waitAsync()
+		// 	// setTimeout(() => requestAnimationFrame(updateCurrentStep), 100)
+		// })()
 	}
+}
+
+globalThis.update = event => {
+	party.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
+	party.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
+	party.selectedLayerCurrentGridStepIndex =
+		memtree.selectedLayerCurrentGridStep
 }
 
 fancyListeners.map(name =>

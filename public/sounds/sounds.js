@@ -197,6 +197,8 @@ export async function start() {
 			let message = event.data
 			// todo make this unnecesary
 			if (message == "step-change") {
+				memtree.announce("steps", -1)
+				globalThis.update()
 				let step = memtree.getStep(idx)
 				if (step.on && source) {
 					source.play(step)

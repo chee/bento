@@ -24,11 +24,13 @@ export default class Sound {
 	}
 
 	get left() {
-		return this.#mem.layerSounds.subarray(this.layer, this.layer + SOUND_SIZE)
+		let start = this.layer * SOUND_SIZE
+		return this.#mem.layerSounds.subarray(start, start + SOUND_SIZE)
 	}
 
 	get right() {
-		return this.#mem.layerSounds.subarray(this.layer, this.layer + SOUND_SIZE)
+		let start = this.layer * SOUND_SIZE
+		return this.#mem.layerSounds.subarray(start, start + SOUND_SIZE)
 	}
 
 	set length(val) {
@@ -64,6 +66,7 @@ export default class Sound {
 	#view
 
 	get view() {
+		return Object.freeze(this.toJSON())
 		if (!this.#view) {
 			this.#view = Object.freeze(this.toJSON())
 		}

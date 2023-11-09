@@ -191,6 +191,7 @@ export default class Step {
 	#view
 
 	get view() {
+		return Object.freeze(this.toJSON())
 		if (!this.#view) {
 			this.#view = Object.freeze(this.toJSON())
 		}

@@ -74,6 +74,11 @@ export default class BentoParty extends BentoElement {
 		this.grid.steps = getSelectedGridSteps(memtree)
 		// todo this is expensive to do every loop
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
+
+		this.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
+		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
+		this.selectedLayerCurrentGridStepIndex =
+			memtree.selectedLayerCurrentGridStep
 	}
 
 	/** @type number */

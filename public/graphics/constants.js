@@ -8,4 +8,4 @@ export const Screen = /** @type const */ ({
 	spc: "spc"
 })
 
-export const DPI = 3
+export const DPI = 4

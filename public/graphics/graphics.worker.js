@@ -101,6 +101,7 @@ function drawSampleLine({style, array, x, xm, height}) {
 function same(one, two) {
 	if (Object.is(one, two)) return true
 	if (!two) {
+		console.log("not the same NOT THE SAME")
 		return false
 	}
 	let entries = Object.entries(one)
@@ -108,11 +109,13 @@ function same(one, two) {
 	for (let [key, value] of entries) {
 		if (typeof value == "number" || typeof value == "boolean") {
 			if (one[key] != two[key]) {
+				console.log(`not the same NOT THE SAME ${key} ${one[key]} ${two[key]}`)
 				return false
 			}
 		}
 	}
-	return same
+
+	return true
 }
 
 /**
@@ -149,9 +152,7 @@ function postBitmap(memtree, context, layerIndex, stepIndex) {
 	let visibleSound = getVisibleSound(step, sound)
 	let hasRegion = step.start || step.end
 	let length = hasRegion ? step.end - step.start : sound.length
-	let [start, end] = step.reversed
-		? [step.end | sound.length, step.start]
-		: [step.start, step.end || sound.length]
+	let [start, end] = [step.start, step.end || sound.length]
 	let array = visibleSound.subarray(start, end)
 	let on = step.on
 	let style = styles.boxOn
@@ -426,15 +427,15 @@ function update(frame = 0, force = false) {
 	// silly and would be v slow
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too
-	if (
-		!same(sound, lastSoundDetails) ||
-		styles != lastStyles ||
-		lastStepDetails.grid != lastSoundDetails.grid
-	) {
-		if (!drawing) {
-			postAllBitmaps(memtree, context)
-		}
+	// if (
+	// !same(sound, lastSoundDetails) ||
+	// styles != lastStyles ||
+	// lastStepDetails.grid != lastSoundDetails.grid
+	// ) {
+	if (!drawing) {
+		postAllBitmaps(memtree, context)
 	}
+	// }
 	if (!drawing) {
 		postBitmap(memtree, context, step.layerIndex, step.indexInLayer)
 	}

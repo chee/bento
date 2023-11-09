@@ -114,12 +114,16 @@ document.addEventListener("visibilitychange", () => {
 	}
 	if (document.hidden && (memtree.paused || !memtree.playing)) {
 		context.suspend()
+		iphoneSilenceElement.load()
+		// iphoneSilenceElement.pause()
 		iphoneSilenceElement.parentElement.removeChild(iphoneSilenceElement)
 		alreadyFancy = false
 	} else {
 		play()
 	}
 })
+
+let party = document.querySelector("bento-party")
 
 export async function pause() {}
 
@@ -195,10 +199,10 @@ export async function start() {
 
 		transport.port.onmessage = event => {
 			let message = event.data
+			party.updateCurrentStep(memtree)
 			// todo make this unnecesary
 			if (message == "step-change") {
 				memtree.announce("steps", -1)
-				globalThis.update()
 				let step = memtree.getStep(idx)
 				if (step.on && source) {
 					source.play(step)

@@ -30,13 +30,24 @@ export default class BentoParty extends BentoElement {
 			this.layerSelector = this.machine.layerSelector
 			this.screen = this.machine.screen
 			this.grid = this.machine.grid
-			this.screen.when("select-screen", message => {
-				this.screen.selectedScreen = message.name
+			this.screen.when("select-screen", name => {
+				this.screen.selectedScreen = name
 			})
 		})
 		this.gridSelector = this.querySelector("bento-grid-selector")
 		this.gridControls = this.querySelector("bento-grid-controls")
 		this.tape = this.querySelector("bento-tape")
+	}
+
+	/** @type boolean */
+	get recording() {
+		return this.get("recording")
+	}
+
+	set recording(val) {
+		this.set("recording", val, () => {
+			this.toggleAttribute("recording", val)
+		})
 	}
 
 	set fancy(val) {
@@ -49,10 +60,54 @@ export default class BentoParty extends BentoElement {
 		return this.getAttribute("fancy") == "fancy"
 	}
 
+	/** @type boolean */
+	get playing() {
+		return this.get("playing")
+	}
+
+	set playing(val) {
+		this.set("playing", val, () => {
+			this.toggleAttribute("playing", val)
+		})
+	}
+
+	/** @type boolean */
+	get paused() {
+		return this.get("paused")
+	}
+
+	set paused(val) {
+		this.set("paused", val, () => {
+			this.toggleAttribute("paused", val)
+		})
+	}
+
+	/** @type boolean */
+	get active() {
+		return this.get("active")
+	}
+
+	set active(val) {
+		this.set("active", val, () => {
+			this.toggleAttribute("active", val)
+		})
+	}
+
+	/** @param {MemoryTree} memtree */
+	updateCurrentStep(memtree) {
+		this.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
+		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
+		this.selectedLayerCurrentGridStepIndex =
+			memtree.selectedLayerCurrentGridStep
+	}
+
 	/** @param {MemoryTree} memtree */
 	set tree(memtree) {
 		this.masterControls.playing = memtree.playing
 		this.masterControls.paused = memtree.paused
+		this.playing = memtree.playing
+		this.paused = memtree.paused
+		this.active = memtree.active
 
 		// this.grid.steps = val.steps
 		this.set("selectedLayerIndex", memtree.selectedLayer, () => {
@@ -72,13 +127,10 @@ export default class BentoParty extends BentoElement {
 		})
 
 		this.grid.steps = getSelectedGridSteps(memtree)
-		// todo this is expensive to do every loop
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
+		this.screen.selectedStep = memtree.getSelectedStep()
 
-		this.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
-		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
-		this.selectedLayerCurrentGridStepIndex =
-			memtree.selectedLayerCurrentGridStep
+		this.updateCurrentStep(memtree)
 	}
 
 	/** @type number */

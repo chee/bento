@@ -296,8 +296,16 @@ export default class MemoryTree {
 		return Boolean(this.#mem.master.at(Master.paused))
 	}
 
-	get still() {
+	get active() {
 		return this.playing && !this.paused
+	}
+
+	get stopped() {
+		return !this.playing
+	}
+
+	get silent() {
+		return !this.playing || this.paused
 	}
 
 	/** @param {number} layer */
@@ -306,7 +314,7 @@ export default class MemoryTree {
 	}
 
 	get selectedLayerCurrentStep() {
-		return this.getCurrentStepIndex(this.selectedLayer)
+		return this.stopped ? -1 : this.getCurrentStepIndex(this.selectedLayer)
 	}
 
 	get selectedLayerCurrentGrid() {
@@ -405,14 +413,15 @@ export default class MemoryTree {
 	finishDrawingRegion(end) {
 		let start = this.drawingRegionStart
 		let m = this.drawingRegionXMultiplier
+		let step = this.getSelectedStep()
+		let sound = this.getSound(this.selectedLayer)
+		console.log({start, m, end})
 		;[start, end] = [start / m, end / m]
-		let selectedStep = this.getSelectedStep()
-		let selectedSound = this.getSound(this.selectedLayer)
-		if (selectedStep.reversed) {
-			;[start, end] = [
-				selectedSound.length - end,
-				selectedSound.length - start
-			]
+		if (start > end) {
+			;[start, end] = [end, start]
+		}
+		if (step.reversed) {
+			;[start, end] = [sound.length - end, sound.length - start]
 		}
 		if ((start | 0) == (end | 0)) {
 			;[start, end] = [0, 0]
@@ -421,9 +430,9 @@ export default class MemoryTree {
 			step.start = start
 			step.end = end
 		})
-		this.drawingRegionEnd = -1
-		this.drawingRegionStart = -1
-		this.drawingRegionX = -1
+		this.drawingRegionStart = 0
+		this.drawingRegionEnd = 0
+		this.drawingRegionX = 0
 	}
 
 	getSelectedStep() {
@@ -474,6 +483,11 @@ export default class MemoryTree {
 	 * @param {number} sampleRate
 	 */
 	tick(tick, layerIndex, sampleRate) {
+		if (this.stopped) {
+			this.#mem.currentSteps.set([-1], layerIndex)
+			return false
+		}
+
 		let bpm = this.bpm
 		let samplesPerBeat = (60 / bpm) * sampleRate
 		let currentStepIndex = this.getCurrentStepIndex(layerIndex)

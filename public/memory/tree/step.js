@@ -41,7 +41,6 @@ export default class Step {
 		this.gridIndex = step2grid(index)
 		this.gridIndexInLayer = grid2layerGrid(step2grid(index))
 		this.layerIndex = step2layer(index)
-		// todo make the above computer properties non-writeable
 	}
 
 	get on() {
@@ -50,7 +49,6 @@ export default class Step {
 
 	set on(val) {
 		this.#mem.stepOns.set([+val], this.index)
-		this.#view = null
 	}
 
 	get attack() {
@@ -59,7 +57,6 @@ export default class Step {
 
 	set attack(val) {
 		this.#mem.stepAttacks.set([val], this.index)
-		this.#view = null
 	}
 
 	get release() {
@@ -68,7 +65,6 @@ export default class Step {
 
 	set release(val) {
 		this.#mem.stepReleases.set([val], this.index)
-		this.#view = null
 	}
 
 	get filterFrequency() {
@@ -77,7 +73,6 @@ export default class Step {
 
 	set filterFrequency(val) {
 		this.#mem.stepFilterFrequencies.set([val], this.index)
-		this.#view = null
 	}
 
 	get filterQ() {
@@ -86,7 +81,6 @@ export default class Step {
 
 	set filterQ(val) {
 		this.#mem.stepFilterQs.set([val], this.index)
-		this.#view = null
 	}
 
 	get pan() {
@@ -96,7 +90,6 @@ export default class Step {
 	set pan(val) {
 		val = Math.clamp(val, -(DYNAMIC_RANGE / 2), DYNAMIC_RANGE / 2)
 		this.#mem.stepPans.set([val], this.index)
-		this.#view = null
 	}
 
 	get pitch() {
@@ -106,7 +99,6 @@ export default class Step {
 	set pitch(val) {
 		val = Math.clamp(val, -(NUMBER_OF_KEYS / 2), NUMBER_OF_KEYS / 2)
 		this.#mem.stepPitches.set([val], this.index)
-		this.#view = null
 	}
 
 	get quiet() {
@@ -116,7 +108,6 @@ export default class Step {
 	set quiet(val) {
 		val = Math.clamp(val, 0, DYNAMIC_RANGE)
 		this.#mem.stepQuiets.set([val], this.index)
-		this.#view = null
 	}
 
 	get start() {
@@ -125,16 +116,14 @@ export default class Step {
 
 	set start(val) {
 		this.#mem.stepStarts.set([val], this.index)
-		this.#view = null
 	}
 
 	get end() {
-		return this.#mem.stepStarts.at(this.index)
+		return this.#mem.stepEnds.at(this.index)
 	}
 
 	set end(val) {
 		this.#mem.stepEnds.set([val], this.index)
-		this.#view = null
 	}
 
 	get reversed() {
@@ -143,7 +132,6 @@ export default class Step {
 
 	set reversed(val) {
 		this.#mem.stepReverseds.set([+val], this.index)
-		this.#view = null
 	}
 
 	/**
@@ -187,15 +175,8 @@ export default class Step {
 		})
 	}
 
-	/** @type {ReturnType<Step["toJSON"]>} */
-	#view
-
 	get view() {
 		return Object.freeze(this.toJSON())
-		if (!this.#view) {
-			this.#view = Object.freeze(this.toJSON())
-		}
-		return this.#view
 	}
 
 	/** @param {Step["view"]} from */

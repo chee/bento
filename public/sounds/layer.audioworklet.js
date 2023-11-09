@@ -20,27 +20,15 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		}
 		this.memtree = MemoryTree.from(buffer)
 		this.layerNumber = layerNumber
-		this.lastStepIndex = -1
 		this.tick = 0
 	}
 
 	process() {
 		let memtree = this.memtree
-
-		if (memtree.playing && memtree.paused) {
-			return true
-		} else if (!memtree.playing) {
-			this.lastStepIndex = -1
-			this.tick = 0
-			return true
-		}
-
-		this.tick += 128
-
+		this.tick += memtree.active ? 128 : 0
 		if (memtree.tick(this.tick, this.layerNumber, sampleRate)) {
 			this.port.postMessage("step-change")
 		}
-
 		return true
 	}
 }

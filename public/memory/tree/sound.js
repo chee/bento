@@ -19,7 +19,7 @@ export default class Sound {
 		let start = this.layer * SOUND_SIZE
 		this.#mem.layerSounds.set(val, start)
 		this.#mem.soundLengths.set([val.length], this.layer)
-		this.#view = null
+
 		this.version += 1
 	}
 
@@ -35,7 +35,6 @@ export default class Sound {
 
 	set length(val) {
 		this.#mem.soundLengths.set([val], this.layer)
-		this.#view = null
 	}
 
 	get length() {
@@ -44,7 +43,6 @@ export default class Sound {
 
 	set detune(val) {
 		this.#mem.soundDetunes.set([val], this.layer)
-		this.#view = null
 	}
 
 	get detune() {
@@ -62,14 +60,7 @@ export default class Sound {
 		})
 	}
 
-	/** @type {ReturnType<Sound["toJSON"]>} */
-	#view
-
 	get view() {
 		return Object.freeze(this.toJSON())
-		if (!this.#view) {
-			this.#view = Object.freeze(this.toJSON())
-		}
-		return this.#view
 	}
 }

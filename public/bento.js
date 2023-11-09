@@ -60,20 +60,13 @@ async function getFancy() {
 		memtree.listen(() => {
 			party.tree = memtree
 		})
-		// todo delay the request animation frame by bpm/60/4/2 maybe
+		// this is currently taken care of in sound.js
 		// ;(async function updateCurrentStep() {
 		// 	// todo no exist in firefox
 		// 	// await memtree.waitAsync()
 		// 	// setTimeout(() => requestAnimationFrame(updateCurrentStep), 100)
 		// })()
 	}
-}
-
-globalThis.update = event => {
-	party.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
-	party.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
-	party.selectedLayerCurrentGridStepIndex =
-		memtree.selectedLayerCurrentGridStep
 }
 
 fancyListeners.map(name =>
@@ -147,88 +140,87 @@ party.when("toggle-grid", index => {
 	db.save()
 })
 
-party.when("start-recording", async () => {
-	// todo stopPropagation in party:)
-	// if (party.hasAttribute("recording")) {
-	// 		return
-	// 	}
-	//
-	party.recording = true
-	let audio = await sounds.recordSound()
-	memtree.alterSound(memtree.selectedLayer, sound => {
-		sound.audio = audio
+customElements.whenDefined("bento-screen-controls").then(() => {
+	console.info("she thinks she can get away with shooting him")
+	party.screen.controls.when("record", async () => {
+		console.log("record clonk")
+		// todo stopPropagation in party:)
+		if (party.recording) {
+			return
+		}
+		party.recording = true
+		let audio = await sounds.recordSound()
+		memtree.alterSound(memtree.selectedLayer, sound => {
+			sound.audio = audio
+		})
+		db.save()
+	})
+
+	party.screen.when("set-sound", async message => {
+		let audio = await sounds.decode(message.audio)
+		memtree.alterSound(memtree.selectedLayer, sound => {
+			sound.audio = audio
+		})
+		db.save()
+	})
+
+	party.screen.when("flip-sound", async index => {
+		memtree.alterSound(memtree.selectedLayer, sound => {
+			sound.flip()
+		})
+		db.save()
+	})
+
+	party.screen.when("clip-sound", message => {
+		let from = message.from
+		memtree.alterSound(memtree.selectedLayer, sound => {
+			sound.clip(from.start, from.end)
+		})
+		db.save()
+	})
+
+	party.screen.controls.when("flip", message => {
+		memtree.alterStep(memtree.selectedStep, step => {
+			step.flip()
+		})
+	})
+})
+
+party.screen.when("drawing-region-start", x => {
+	memtree.startDrawingRegion(x)
+	db.save()
+})
+
+party.screen.when("drawing-region-x", x => {
+	memtree.drawingRegionX = x
+	db.save()
+})
+
+party.screen.when("drawing-region-end", x => {
+	memtree.finishDrawingRegion(x)
+	db.save()
+})
+
+party.screen.when("set-pan", pan => {
+	memtree.alterSelected("step", step => {
+		step.pan = pan
 	})
 	db.save()
 })
 
-party.when("set-sound", async message => {
-	let audio = await sounds.decode(message.audio)
-	memtree.alterSound(memtree.selectedLayer, sound => {
-		sound.audio = audio
+party.screen.when("set-quiet", quiet => {
+	memtree.alterSelected("step", step => {
+		step.quiet = quiet
 	})
 	db.save()
 })
 
-party.when("flip-sound", async message => {
-	memtree.alterSound(message.soundIndex, sound => {
-		sound.flip()
+party.screen.when("set-pitch", pitch => {
+	memtree.alterSelected("step", step => {
+		step.pitch = pitch
 	})
 	db.save()
 })
-
-party.when("clip-sound", message => {
-	let from = message.from
-	memtree.alterSound(message.soundIndex, sound => {
-		sound.clip(from.start, from.end)
-	})
-	db.save()
-})
-
-/** TODO this is the screen's business */
-// /** @param {Memory.MousePoint} mouse */
-// function getMixFromMouse(mouse) {
-// 	let pan = Math.round((mouse.x / screen.canvas.width) * 12 - 6)
-// 	let quiet = Math.round((mouse.y / screen.canvas.height) * 12)
-// 	return {pan, quiet}
-// }
-
-// party.hark("mouse", message => {
-// 	if (!("screen" in message)) {
-// 		return
-// 	}
-// 	if (message.screen == "wav") {
-// 		if (message.type == "start") {
-// 			Memory.drawingRegionStart(memory, message.mouse.x)
-// 		} else if (message.type == "move") {
-// 			Memory.drawingRegionX(memory, message.mouse.x)
-// 		} else if (message.type == "end") {
-// 			Memory.drawingRegionEnd(memory, message.mouse.x)
-// 			db.save()
-// 		}
-// 	} else if (message.screen == "mix") {
-// 		let {pan, quiet} = getMixFromMouse(message.mouse)
-// 		let deets = Memory.getSelectedStepDetails(memory)
-// 		Memory.stepQuiet(memory, deets.layer, deets.step, quiet)
-// 		Memory.stepPan(memory, deets.layer, deets.step, pan)
-// 		if (message.type == "end") {
-// 			db.save()
-// 		}
-// 	} else if (message.screen == "key") {
-// 		let deets = Memory.getSelectedStepDetails(memory)
-// 		Memory.stepPitch(
-// 			memory,
-// 			deets.layer,
-// 			deets.step,
-// 			Math.round(
-// 				(message.mouse.x / screen.canvas.width) * Memory.NUMBER_OF_KEYS
-// 			) -
-// 				Memory.NUMBER_OF_KEYS / 2
-// 		)
-// 		if (message.type == "end") {
-// 			db.save()
-// 		}
-// 	}
-// })
 
 party.when("select-step", index => {
 	memtree.selectedUiStep = index
@@ -336,9 +328,6 @@ document.addEventListener(
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
 
-		// does i need to make a state tree that combines values from memtree to
-		// create a single state tree?
-		// let box = boxes[uiStep]
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
 			context.transferFromImageBitmap(bmp)

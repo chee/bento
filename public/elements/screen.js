@@ -1,10 +1,11 @@
 import {bentoElements, BentoElement} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../io/data-transfer.js"
-import {LayerType} from "../memory/memory.js"
+import {LayerType, NUMBER_OF_KEYS} from "../memory/memory.js"
 import {DPI, Screen} from "../graphics/constants.js"
 import BentoScreenControls from "./screen-controls.js"
 import Layer from "../memory/tree/layer.js"
+import Step from "../memory/tree/step.js"
 
 /**
  * @typedef {Object} StyleMap
@@ -19,11 +20,6 @@ import Layer from "../memory/tree/layer.js"
  */
 
 export default class BentoScreen extends BentoElement {
-	/** @type Record<LayerType, Screen[]> */
-	static screenNames = {
-		[LayerType.sampler]: [Screen.wav, Screen.key, Screen.mix],
-		[LayerType.synth]: [Screen.key, Screen.mix]
-	}
 	/** @type {BentoScreenSelector} */
 	selector
 	/** @type {BentoScreenControls} */
@@ -42,7 +38,7 @@ export default class BentoScreen extends BentoElement {
 		customElements.whenDefined("bento-screen-controls").then(() => {
 			this.controls = document.createElement("bento-screen-controls")
 			this.shadow.insertBefore(this.controls, this.shadow.firstElementChild)
-			this.controls.controls = ["record"]
+			this.controls.selectedScreen = this.selectedScreen
 		})
 
 		customElements.whenDefined("bento-screen-selector").then(() => {
@@ -199,7 +195,21 @@ export default class BentoScreen extends BentoElement {
 	#mouse(message) {
 		let {type, mouse} = message
 
-		this.announce("mouse", {type, mouse, screen})
+		if (this.selectedScreen == "wav") {
+			let suffix = type == "move" ? "x" : type
+			let announcement = `drawing-region-${suffix}`
+			this.announce(announcement, mouse.x)
+		} else if (this.selectedScreen == "mix") {
+			let pan = Math.round((mouse.x / this.canvas.width) * 12 - 6)
+			let quiet = Math.round((mouse.y / this.canvas.height) * 12)
+			this.announce("set-pan", pan)
+			this.announce("set-quiet", quiet)
+		} else if (this.selectedScreen == "key") {
+			let width = this.canvas.width
+			let x = mouse.x
+			let pitch = Math.round((x / width) * NUMBER_OF_KEYS) - NUMBER_OF_KEYS / 2
+			this.announce("set-pitch", pitch)
+		}
 	}
 
 	/** @param {string} prop */
@@ -286,12 +296,8 @@ export default class BentoScreen extends BentoElement {
 
 	set layer(val) {
 		this.set("layer", val, () => {
-			let screens = BentoScreen.screenNames[val.type]
-			if (screens) {
-				this.selector.screens = screens
-			} else {
-				console.error(`no screen for LayerType ${val}`)
-			}
+			this.selector.selectedLayer = val
+			this.controls.selectedLayer = val
 		})
 	}
 
@@ -303,6 +309,18 @@ export default class BentoScreen extends BentoElement {
 	set selectedScreen(name) {
 		this.set("selectedScreen", name, () => {
 			this.selector.selectedScreen = name
+			this.controls.selectedScreen = name
+		})
+	}
+
+	/** @type {Step["view"]} */
+	get selectedStep() {
+		return this.get("selectedStep")
+	}
+
+	set selectedStep(step) {
+		this.set("selectedStep", step, () => {
+			this.controls.selectedStep = step
 		})
 	}
 }

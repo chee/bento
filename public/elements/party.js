@@ -112,6 +112,7 @@ export default class BentoParty extends BentoElement {
 	set tree(memtree) {
 		this.masterControls.playing = memtree.playing
 		this.masterControls.paused = memtree.paused
+		this.masterControls.bpm = memtree.bpm
 		this.playing = memtree.playing
 		this.paused = memtree.paused
 		this.active = memtree.active
@@ -137,6 +138,7 @@ export default class BentoParty extends BentoElement {
 		this.gridSelector.grids = getSelectedLayerGrids(memtree)
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
 		this.screen.selectedStep = memtree.getSelectedStep()
+		this.gridControls.grid = memtree.getSelectedGrid()
 
 		this.updateCurrentStep(memtree)
 	}
@@ -148,7 +150,7 @@ export default class BentoParty extends BentoElement {
 
 	set selectedLayerCurrentStepIndex(val) {
 		this.set("selectedLayerCurrentStepIndex", val, () => {
-			this.gridSelector.currentGridStepIndex = val
+			// this.gridSelector.currentGridStepIndex = val
 		})
 	}
 
@@ -170,7 +172,13 @@ export default class BentoParty extends BentoElement {
 
 	set selectedLayerCurrentGridStepIndex(val) {
 		this.set("selectedLayerCurrentGridStepIndex", val, () => {
-			this.grid.currentStepIndex = val
+			if (this.selectedGridIndex == this.gridSelector.currentGridIndex) {
+				this.grid.currentStepIndex = val
+			} else {
+				this.grid.currentStepIndex = -1
+			}
+
+			this.gridSelector.currentGridStepIndex = val
 		})
 	}
 

@@ -76,7 +76,6 @@ export default class BentoControlButton extends BentoElement {
 		this.set("content", val, () => {
 			this.button.textContent = ""
 			let elements = createContent(val)
-			console.log(elements)
 			for (let element of elements) {
 				this.button.appendChild(element)
 			}

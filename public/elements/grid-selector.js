@@ -70,9 +70,12 @@ export default class BentoGridSelector extends BentoElement {
 
 	set currentGridStepIndex(val) {
 		this.set("currentGridStepIndex", val, () => {
-			let currentGrid = this.minigrids[this.currentGridIndex]
-			if (currentGrid) {
-				currentGrid.currentStepIndex = val
+			for (let minigrid of this.minigrids) {
+				if (minigrid.grid.index == this.currentGridIndex) {
+					minigrid.currentStepIndex = val
+				} else {
+					minigrid.currentStepIndex = -1
+				}
 			}
 		})
 	}

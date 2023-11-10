@@ -90,7 +90,7 @@ button svg {
 	margin: 0.2em;
 }
 
-button svg * {
+button svg :not([fill="none"]) {
 	fill: var(--master-controls-line);
 }
 

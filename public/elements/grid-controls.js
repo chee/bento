@@ -1,3 +1,4 @@
+import Grid from "../memory/tree/grid.js"
 import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoGridControls extends BentoElement {
@@ -23,6 +24,7 @@ export default class BentoGridControls extends BentoElement {
 			label: "×4"
 		}
 	]
+
 	static polyamorousSpeeds = [
 		{
 			value: 0.75,
@@ -33,6 +35,7 @@ export default class BentoGridControls extends BentoElement {
 			label: "×3"
 		}
 	]
+
 	/** @type {HTMLSelectElement} */
 	#speedSelector
 	connectedCallback() {
@@ -52,15 +55,14 @@ export default class BentoGridControls extends BentoElement {
 		}
 		fieldset.appendChild(speedSelector)
 		this.#speedSelector = speedSelector
+
 		speedSelector.addEventListener("change", () => {
-			this.announce("change", {
-				change: "speed",
+			this.announce("set-grid-speed", {
+				index: this.grid.index,
 				value: Number(this.#speedSelector.value)
 			})
 		})
 
-		// not fully convinced i should include these
-		// they make it easier to make bad music
 		// let optgroup = document.createElement("optgroup")
 		// this.#speedSelector.appendChild(optgroup)
 		// optgroup.label = "ethically non-monogamous"
@@ -79,11 +81,56 @@ export default class BentoGridControls extends BentoElement {
 		// }
 	}
 
-	/** @param {number} val */
+	/** @type {number} */
+	get speed() {
+		return this.get("speed")
+	}
+
 	set speed(val) {
-		if (val != +this.#speedSelector.value) {
+		this.set("speed", val, () => {
 			this.#speedSelector.value = val.toString()
-		}
+		})
+	}
+
+	/** @type {Grid["view"]} */
+	get grid() {
+		return this.get("grid")
+	}
+
+	set grid(val) {
+		this.set("grid", val, () => {
+			this.speed = val.speed
+			this.jump = val.jump
+			this.loop = val.loop
+			this.on = val.on
+		})
+	}
+
+	/** @type {number} */
+	get jump() {
+		return this.get("jump")
+	}
+
+	set jump(val) {
+		this.set("jump", val, () => {})
+	}
+
+	/** @type {number} */
+	get loop() {
+		return this.get("loop")
+	}
+
+	set loop(val) {
+		this.set("loop", val, () => {})
+	}
+
+	/** @type {boolean} */
+	get on() {
+		return this.get("on")
+	}
+
+	set on(val) {
+		this.set("on", val, () => {})
 	}
 }
 

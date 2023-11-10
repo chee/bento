@@ -33,7 +33,7 @@ export default class BentoMiniGrid extends BentoElement {
 		if (this.selected) {
 			this.announce("toggle-grid", this.grid.index)
 		} else {
-			this.announce("select-grid", this.grid.indexInLayer)
+			this.announce("select-grid", this.grid.index)
 		}
 	}
 
@@ -69,7 +69,7 @@ export default class BentoMiniGrid extends BentoElement {
 
 	/** @param {DragEvent} event */
 	#dragstart(event) {
-		dt.setGrid(event.dataTransfer, +this.id)
+		dt.setGrid(event.dataTransfer, this.grid.index)
 	}
 
 	/** @param {DragEvent} event */
@@ -80,7 +80,7 @@ export default class BentoMiniGrid extends BentoElement {
 			from: grid,
 			to: this.grid.index
 		})
-		this.announce("select-grid", this.grid.indexInLayer)
+		this.announce("select-grid", this.grid.index)
 		this.#droptarget = false
 	}
 

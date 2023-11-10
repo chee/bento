@@ -13,15 +13,17 @@ fieldset {
 	padding: 0;
 	display: flex;
 	flex-direction: row;
-	justify-content: space-evenly;
+	justify-content: start;
 	text-align: center;
 	align-items: center;
 	width: var(--total-width);
-	display: flex;
-	justify-content: space-evenly;
-	text-align: center;
-	background: var(--layer-options-fill);
-	color: var(--layer-options-line);
+	--grid-controls-fill: var(--machine-line);
+	--grid-controls-line: var(--machine-fill);
+	background: var(--grid-controls-fill);
+	color: var(--grid-controls-line);
+	appearance: none;
+	padding-top: 0.125em;
+	padding-bottom: 0.125em;
 }
 
 legend {
@@ -34,27 +36,15 @@ legend {
 }
 
 select {
-	font-size: 0.7rem;
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-	background: var(--layer-options-fill);
-	color: var(--layer-options-line);
-	border: none;
-}
-
-#upload {
-	font-weight: bold;
-	font-size: 0.5em;
-	line-height: 1rem;
-}
-
-#record {
-	background: var(--layer-options-fill);
-	color: var(--layer-options-line);
-	border: none;
-	appearance: none;
-	font-size: 0.8em;
-	line-height: 1rem;
-	cursor: pointer;
+	background: var(--grid-controls-fill);
+	color: var(--grid-controls-line);
+	border: 1px solid;
+	width: 1rem;
+	height: 1rem;
+	text-align: center;
+	padding: 0;
+	margin-left: 0.5em;
 }

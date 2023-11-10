@@ -84,17 +84,16 @@ export default class Grid {
 			this[key] = from[key]
 		}
 
+		let thisStepStart =
+			this.layerIndex * STEPS_PER_LAYER + this.indexInLayer * STEPS_PER_GRID
+		let fromStepStart =
+			from.layerIndex * STEPS_PER_LAYER + from.indexInLayer * STEPS_PER_GRID
+
 		// todo this doesn't seem quite right. a little entangled
 		for (let s = 0; s <= STEPS_PER_GRID; s++) {
-			let thisStepIndex =
-				this.layerIndex * STEPS_PER_LAYER +
-				this.indexInLayer * STEPS_PER_GRID +
-				s
+			let thisStepIndex = thisStepStart + s
 
-			let fromStepIndex =
-				from.layerIndex * STEPS_PER_LAYER +
-				from.indexInLayer * STEPS_PER_GRID +
-				s
+			let fromStepIndex = fromStepStart + s
 
 			let thisStep = new Step(this.#mem, thisStepIndex)
 			let fromStep = new Step(this.#mem, fromStepIndex)

@@ -69,11 +69,11 @@ export default class BentoMasterControls extends BentoElement {
 		bpm.max = "240"
 		bpm.value = "120"
 		bpm.addEventListener("change", () => {
-			this.announce("change", {
-				change: "bpm",
-				value: Math.clamp(+bpm.value, +bpm.min, +bpm.max)
-			})
+			let value = Math.clamp(+bpm.value, +bpm.min, +bpm.max)
+			this.announce("set-bpm", value)
+			this.value = value
 		})
+
 		this.#bpmElement = bpm
 		bpm.id = "bpm"
 		bpm.ariaLabel = "Set the tempo in beats per minute"
@@ -85,9 +85,11 @@ export default class BentoMasterControls extends BentoElement {
 			icon: "•••",
 			label: "Open the settings"
 		})
+
 		settingsButton.addEventListener("click", () => {
 			this.announce("toggle-settings")
 		})
+
 		fieldset.appendChild(settingsButton)
 		this.setDefault("bpm", 120)
 	}
@@ -100,7 +102,7 @@ export default class BentoMasterControls extends BentoElement {
 	set bpm(val) {
 		this.set("bpm", val, () => {
 			let el = this.#bpmElement
-			el.value = val ? Math.clamp(val, +el.min, +el.max).toString() : ""
+			el.value = val.toString()
 		})
 	}
 

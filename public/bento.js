@@ -1,6 +1,11 @@
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
-import {size as MEMORY_SIZE, map, step2gridStep} from "./memory/memory.js"
+import {
+	size as MEMORY_SIZE,
+	grid2layerGrid,
+	map,
+	step2gridStep
+} from "./memory/memory.js"
 import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
@@ -100,9 +105,15 @@ party.when("stop", () => {
 	sounds.pause()
 })
 
-party.when("set-bpm", message => {
-	memtree.bpm = message.value
-	// todo base these saves on memtree.update() in db.js
+party.when("set-bpm", bpm => {
+	memtree.bpm = bpm
+	db.save()
+})
+
+party.gridControls.when("set-grid-speed", message => {
+	memtree.alterGrid(message.index, grid => {
+		grid.speed = message.value
+	})
 	db.save()
 })
 
@@ -118,9 +129,9 @@ party.when("update-grid", message => {
 	db.save()
 })
 
-party.when("select-grid", indexInLayer => {
+party.when("select-grid", index => {
 	memtree.alterSelected("layer", layer => {
-		layer.selectedGrid = indexInLayer
+		layer.selectedGrid = grid2layerGrid(index)
 	})
 	db.save()
 })

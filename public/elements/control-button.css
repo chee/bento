@@ -65,6 +65,6 @@ button[aria-checked="true"] svg * {
 	fill: var(--selected-screen-selector-button-line);
 }
 
-button[aria-checked="true"][name="flip"] svg {
-	transform: rotate(0.5turn);
+button:not([aria-checked="true"])[name="flip"] svg {
+	transform: scaleX(-1);
 }

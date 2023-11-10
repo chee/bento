@@ -1,29 +1,15 @@
 import {BentoElement, bentoElements} from "./base.js"
+import icons from "../icons.js"
 
-/** @typedef {Object} ControlSpec
- * @param {string} name
- * @param {string} type
- * @param {string} icon
- * @param {string} label
+/**
+ * @typedef {Object} ControlSpec
+ * @prop {string} name
+ * @prop {string} type
+ * @prop {string} icon
+ * @prop {string} label
  */
 
 export default class BentoMasterControls extends BentoElement {
-	static icons = {
-		play: `<svg viewBox="-5 -5 522 522" xmlns="http://www.w3.org/2000/svg">
-				<polygon points="12,16 8,512 512,264"/>
-			</svg>`,
-		stop: `<svg viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg">
-				<rect width="1" height="1"/>
-			</svg>`,
-		sqop: `<svg viewBox="-10 -10 522 522" xmlns="http://www.w3.org/2000/svg">
-				<path d="M 0 256C 0 10, 10 0, 256 0S 512 10, 512 256, 502 512 256 512, 0 502, 0 256"/>
-			</svg>`,
-		paus: `<svg viewBox="-5 -5 522 522" xmlns="http://www.w3.org/2000/svg">
-				<rect width="176" height="480" x="48" y="16"/>
-				<rect width="176" height="480" x="288" y="16"/>
-			</svg>`
-	}
-
 	/** @type {HTMLInputElement} */
 	#bpmElement
 
@@ -49,13 +35,13 @@ export default class BentoMasterControls extends BentoElement {
 			</fieldset>
 		`
 		this.attachStylesheet("master-controls")
-		let fieldset = this.shadow.firstElementChild
+		let fieldset = /** @type HTMLElement */ (this.shadow.firstElementChild)
 
 		fieldset.appendChild(
 			this.createButton({
 				name: "play",
 				type: "button",
-				icon: BentoMasterControls.icons.play,
+				icon: icons.get("play").outerHTML,
 				label: "Start or restart the music"
 			})
 		)
@@ -63,7 +49,7 @@ export default class BentoMasterControls extends BentoElement {
 			this.createButton({
 				name: "pause",
 				type: "button",
-				icon: BentoMasterControls.icons.paus,
+				icon: icons.get("pause").outerHTML,
 				label: "Pause the music"
 			})
 		)
@@ -71,7 +57,7 @@ export default class BentoMasterControls extends BentoElement {
 			this.createButton({
 				name: "stop",
 				type: "button",
-				icon: BentoMasterControls.icons.sqop,
+				icon: icons.get("stop").outerHTML,
 				label: "Stop the music"
 			})
 		)

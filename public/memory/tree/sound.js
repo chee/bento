@@ -11,7 +11,6 @@ export default class Sound {
 	constructor(mem, layer) {
 		this.#mem = mem
 		this.layer = layer
-		this.version = 0
 	}
 
 	/** @param {Float32Array} val */
@@ -19,8 +18,7 @@ export default class Sound {
 		let start = this.layer * SOUND_SIZE
 		this.#mem.layerSounds.set(val, start)
 		this.#mem.soundLengths.set([val.length], this.layer)
-
-		this.version += 1
+		this.#mem.soundVersions.set([this.version + 1], this.layer)
 	}
 
 	get left() {
@@ -47,6 +45,10 @@ export default class Sound {
 
 	get detune() {
 		return this.#mem.soundDetunes.at(this.layer)
+	}
+
+	get version() {
+		return this.#mem.soundVersions.at(this.layer)
 	}
 
 	toJSON() {

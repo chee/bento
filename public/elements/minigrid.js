@@ -26,6 +26,15 @@ export default class BentoMiniGrid extends BentoElement {
 		this.addEventListener("dragleave", this.#dragleave)
 		this.addEventListener("drop", this.#drop)
 		this.addEventListener("dragstart", this.#dragstart)
+		this.addEventListener("click", this.#click)
+	}
+
+	#click() {
+		if (this.selected) {
+			this.announce("toggle-grid", this.grid.index)
+		} else {
+			this.announce("select-grid", this.grid.indexInLayer)
+		}
 	}
 
 	get #droptarget() {
@@ -68,9 +77,10 @@ export default class BentoMiniGrid extends BentoElement {
 		event.preventDefault()
 		let grid = await dt.getGrid(event.dataTransfer)
 		this.announce("copy-grid", {
-			from: this.grid.index,
-			to: grid
+			from: grid,
+			to: this.grid.index
 		})
+		this.announce("select-grid", this.grid.indexInLayer)
 		this.#droptarget = false
 	}
 
@@ -109,17 +119,6 @@ export default class BentoMiniGrid extends BentoElement {
 	set selected(val) {
 		this.set("selected", val, () => {
 			this.toggleAttribute("selected", val)
-		})
-	}
-
-	/** @type boolean */
-	get on() {
-		return this.get("on")
-	}
-
-	set on(val) {
-		this.set("on", val, () => {
-			this.toggleAttribute("on", val)
 		})
 	}
 

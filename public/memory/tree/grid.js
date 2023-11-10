@@ -1,4 +1,10 @@
+import {
+	LAYERS_PER_MACHINE,
+	STEPS_PER_GRID,
+	STEPS_PER_LAYER
+} from "../constants.js"
 import {grid2layer, grid2layerGrid} from "../convert.js"
+import Step from "./step.js"
 
 export default class Grid {
 	/** @type {import("../memory").MemoryMap} */
@@ -65,5 +71,35 @@ export default class Grid {
 
 	get view() {
 		return Object.freeze(this.toJSON())
+	}
+
+	static computedKeys = ["index", "indexInLayer", "layerIndex"]
+
+	/** @param {Grid["view"]} from */
+	paste(from) {
+		for (let key in from) {
+			if (Grid.computedKeys.includes(key)) {
+				continue
+			}
+			this[key] = from[key]
+		}
+
+		// todo this doesn't seem quite right. a little entangled
+		for (let s = 0; s <= STEPS_PER_GRID; s++) {
+			let thisStepIndex =
+				this.layerIndex * STEPS_PER_LAYER +
+				this.indexInLayer * STEPS_PER_GRID +
+				s
+
+			let fromStepIndex =
+				from.layerIndex * STEPS_PER_LAYER +
+				from.indexInLayer * STEPS_PER_GRID +
+				s
+
+			let thisStep = new Step(this.#mem, thisStepIndex)
+			let fromStep = new Step(this.#mem, fromStepIndex)
+
+			thisStep.paste(fromStep.view)
+		}
 	}
 }

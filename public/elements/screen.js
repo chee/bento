@@ -45,87 +45,12 @@ export default class BentoScreen extends BentoElement {
 			this.selector = document.createElement("bento-screen-selector")
 			this.shadow.appendChild(this.selector)
 		})
+		this.addEventListener("dragenter", this.#dragenter)
 
-		/* this runs once when drag enters the target's zone */
-		this.addEventListener("dragenter", async event => {
-			event.preventDefault()
-			let {items} = event.dataTransfer
+		this.addEventListener("dragover", this.#dragover)
+		this.addEventListener("dragleave", this.#dragleave)
+		this.addEventListener("drop", this.#drop)
 
-			// todo move this to dt.getAudio
-			for (let item of Array.from(items)) {
-				// TODO restrict to supported formats by trying to decode a silent
-				// audio item of all the formats anyone supports?
-				if (item.kind == "file") {
-					if (item.type.startsWith("audio/")) {
-						this.setAttribute("drop-target", "drop-target")
-					} else {
-						console.debug(`unsupported type: ${item.kind}, ${event.type}`)
-					}
-				}
-			}
-			if (await dt.isStep(event.dataTransfer)) {
-				this.setAttribute("drop-target", "drop-target")
-			}
-			event.preventDefault()
-		})
-
-		// todo move these to #handlers
-		/* this runs a billion times a second while a drag is being held on top of the
-		target */
-		this.addEventListener("dragover", async event => {
-			event.preventDefault()
-
-			let {items} = event.dataTransfer
-
-			// todo move this to dt.getAudio
-			for (let item of Array.from(items)) {
-				// TODO restrict to supported formats by trying to decode a silent audio
-				// item of all the formats anyone supports?
-				if (item.kind == "file") {
-					if (item.type.startsWith("audio/")) {
-						this.setAttribute("drop-target", "")
-					} else {
-						console.debug(`unsupported type: ${item.kind}, ${event.type}`)
-					}
-				}
-			}
-			if (await dt.isStep(event.dataTransfer)) {
-				this.setAttribute("drop-target", "drop-target")
-			}
-		})
-
-		/* this runs once when drag exits the target's zone */
-		this.addEventListener("dragleave", event => {
-			event.preventDefault()
-			this.removeAttribute("drop-target")
-		})
-
-		/* i don't know when this runs. seems never */
-		this.addEventListener("dragend", () => {})
-
-		this.addEventListener("drop", async event => {
-			event.preventDefault()
-
-			this.removeAttribute("drop-target")
-			// todo move this to dt.getAudio, also maybe have a getItems("step",
-			// "audio") or somethingn
-			if (event.dataTransfer.items) {
-				for (let item of Array.from(event.dataTransfer.items)) {
-					if (item.kind == "file") {
-						let file = item.getAsFile()
-						this.announce("set-sound", {
-							audio: file
-						})
-					}
-				}
-			}
-			let step = await dt.getStep(event.dataTransfer)
-			if (step != null) {
-				this.announce("clip-sound", {
-					from: step
-				})
-			}
-		})
 		if (IS_BASICALLY_A_PHONE) {
 			this.addEventListener("touchstart", this.#touchstart)
 		} else {
@@ -209,6 +134,83 @@ export default class BentoScreen extends BentoElement {
 			let x = mouse.x
 			let pitch = Math.round((x / width) * NUMBER_OF_KEYS) - NUMBER_OF_KEYS / 2
 			this.announce("set-pitch", pitch)
+		}
+	}
+
+	/* this runs once when drag enters the target's zone */
+	/** @param {DragEvent} event */
+	async #dragenter(event) {
+		event.preventDefault()
+		let {items} = event.dataTransfer
+
+		// todo move this to dt.getAudio
+		for (let item of Array.from(items)) {
+			// TODO restrict to supported formats by trying to decode a silent
+			// audio item of all the formats anyone supports?
+			if (item.kind == "file") {
+				if (item.type.startsWith("audio/")) {
+					this.setAttribute("drop-target", "drop-target")
+				} else {
+					console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+				}
+			}
+		}
+		if (await dt.isStep(event.dataTransfer)) {
+			this.setAttribute("drop-target", "drop-target")
+		}
+		event.preventDefault()
+	}
+
+	/* runs a billion times per sec while you're holding an item over screen*/
+	/** @param {DragEvent} event */
+	async #dragover(event) {
+		event.preventDefault()
+
+		let {items} = event.dataTransfer
+
+		// todo move this to dt.getAudio
+		for (let item of Array.from(items)) {
+			// TODO restrict to supported formats by trying to decode a silent audio
+			// item of all the formats anyone supports?
+			if (item.kind == "file") {
+				if (item.type.startsWith("audio/")) {
+					this.setAttribute("drop-target", "")
+				} else {
+					console.debug(`unsupported type: ${item.kind}, ${event.type}`)
+				}
+			}
+		}
+		if (await dt.isStep(event.dataTransfer)) {
+			this.setAttribute("drop-target", "drop-target")
+		}
+	}
+
+	/** @param {DragEvent} event */
+	async #dragleave(event) {
+		event.preventDefault()
+		this.removeAttribute("drop-target")
+	}
+
+	/** @param {DragEvent} event */
+	async #drop(event) {
+		this.removeAttribute("drop-target")
+		// todo move this to dt.getAudio, also maybe have a getItems("step",
+		// "audio") or somethingn
+		if (event.dataTransfer.items) {
+			for (let item of Array.from(event.dataTransfer.items)) {
+				if (item.kind == "file") {
+					let file = item.getAsFile()
+					this.announce("set-sound", {
+						audio: file
+					})
+				}
+			}
+		}
+		let step = await dt.getStep(event.dataTransfer)
+		if (step != null) {
+			this.announce("clip-sound", {
+				from: step
+			})
 		}
 	}
 
@@ -310,6 +312,7 @@ export default class BentoScreen extends BentoElement {
 		this.set("selectedScreen", name, () => {
 			this.selector.selectedScreen = name
 			this.controls.selectedScreen = name
+			this.setAttribute("screen", name)
 		})
 	}
 
@@ -321,6 +324,14 @@ export default class BentoScreen extends BentoElement {
 	set selectedStep(step) {
 		this.set("selectedStep", step, () => {
 			this.controls.selectedStep = step
+			// for (let key in step) {
+			// 	let value = step[key]
+			// 	if (typeof value == "boolean") {
+			// 		this.toggleAttribute(key, value)
+			// 	} else {
+			// 		this.setAttribute(key, value)
+			// 	}
+			// }
 		})
 	}
 }

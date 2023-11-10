@@ -459,3 +459,7 @@ bento-poweroff * {
 		transform: scale(0.9199);
 	}
 }
+
+svg[data-icon] {
+	display: none;
+}

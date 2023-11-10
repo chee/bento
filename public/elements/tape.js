@@ -1,11 +1,12 @@
 import {BentoElement, bentoElements} from "./base.js"
+import icons from "../icons.js"
 
 export default class BentoTape extends BentoElement {
 	static defaultMessage = "placing the cassette into the sanyo"
 	/** @type {number} */
-	interval
+	interval = 0
 	connectedCallback() {
-		let svg = /** @type {SVGElement} */ (document.querySelector("svg#tape"))
+		let svg = icons.get("tape")
 		document.body.removeChild(svg)
 		svg.style.display = "block"
 		this.shadow = this.attachShadow({mode: "closed"})
@@ -17,8 +18,13 @@ export default class BentoTape extends BentoElement {
 		this.attachStylesheet("tape")
 	}
 
+	set recording(val) {
+		this.set("recording", val, () => {})
+	}
+
+	/** @type boolean */
 	get recording() {
-		return !!document.querySelector("bento-party[recording]")
+		return this.get("recording")
 	}
 
 	/** @param {number} ms*/

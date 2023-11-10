@@ -3,6 +3,7 @@ import * as loop from "../convenience/loop.js"
 import BentoBox from "./box.js"
 import Modmask from "../io/modmask.js"
 import Step from "../memory/tree/step.js"
+import Grid from "../memory/tree/grid.js"
 
 export default class BentoGrid extends BentoElement {
 	/** @type {BentoBox[]} */
@@ -121,6 +122,15 @@ export default class BentoGrid extends BentoElement {
 			}
 		})
 	}
+
+	// /** @type {Grid["view"]} */
+	// get grid() {
+	// 	return this.get("grid")
+	// }
+
+	// set grid(grid) {
+	// 	this.set("grid", grid, () => {})
+	// }
 
 	/** @param {KeyboardEvent} event */
 	#keydown(event) {}

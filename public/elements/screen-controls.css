@@ -25,14 +25,17 @@ button {
 	text-align: center;
 	line-height: 1em;
 	cursor: pointer;
-	width: 1em;
-	height: 1em;
+	width: 1.5em;
+	height: 1.5em;
 	border: 0;
 	border: 1px solid;
 	box-shadow: 0;
 	border-radius: 0;
-	padding: 0.5ch;
 	margin: 1px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 button:not(:last-child) {
@@ -43,17 +46,38 @@ button:hover {
 	background: #ffffff11;
 }
 
-button[aria-checked] {
+button[aria-checked="true"] {
 	background: var(--selected-screen-selector-button-fill);
 	color: var(--selected-screen-selector-button-line);
 }
 
 button svg {
-	height: 100%;
-	width: 100%;
+	height: 1em;
+	width: 1em;
+}
+
+button.with-name svg {
+	height: 0.75em;
+	width: 0.75em;
+	margin-bottom: 1px;
 }
 
 button svg * {
 	stroke: var(--screen-line);
 	fill: var(--screen-line);
+}
+
+button[aria-checked="true"] svg * {
+	stroke: var(--selected-screen-selector-button-line);
+	fill: var(--selected-screen-selector-button-line);
+}
+
+button[aria-checked="true"][name="flip"] svg {
+	transform: rotate(0.5turn);
+}
+
+button .name {
+	text-transform: uppercase;
+	font-size: 10px;
+	line-height: 1em;
 }

@@ -1,1 +1,70 @@
+button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	box-sizing: content-box;
+	background: var(--screen-selector-button-fill);
+	color: var(--screen-selector-button-line);
+	font-family: var(--font-family);
+	font-size: 0.5em;
+	text-align: center;
+	line-height: 1em;
+	cursor: pointer;
+	width: 1.5em;
+	height: 1.5em;
+	border: 0;
+	border: 1px solid;
+	box-shadow: 0;
+	border-radius: 0;
+	margin: 1px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-transform: uppercase;
+}
 
+button:hover {
+	box-shadow: 2px 2px 2px 0 var(--screen-selector-button-shadow-color);
+	background: #ffffff11;
+}
+
+button[aria-checked="true"] {
+	background: var(--selected-screen-selector-button-fill);
+	color: var(--selected-screen-selector-button-line);
+}
+
+button .top,
+button.bottom {
+	line-height: 1em;
+}
+
+button .top {
+	font-size: 10px;
+}
+
+button .bottom {
+	height: 100%;
+	width: 100%;
+	margin-bottom: 1px;
+	font-size: 12px;
+}
+
+button .only {
+	height: 1em;
+	width: 1em;
+}
+
+button svg * {
+	stroke: var(--screen-line);
+	fill: var(--screen-line);
+}
+
+button[aria-checked="true"] svg * {
+	stroke: var(--selected-screen-selector-button-line);
+	fill: var(--selected-screen-selector-button-line);
+}
+
+button[aria-checked="true"][name="flip"] svg {
+	transform: rotate(0.5turn);
+}

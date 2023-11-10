@@ -101,7 +101,6 @@ function drawSampleLine({style, array, x, xm, height}) {
 function same(one, two) {
 	if (Object.is(one, two)) return true
 	if (!two) {
-		console.log("not the same NOT THE SAME")
 		return false
 	}
 	let entries = Object.entries(one)
@@ -109,7 +108,6 @@ function same(one, two) {
 	for (let [key, value] of entries) {
 		if (typeof value == "number" || typeof value == "boolean") {
 			if (one[key] != two[key]) {
-				console.log(`not the same NOT THE SAME ${key} ${one[key]} ${two[key]}`)
 				return false
 			}
 		}
@@ -153,6 +151,9 @@ function postBitmap(memtree, context, layerIndex, stepIndex) {
 	let hasRegion = step.start || step.end
 	let length = hasRegion ? step.end - step.start : sound.length
 	let [start, end] = [step.start, step.end || sound.length]
+	if (step.reversed) {
+		;[start, end] = [sound.length - end, sound.length - start]
+	}
 	let array = visibleSound.subarray(start, end)
 	let on = step.on
 	let style = styles.boxOn
@@ -289,9 +290,10 @@ function wav(_frame = 0, force = false) {
 
 		fillRegion(fillStart, fillEnd, styles.region.fill)
 
-		let [start, end] = step.reversed
-			? [step.end || sound.length, step.start]
-			: [step.start, step.end || sound.length]
+		let [start, end] = [step.start, step.end || sound.length]
+		if (step.reversed) {
+			;[start, end] = [sound.length - end, sound.length - start]
+		}
 
 		let array = visibleSound.subarray(start, end)
 
@@ -402,10 +404,11 @@ function mix(_frame = 0, force = false) {
 
 /** @type Screen */
 let lastScreen = screen
-let lastStepDetails
+let lastStep
 let lastStyles = styles
-let lastSoundDetails
+let lastSound
 function update(frame = 0, force = false) {
+	// todo figure out atomics.wait so this can all go in the bin
 	force = force || lastScreen != screen
 	lastScreen = screen
 	let layer = memtree.getSelectedLayer()
@@ -416,7 +419,8 @@ function update(frame = 0, force = false) {
 	if (
 		!force &&
 		!drawing &&
-		same(step, lastStepDetails) &&
+		same(step, lastStep) &&
+		same(sound, lastSound) &&
 		styles == lastStyles
 	) {
 		return requestAnimationFrame(update)
@@ -427,21 +431,22 @@ function update(frame = 0, force = false) {
 	// silly and would be v slow
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too
+	// todo bring back hanging for everyone
 	// if (
-	// !same(sound, lastSoundDetails) ||
-	// styles != lastStyles ||
-	// lastStepDetails.grid != lastSoundDetails.grid
+	// 	!same(sound, lastSound) ||
+	// 		styles != lastStyles ||
+	// 		lastStep.grid != lastSound.grid
 	// ) {
 	if (!drawing) {
 		postAllBitmaps(memtree, context)
 	}
 	// }
-	if (!drawing) {
-		postBitmap(memtree, context, step.layerIndex, step.indexInLayer)
-	}
-	lastSoundDetails = sound
+	// if (!drawing) {
+	// 	postBitmap(memtree, context, step.layerIndex, step.indexInLayer)
+	// }
+	lastSound = sound
 	lastStyles = styles
-	lastStepDetails = step
+	lastStep = step
 
 	if (screen == "wav") {
 		wav(frame, force)

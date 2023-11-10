@@ -24,8 +24,57 @@
 		import * as elements from "/elements/bento-elements.js"
 		elements.init()
 	</script>
+	<bento-party>
+		<bento-nav></bento-nav>
+		<bento-machine>
+			<header>
+				<bento-master-controls></bento-master-controls>
+				<bento-settings></bento-settings>
+				<bento-layer-selector></bento-layer-selector>
+				<bento-screen></bento-screen>
+			</header>
+			<main>
+				<bento-grid autofocus></bento-grid>
+			</main>
+			<bento-grid-controls></bento-grid-controls>
+			<bento-grid-selector></bento-grid-selector>
+			<!-- todo put this in an elements.js/poweroff -->
+			<bento-poweroff></bento-poweroff>
+		</bento-machine>
+		<bento-tape></bento-tape>
+		<dialog id="dialog"></dialog>
+	</bento-party>
 
-	<svg style="display: none" id="tape" width="100%" height="100%" version="1.1" viewBox="0 0 338.67 135.47" xmlns="http://www.w3.org/2000/svg">
+	<audio
+		class="iphone-silence"
+		src="/aux/iphone-silence.flac"
+		loop
+		autoplay
+		preload="auto">
+	</audio>
+
+	<svg
+		data-icon="power"
+		viewBox="0 0 100 100"
+		alt="power off! press anything to start"
+		width="100"
+		height="100">
+		<mask id="mask">
+			<rect fill="white" width="100" height="100" x="0" y="0" />
+			<rect fill="black" width="39" height="22" x="29" y="12" />
+		</mask>
+		<ellipse
+			stroke="var(--poweroff-line)"
+			stroke-width="10"
+			fill="none"
+			mask="url(#mask)"
+			cx="50" cy="56" rx="44" ry="39"
+		/>
+		<rect fill="var(--poweroff-line)" width="11"	height="39"	x="45" y="0"/>
+	</svg>
+
+
+	<svg data-icon="tape" viewBox="0 0 338.67 135.47">
 		<g fill-opacity="0" stroke="#fff" stroke-width="2">
 			<path d="m232.68 123.65c29.477-1.2429 51.132-23.175 51.888-52.261 0.46174-17.757 7.9208-38.043 10.563-48.235-1.3235-2.2385-5.6613-4.6776-5.8615-7.7054-0.1719-2.6001-0.18882-7.4317-7.6273-7.912-7.3307-0.47333-232.19-5-240.13 0-5 1.5389-6 8.0876-6 9.408-1.1135 1.9633-2.1912 3.7677-5.477 5.4432-0.29068 0.40318 34.977 36.637 35.507 51.515 0.52517 14.732 15.883 33.525 33.96 32" class="spool" />
 			<g fill="#f00">
@@ -81,62 +130,78 @@
 		</g>
 	</svg>
 
-	<bento-party>
-		<bento-nav></bento-nav>
-		<bento-machine>
-			<header>
-				<bento-master-controls></bento-master-controls>
-				<bento-settings></bento-settings>
-				<bento-layer-selector></bento-layer-selector>
-				<bento-screen></bento-screen>
-			</header>
-			<main>
-				<bento-grid autofocus></bento-grid>
-			</main>
-			<bento-grid-controls></bento-grid-controls>
-			<bento-grid-selector></bento-grid-selector>
-			<!-- todo put this in an elements.js/poweroff -->
-			<bento-poweroff>
-				<p id="power-icon">
-					<svg
-						alt="power off! press anything to start"
-						width="100"
-						height="100"
 
-						viewBox="0 0 100 100">
-						<mask id="mask">
-							<rect fill="white" width="100" height="100" x="0" y="0" />
-							<rect fill="black" width="39" height="22" x="29" y="12" />
-						</mask>
-						<ellipse
-							stroke="var(--poweroff-line)"
-							stroke-width="10"
-							fill="none"
-							mask="url(#mask)"
-							cx="50"
-							cy="56"
-							rx="44"
-							ry="39" />
-						<rect
-							fill="var(--poweroff-line)"
-							width="11"
-							height="39"
-							x="45"
-							y="0" />
-					</svg>
-				</p>
-			</bento-poweroff>
-		</bento-machine>
-		<bento-tape></bento-tape>
-		<dialog id="dialog"></dialog>
-	</bento-party>
+	<svg viewBox="-5 -5 522 522" data-icon="play">
+		<polygon points="12,16 8,512 512,264"/>
+	</svg>
 
-	<audio
-		class="iphone-silence"
-		src="/aux/iphone-silence.flac"
-		loop
-		autoplay
-		preload="auto">
-	</audio>
+	<svg viewBox="-5 -5 522 522" data-icon="pause">
+		<rect width="176" height="480" x="48" y="16"/>
+		<rect width="176" height="480" x="288" y="16"/>
+	</svg>
+
+	<svg viewBox="-10 -10 522 522" data-icon="stop">
+		<path
+			d="M 0 256C 0 10,
+			10 0, 256 0S 512 10,
+			512 256, 502 512 256 512,
+			0 502, 0 256"
+		/>
+	</svg>
+
+	<svg data-icon="record" viewBox="0 0 135 135">
+		<defs>
+			<clipPath clipPathUnits="userSpaceOnUse" id="record-map">
+				<circle cx="67.4" cy="68.7" stroke="#000" stroke-width="2.7" stroke-linejoin="round" paint-order="markers stroke fill" r="66.6"/>
+			</clipPath>
+		</defs>
+		<g transform="matrix(1.00738 0 0 1.01111 0 -1.5)" clip-path="url(#record-map)">
+			<ellipse
+				cx="67.4"
+				cy="68.7"
+				rx="64.9"
+				ry="64.5"
+				stroke="#000"
+				stroke-width="20"
+				stroke-linejoin="round"
+				paint-order="markers stroke fill"
+				style="fill: none"
+			/>
+			<path
+				d="M-5.6 61.6 117-9M-4 95.2l135-77.8M2.3 125.5l134-77.4M30.4 139.3l106-61.2"
+				fill="#fff"
+				stroke="#000"
+				stroke-width="10"
+				stroke-linejoin="round"
+				paint-order="markers stroke fill"
+			/>
+		</g>
+	</svg>
+
+	<svg
+		data-icon="loop"
+		width="512"
+		height="512"
+		viewBox="0 0 512 512">
+		<path d="m167.74 350.58-146.67 0.11209 70.504-101.42 76.542 99.504" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="30.354" />
+		<path d="m485.82 134.22-72.157 106.41-72.783-103.27 145.22-3.815" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="30.866" />
+		<g fill="none">
+			<path d="m27.608 228.26c37.712-115.37 99.811-205.04 234.99-217.7 130.42 15.466 192.21 103.53 220.6 226.93" style="fill: none" />
+			<path d="m485.7 276.03c-29.086 111.13-87.277 199.47-234.99 217.7-121.89-7.7048-196.76-81.472-220.6-226.93" style="fill: none" />
+			<path d="m89.472 200.94c-4.5341-107.93 57.075-164.14 171.18-171.03 150.87 6.8793 162.28 87.107 163.82 187.31" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="34.979" style="fill: none" />
+			<path d="m414.64 295.73c4.4542 118.34-32.029 185.16-167.3 193.2-126.52-5.0851-167.36-87.032-163.27-217.92" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="37.335" style="fill: none" />
+		</g>
+		</g>
+	</svg>
+
+	<svg viewBox="0 0 137 137" data-icon="flip">
+		<g stroke="#000" stroke-linejoin="round">
+			<g transform="matrix(1.0036 0 0 .8786 -.36649 8.1737)" stroke-linecap="round" stroke-width="3.765">
+				<path d="m69.234 70.514c60.899-0.48335 2.5194-6.9481 62.639-0.85192-30.535 24.339-34.298 30.528-62.529 60.29z" paint-order="markers stroke fill"/>
+				<path d="m69.035 67.485c60.327 1.2208 2.5194 6.9481 62.639 0.85193-30.535-24.339-34.298-30.528-62.529-60.29z" paint-order="markers stroke fill"/>
+			</g>
+			<path d="m83.664 69.585-79.674-1.0967" fill="none" stroke-width="28.616" paint-order="markers stroke fill"/>
+		</g>
+	</svg>
 
 	<script type="module" src="/bento.js"></script>

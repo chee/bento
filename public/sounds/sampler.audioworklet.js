@@ -25,6 +25,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		this.cache = new Map()
 		this.portion = new Float32Array(0)
 		this.scale = Scale.HarmonicMinor
+		this.loop = false
 	}
 
 	/**
@@ -43,6 +44,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 			if (step.on) {
 				let sound = memtree.getSound(layerIndex)
 				this.point = 0
+				this.loop = step.loop
 				// todo stereo?
 				this.portion = sound.left.subarray(
 					step.start,
@@ -61,6 +63,9 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		let quantumPortionLength = this.portion.length - this.point
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {
+			if (this.loop && i > quantumPortionLength - 1) {
+				this.point = 0
+			}
 			let p = this.point
 			if (i < quantumPortionLength) {
 				let s1 = this.portion[p | 0] || 0

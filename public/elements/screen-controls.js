@@ -1,9 +1,10 @@
 import {BentoElement, bentoElements} from "./base.js"
-import BentoControlButton from "./control-button.js"
 import {Screen} from "../graphics/constants.js"
 import Layer from "../memory/tree/layer.js"
 import {LayerType} from "../memory/constants.js"
 import Step from "../memory/tree/step.js"
+import icons from "../icons.js"
+import BentoControlButton from "./control-button.js"
 
 /** @typedef {typeof ScreenControl[keyof typeof ScreenControl]} ScreenControl */
 export const ScreenControl = /** @type const */ ({
@@ -14,97 +15,42 @@ export const ScreenControl = /** @type const */ ({
 	drop: "drop",
 	tune: "tune",
 	spread: "spread",
-	record: "record"
+	record: "record",
+	loop: "loop"
 })
 
-/** @param {string} content */
-function q(content) {
-	let el = document.createElement("div")
-	el.innerHTML = content
-	return el.querySelector("svg")
-}
+/**
+ * @typedef {import("./control-button.js").ControlSpec & {
+		stepProperty?: keyof Step["view"]
+	}} ScreenControlSpec
+ */
 
-/** @type Map<ScreenControl, Pick<BentoControlButton, "label" | "name" | "icon">> */
+/** @type Map<ScreenControl, ScreenControlSpec> */
 let controls = new Map()
+
 controls.set("record", {
 	label: "Record a new sound for this layer",
 	name: "record",
-	// todo obviously
-	icon: q(`<svg
-   width="512"
-   height="512"
-   viewBox="0 0 135.46666 135.46667">
-  <defs
-     id="defs1">
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipmask">
-      <ellipse
-         style="display:inline;fill:#000000;stroke:#000000;stroke-width:2.69088;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-         id="ellipse7"
-         cx="67.428116"
-         cy="68.70816"
-         rx="66.612587"
-         ry="66.598152" />
-    </clipPath>
-  </defs>
-    <g
-		id="icon"
-		transform="matrix(1.0073843,0,0,1.0111098,0.00202608,-1.5095976)"
-		clip-path="url(#clipmask)">
-	  <ellipse
-		  style="fill:none;stroke-width:8;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-		  id="circle"
-		  cx="67.442467"
-		  cy="68.664207"
-		  rx="64.853844"
-		  ry="64.518684" />
-	  <path
-		  style="stroke-width:4;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-		  d="M -5.5535696,61.589137 116.97691,-8.8955645"
-		  id="line1" />
-	  <path
-		  style="stroke-width:4;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-		  d="M -3.9635625,95.249683 130.96204,17.350348"
-		  id="line2" />
-	  <path
-		  style="stroke-width:4;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-		  d="M 2.281087,125.4797 136.25027,48.132526"
-		  id="line3" />
-	  <path
-		  style="stroke-width:4;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-		  d="M 30.414897,139.26381 136.3314,78.112848"
-		  id="line4" />
-	</g>
-</svg>`)
+	content: icons.get("record")
 })
+
 controls.set("flip", {
 	label: "Flip the sound on this step",
 	name: "flip",
-	icon: q(`<svg
-   width="512"
-   height="512"
-   viewBox="0 0 135.46666 135.46667">
-    <path
-       style="stroke-width:1.946;stroke-linejoin:round;paint-order:markers stroke fill"
-       d="M 37.938567,3.4008544 C 19.491324,20.848623 18.312686,21.445441 1.6627848,34.008546 21.077196,45.867157 20.959923,45.651534 37.95772,61.251664 Z"
-       id="path1" />
-    <path
-       style="stroke-width:1.946;stroke-linejoin:round;paint-order:markers stroke fill"
-       d="M 97.677839,133.73448 C 116.12508,116.28671 117.30372,115.6899 133.95362,103.12679 114.53921,91.268184 114.65648,91.483807 97.658686,75.883676 Z"
-       id="path1-8" />
-    <path
-       style="fill:none;stroke-width:11.146;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-       d="M 27.545615,33.592307 78.66955,35.181621 81.392482,88.00598"
-       id="path2" />
-    <path
-       style="fill:none;stroke-width:11.046;stroke-linejoin:round;stroke-dasharray:none;paint-order:markers stroke fill"
-       d="M 105.31357,104.14232 55.586267,100.85257 53.733938,51.99587"
-       id="path3" />
-</svg>`)
+	content: ["flip", icons.get("flip")],
+	stepProperty: "reversed"
+})
+
+controls.set("loop", {
+	label: "Loop the sound on this step",
+	name: "loop",
+	content: ["loop", icons.get("loop")],
+	stepProperty: "loop"
 })
 
 export default class BentoScreenControls extends BentoElement {
+	/** @type Map<keyof Step["view"], BentoControlButton> */
+	stepPropertyElements = new Map()
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.container = this.shadow.appendChild(document.createElement("div"))
@@ -114,17 +60,6 @@ export default class BentoScreenControls extends BentoElement {
 		})
 		this.addEventListener("touchstart", event => {
 			event.stopImmediatePropagation()
-		})
-
-		this.container.addEventListener("click", event => {
-			let target = /** @type HTMLElement */ (event.target)
-			let button = target.closest("button")
-			if (button) {
-				let name = /** @type ScreenControl */ (button.name)
-				if (name in ScreenControl) {
-					this.announce(name)
-				}
-			}
 		})
 	}
 
@@ -170,6 +105,12 @@ export default class BentoScreenControls extends BentoElement {
 			for (let key in val) {
 				let value = val[key]
 				if (typeof value == "boolean") {
+					let el = this.stepPropertyElements.get(
+						/** @type {keyof Step["view"]} */ (key)
+					)
+					if (el) {
+						el.on = value
+					}
 					this.toggleAttribute(key, value)
 				} else {
 					this.setAttribute(key, value)
@@ -186,13 +127,17 @@ export default class BentoScreenControls extends BentoElement {
 			selectedScreen == Screen.wav &&
 			selectedLayerType == LayerType.sampler
 		) {
-			for (let screen of [ScreenControl.flip, ScreenControl.record]) {
+			for (let screen of [
+				ScreenControl.flip,
+				// ScreenControl.loop,
+				ScreenControl.record
+			]) {
+				let button = document.createElement("bento-control-button")
 				let spec = controls.get(screen)
-				let button = document.createElement("button")
-				button.name = spec.name
-				button.ariaLabel = spec.label
-				button.title = spec.label
-				button.append(spec.icon)
+				button.spec = spec
+				if (spec.stepProperty) {
+					this.stepPropertyElements.set(spec.stepProperty, button)
+				}
 				this.container.append(button)
 			}
 		}

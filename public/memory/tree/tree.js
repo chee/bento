@@ -2,7 +2,7 @@ import Layer from "./layer.js"
 import Sound from "./sound.js"
 import Grid from "./grid.js"
 import Step from "./step.js"
-import * as loop from "../../loop.js"
+import * as loop from "../../convenience/loop.js"
 
 import {
 	grid2layerGrid,
@@ -22,7 +22,7 @@ import {
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER
 } from "../constants.js"
-import {map, size} from "../memory.js"
+import {map} from "../memory.js"
 
 /**
  * @typedef {Object} AlterSelectedMap
@@ -78,6 +78,7 @@ export default class MemoryTree {
 		}
 		if (item && index != null) {
 			// something in here for the workers
+			Atomics.store(this.#notify, 0, 0)
 			Atomics.notify(this.#notify, 0, 1)
 		}
 	}
@@ -93,7 +94,8 @@ export default class MemoryTree {
 	}
 
 	wait() {
-		return Atomics.wait(this.#notify, 0, 1)
+		Atomics.wait(this.#notify, 0, 0)
+		Atomics.store(this.#notify, 0, 1)
 	}
 
 	/** @param {number} index */
@@ -172,7 +174,6 @@ export default class MemoryTree {
 	 */
 	alterLayer(layer, fn) {
 		fn(this.#layers[layer])
-		// delete this.#layers[layer]
 		this.announce("layers", layer)
 	}
 
@@ -182,7 +183,6 @@ export default class MemoryTree {
 	 */
 	alterSound(sound, fn) {
 		fn(this.#sounds[sound])
-		// delete this.#sounds[sound]
 		this.announce("sounds", sound)
 	}
 
@@ -193,7 +193,7 @@ export default class MemoryTree {
 	alterStep(step, fn) {
 		fn(this.#steps[step])
 		// todo i don't need to do this if i delete the `view' in step instead
-		// delete this.#steps[step]
+
 		this.announce("steps", step)
 	}
 
@@ -203,8 +203,28 @@ export default class MemoryTree {
 	 */
 	alterGrid(grid, fn) {
 		fn(this.#grids[grid])
-		// delete this.#grids[grid]
 		this.announce("grids", grid)
+	}
+
+	/**
+	 * @param {number} from
+	 * @param {number} to
+	 */
+	pasteGrid(from, to) {
+		let fromGrid = this.#grids[from]
+		let toGrid = this.#grids[to]
+		let fromStepStart =
+			fromGrid.layerIndex * STEPS_PER_LAYER +
+			fromGrid.indexInLayer * STEPS_PER_GRID
+		let toStepStart =
+			toGrid.layerIndex * STEPS_PER_LAYER +
+			toGrid.indexInLayer * STEPS_PER_GRID
+		let fromSteps = this.#steps.slice(
+			fromStepStart,
+			fromStepStart + STEPS_PER_GRID
+		)
+		toGrid.paste(fromGrid)
+		this.announce("grids", to)
 	}
 
 	/**
@@ -322,7 +342,11 @@ export default class MemoryTree {
 	}
 
 	get selectedLayerCurrentGridStep() {
-		return step2gridStep(this.selectedLayerCurrentStep)
+		if (this.selectedLayerCurrentGrid == this.selectedGrid) {
+			return step2gridStep(this.selectedLayerCurrentStep)
+		} else {
+			return -1
+		}
 	}
 
 	/** @param {number} layer */
@@ -415,7 +439,7 @@ export default class MemoryTree {
 		let m = this.drawingRegionXMultiplier
 		let step = this.getSelectedStep()
 		let sound = this.getSound(this.selectedLayer)
-		console.log({start, m, end})
+
 		;[start, end] = [start / m, end / m]
 		if (start > end) {
 			;[start, end] = [end, start]

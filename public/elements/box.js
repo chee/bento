@@ -38,23 +38,23 @@ export default class BentoBox extends BentoElement {
 		 * control
 		 * command - mod4/command
 		 * meta  - control on linux and windows, super on mac
-		 * unmeta - super on linux and windows, control on mac
+		 * inmeta - super on linux and windows, control on mac
 		 * option - alt on linux/windows, option on mac
 		 */
 		// let keymap = {
-		// 	"unmeta-arrowdown": "quieter",
-		// 	"unmeta-arrowup": "quieter",
+		// 	"inmeta-arrowdown": "quieter",
+		// 	"inmeta-arrowup": "quieter",
 		// }
 		if (mods.ctrl && event.key == "ArrowDown") {
-			this.announce("step-softly", this.step)
+			this.announce("step-softly", this.step.index)
 		} else if (mods.ctrl && event.key == "ArrowUp") {
-			this.announce("step-loudly", this.step)
+			this.announce("step-loudly", this.step.index)
 		} else if (mods.ctrl && event.key == "ArrowLeft") {
-			this.announce("pan-step-left", this.step)
+			this.announce("pan-step-left", this.step.index)
 		} else if (mods.ctrl && event.key == "ArrowRight") {
-			this.announce("pan-step-right", this.right)
+			this.announce("pan-step-right", this.step.index)
 		} else if (mods.none && event.key == "r") {
-			this.announce("flip-step", this.step)
+			this.announce("flip-step", this.step.index)
 		}
 	}
 
@@ -90,17 +90,19 @@ export default class BentoBox extends BentoElement {
 
 	/** @param {DragEvent} event */
 	#dragstart(event) {
-		dt.setStep(event.dataTransfer, +this.id)
+		dt.setStep(event.dataTransfer, this.step.index)
 	}
 
 	/** @param {DragEvent} event */
 	async #drop(event) {
 		event.preventDefault()
 		let step = await dt.getStep(event.dataTransfer)
+
 		this.announce("copy-step", {
 			from: step,
-			to: this.step
+			to: this.step.index
 		})
+
 		this.#droptarget = false
 	}
 

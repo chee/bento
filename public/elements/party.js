@@ -1,6 +1,6 @@
 import MemoryTree from "../memory/tree/tree.js"
 import {bentoElements, BentoElement} from "./base.js"
-import * as loop from "../loop.js"
+import * as loop from "../convenience/loop.js"
 
 export default class BentoParty extends BentoElement {
 	connectedCallback() {
@@ -47,7 +47,14 @@ export default class BentoParty extends BentoElement {
 	set recording(val) {
 		this.set("recording", val, () => {
 			this.toggleAttribute("recording", val)
+			this.tape.recording = val
 		})
+	}
+
+	/** @param {{length: number}} info */
+	startRecording(info) {
+		this.recording = true
+		this.tape.length = info.length
 	}
 
 	set fancy(val) {
@@ -113,7 +120,6 @@ export default class BentoParty extends BentoElement {
 		this.set("selectedLayerIndex", memtree.selectedLayer, () => {
 			this.grid.steps = getSelectedGridSteps(memtree)
 			this.layerSelector.selectedLayerIndex = memtree.selectedLayer
-			this.gridSelector.grids = getSelectedLayerGrids(memtree)
 			this.screen.layer = memtree.getSelectedLayer()
 		})
 
@@ -126,7 +132,9 @@ export default class BentoParty extends BentoElement {
 			this.grid.selectedStepIndex = memtree.selectedUiStep
 		})
 
+		// get your wallet out
 		this.grid.steps = getSelectedGridSteps(memtree)
+		this.gridSelector.grids = getSelectedLayerGrids(memtree)
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
 		this.screen.selectedStep = memtree.getSelectedStep()
 

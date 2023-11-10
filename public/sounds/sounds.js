@@ -68,21 +68,17 @@ export async function recordSound() {
 		let blobs = []
 		tape.ondataavailable = event => blobs.push(event.data)
 		tape.start(MAX_RECORDING_LENGTH)
-		globalThis.postMessage({
-			type: "recording",
-			recording: true,
-			length: MAX_RECORDING_LENGTH
-		})
-		await new Promise(async yay => {
+		let audio = new Promise(async yay => {
 			await wait(MAX_RECORDING_LENGTH)
 			tape.onstop = event => yay(event)
 			tape.stop()
-		})
-		globalThis.postMessage({type: "recording", recording: false})
-
-		return normalize(
-			trim(await decode(new Blob(blobs, {type: blobs[0].type})))
+		}).then(async () =>
+			normalize(trim(await decode(new Blob(blobs, {type: blobs[0].type}))))
 		)
+		return {
+			length: MAX_RECORDING_LENGTH,
+			audio
+		}
 	} catch (error) {
 		alert(
 			":( i failed. :< can you record in other apps? if it's just bento that is broken try restarting your browser or e-mail bento@chee.party"

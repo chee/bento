@@ -6,7 +6,7 @@ import {LayerType} from "../memory/constants.js"
 export default class BentoScreenSelector extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
-		this.shadow.innerHTML = `<nav></nav>`
+		this.shadow.innerHTML = `<nav role="radiogroup"></nav>`
 		this.attachStylesheet("screen-selector")
 		this.nav = this.shadow.firstElementChild
 
@@ -53,17 +53,18 @@ export default class BentoScreenSelector extends BentoElement {
 
 	enable() {
 		this.nav.textContent = ``
-		// let selectedScreen = this.selectedScreen || Screen.wav
+		let selectedScreen = this.selectedScreen || Screen.wav
 		let selectedLayerType = this.selectedLayer?.type || LayerType.sampler
-		if (
-			// selectedScreen == Screen.wav &&
-			selectedLayerType == LayerType.sampler
-		) {
-			for (let screen of [Screen.wav, Screen.mix, Screen.key]) {
+		if (selectedLayerType == LayerType.sampler) {
+			for (let screen of [Screen.wav, Screen.mix]) {
 				let button = document.createElement("button")
 				button.name = screen
 				button.textContent = screen
+				button.role = "radio"
 				this.nav.append(button)
+				if (screen == selectedScreen) {
+					button.ariaChecked = "true"
+				}
 			}
 		}
 	}

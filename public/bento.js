@@ -1,6 +1,6 @@
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
-import {size as MEMORY_SIZE, map} from "./memory/memory.js"
+import {size as MEMORY_SIZE, map, step2gridStep} from "./memory/memory.js"
 import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
@@ -127,9 +127,9 @@ party.when("select-grid", indexInLayer => {
 
 party.when("copy-grid", message => {
 	memtree.alterGrid(message.to, grid => {
-		grid.paste()
+		grid.paste(memtree.getGrid(message.from))
 	})
-	memtree.copyGrid(memtree.selectedLayer, message.from, message.to)
+
 	db.save()
 })
 
@@ -141,18 +141,18 @@ party.when("toggle-grid", index => {
 })
 
 customElements.whenDefined("bento-screen-controls").then(() => {
-	console.info("she thinks she can get away with shooting him")
 	party.screen.controls.when("record", async () => {
-		console.log("record clonk")
 		// todo stopPropagation in party:)
 		if (party.recording) {
 			return
 		}
-		party.recording = true
-		let audio = await sounds.recordSound()
+		let info = await sounds.recordSound()
+		party.startRecording(info)
+		let audio = await info.audio
 		memtree.alterSound(memtree.selectedLayer, sound => {
 			sound.audio = audio
 		})
+		party.recording = false
 		db.save()
 	})
 
@@ -183,6 +183,14 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 		memtree.alterStep(memtree.selectedStep, step => {
 			step.flip()
 		})
+		db.save()
+	})
+
+	party.screen.controls.when("loop", message => {
+		memtree.alterStep(memtree.selectedStep, step => {
+			step.loop = !step.loop
+		})
+		db.save()
 	})
 })
 
@@ -202,7 +210,7 @@ party.screen.when("drawing-region-end", x => {
 })
 
 party.screen.when("set-pan", pan => {
-	memtree.alterSelected("step", step => {
+	memtree.alterStep(memtree.selectedStep, step => {
 		step.pan = pan
 	})
 	db.save()
@@ -262,10 +270,12 @@ party.when("flip-step", index => {
 	db.save()
 })
 
-party.when("copy-step", message => {
+party.grid.when("copy-step", message => {
 	memtree.alterStep(message.to, step => {
 		step.paste(memtree.getStep(message.from))
 	})
+	memtree.selectedUiStep = step2gridStep(message.to)
+	party.grid.boxes[memtree.selectedUiStep].focus()
 	db.save()
 })
 
@@ -297,18 +307,6 @@ party.when("pan-step-right", index => {
 	db.save()
 })
 
-// todo fire this on the party in sounds
-window.onmessage = function (event) {
-	let message = event.data
-	if (message.type == "recording") {
-		let recording = event.data.recording
-		party.toggleAttribute("recording", recording)
-		party.recording = true
-		party.recordingLength = event.data.length
-		document.dispatchEvent(new CustomEvent("recording", {detail: message}))
-	}
-}
-
 let stepWaveformCanvas = document.createElement("canvas")
 
 // todo maybe keep this in the bento grid?
@@ -322,11 +320,12 @@ document.addEventListener(
 	async ({detail}) => {
 		/** @type {ImageBitmap} */
 		let bmp = detail.bmp
-		let {layer, uiStep, grid, cachename} = detail
+		let {layer, uiStep, grid} = detail
 		if (layer != memtree.selectedLayer) return
 		if (grid != memtree.getSelectedLayer().selectedGrid) return
 		stepWaveformCanvas.width = bmp.width
 		stepWaveformCanvas.height = bmp.height
+		let cachename = detail.cachename + `slug${party.slug}`
 
 		if (!stepWaveformUrlCache[cachename]) {
 			let context = stepWaveformCanvas.getContext("bitmaprenderer")
@@ -377,6 +376,7 @@ addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	await db.load(slug)
 	party.slug = slug
+	party.tree = memtree
 })
 
 async function saveAs(/** @type {string} */ name) {
@@ -408,6 +408,7 @@ async function saveAs(/** @type {string} */ name) {
 				slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 			)
 			party.slug = slug
+			party.tree = memtree
 			openScreen()
 		}
 	}
@@ -427,6 +428,7 @@ async function loadPattern() {
 			slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
 		)
 		party.slug = slug
+		party.tree = memtree
 		openScreen()
 	}
 }
@@ -447,6 +449,7 @@ async function newPattern() {
 	await db.load(slug)
 	await sounds.loadDefaultKit()
 	party.slug = slug
+	party.tree = memtree
 	openScreen()
 }
 

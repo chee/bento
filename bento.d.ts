@@ -31,7 +31,9 @@ declare global {
 		"bento-grid-selector": BentoGridSelector
 		"bento-mini-grid": BentoMiniGrid
 		"bento-tape": BentoTape
+
 		dialog: HTMLDialogElement
+		"template[icon]": HTMLTemplateElement
 	}
 
 	interface Math {

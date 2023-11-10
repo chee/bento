@@ -55,6 +55,14 @@ export let arrays = {
 		type: Int8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
 	},
+	soundVersions: {
+		type: Float32Array,
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+	},
+	soundSampleRates: {
+		type: Uint32Array,
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+	},
 	/*
 	 * this is its own thing so that it remembers what grid you were on when you
 	 * move between grids
@@ -83,15 +91,6 @@ export let arrays = {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
 		defaultFill: -1
-	},
-	stepOns: {
-		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
-		// let 4onthefloor = 0x8888
-		//                    .toString(2)
-		//                    .split("")
-		//	                   .map(Number)
-		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
 	},
 	gridOns: {
 		type: Uint8Array,
@@ -123,6 +122,16 @@ export let arrays = {
 		type: Int8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
 		defaultFill: 0
+	},
+	/* todo, this could be an enum for the type of ON the step is */
+	stepOns: {
+		type: Uint8Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
+		// let 4onthefloor = 0x8888
+		//                    .toString(2)
+		//                    .split("")
+		//	                   .map(Number)
+		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
 	},
 	stepReverseds: {
 		type: Uint8Array,
@@ -170,6 +179,10 @@ export let arrays = {
 	},
 	stepDelayGains: {
 		type: Float32Array,
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
+	},
+	stepLoops: {
+		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER
 	},
 	drawingRegion: {

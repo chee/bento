@@ -134,6 +134,14 @@ export default class Step {
 		this.#mem.stepReverseds.set([+val], this.index)
 	}
 
+	get loop() {
+		return Boolean(this.#mem.stepLoops.at(this.index))
+	}
+
+	set loop(val) {
+		this.#mem.stepLoops.set([+val], this.index)
+	}
+
 	/**
 	 * @param {boolean} [force]
 	 */
@@ -155,12 +163,12 @@ export default class Step {
 
 	toJSON() {
 		return /** @type const */ ({
-			on: this.on,
 			index: this.index,
 			indexInGrid: this.indexInGrid,
 			indexInLayer: this.indexInLayer,
 			gridIndex: this.gridIndex,
 			gridIndexInLayer: this.gridIndexInLayer,
+			on: this.on,
 			layerIndex: this.layerIndex,
 			attack: this.attack,
 			release: this.release,
@@ -171,9 +179,18 @@ export default class Step {
 			quiet: this.quiet,
 			start: this.start,
 			end: this.end,
-			reversed: this.reversed
+			reversed: this.reversed,
+			loop: this.loop
 		})
 	}
+
+	static computedKeys = [
+		"index",
+		"indexInGrid",
+		"indexInLayer",
+		"gridIndex",
+		"gridIndexInLayer"
+	]
 
 	get view() {
 		return Object.freeze(this.toJSON())
@@ -181,15 +198,11 @@ export default class Step {
 
 	/** @param {Step["view"]} from */
 	paste(from) {
-		this.attack = from.attack
-		this.release = from.release
-		this.filterFrequency = from.filterFrequency
-		this.filterQ = from.filterQ
-		this.pan = from.pan
-		this.pitch = from.pitch
-		this.quiet = from.quiet
-		this.start = from.start
-		this.end = from.end
-		this.reversed = from.reversed
+		for (let key in from) {
+			if (Step.computedKeys.includes(key)) {
+				continue
+			}
+			this[key] = from[key]
+		}
 	}
 }

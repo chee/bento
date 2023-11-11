@@ -16,6 +16,6 @@ div {
 }
 
 bento-control-button {
-	border: 0;
+	border: 1px solid;
 	margin: 2px;
 }

@@ -19,6 +19,12 @@ export const ScreenControl = /** @type const */ ({
 	loop: "loop"
 })
 
+const ScreenControlSet = /** @type const */ ({
+	[LayerType.sampler]: {
+		[Screen.wav]: [ScreenControl.flip, ScreenControl.record]
+	}
+})
+
 /**
  * @typedef {import("./control-button.js").ControlSpec & {
 		stepProperty?: keyof Step["view"]
@@ -84,13 +90,18 @@ export default class BentoScreenControls extends BentoElement {
 		})
 	}
 
-	/** @type {Layer["view"]} */
-	get selectedLayer() {
-		return this.get("selectedLayer")
+	/** @param {Layer["view"]} val */
+	set selectedLayer(val) {
+		this.selectedLayerType = val.type
 	}
 
-	set selectedLayer(val) {
-		this.set("selectedLayer", val, () => {
+	/** @type {LayerType} */
+	get selectedLayerType() {
+		return this.get("selectedLayerType")
+	}
+
+	set selectedLayerType(val) {
+		this.set("selectedLayerType", val, () => {
 			this.enable()
 		})
 	}
@@ -119,19 +130,18 @@ export default class BentoScreenControls extends BentoElement {
 		})
 	}
 
-	enable() {
-		this.container.textContent = ``
-		let selectedScreen = this.selectedScreen || Screen.wav
-		let selectedLayerType = this.selectedLayer?.type || LayerType.sampler
-		if (
-			selectedScreen == Screen.wav &&
-			selectedLayerType == LayerType.sampler
-		) {
-			for (let screen of [
-				ScreenControl.flip,
-				// ScreenControl.loop,
-				ScreenControl.record
-			]) {
+	/** @type {ScreenControl[]?} */
+	get controls() {
+		return this.get("controls")
+	}
+
+	set controls(val) {
+		this.set("controls", val, () => {
+			this.container.textContent = ``
+			if (!val) {
+				return
+			}
+			for (let screen of val) {
 				let button = document.createElement("bento-control-button")
 				let spec = controls.get(screen)
 				button.spec = spec
@@ -140,7 +150,13 @@ export default class BentoScreenControls extends BentoElement {
 				}
 				this.container.append(button)
 			}
-		}
+		})
+	}
+
+	enable() {
+		let selectedLayerType = this.selectedLayerType || LayerType.sampler
+		let selectedScreen = this.selectedScreen || Screen.wav
+		this.controls = ScreenControlSet[selectedLayerType]?.[selectedScreen]
 	}
 }
 

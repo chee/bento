@@ -23,6 +23,11 @@ export default class BentoSettings extends BentoElement {
 		button.id = control.name
 		// stay frosty until we're open
 		button.tabIndex = this.open ? 0 : -1
+		if (this.open) {
+			button.tabIndex = 0
+		} else {
+			button.tabIndex = -1
+		}
 		let label = control.label || control.name
 		let ariaLabel = control.ariaLabel || label
 		button.innerHTML = label
@@ -32,7 +37,7 @@ export default class BentoSettings extends BentoElement {
 		return button
 	}
 	connectedCallback() {
-		this.shadow = this.attachShadow({mode: "closed"})
+		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
 		this.shadow.innerHTML = `<div></div>`
 		this.attachStylesheet("settings")
 
@@ -76,10 +81,18 @@ export default class BentoSettings extends BentoElement {
 	}
 
 	set open(open) {
-		this.toggleAttribute("open", open)
-		for (let button of this.#buttons) {
-			button.tabIndex = open ? 0 : -1
-		}
+		this.set("open", open, () => {
+			this.toggleAttribute("open", open)
+			for (let button of this.#buttons) {
+				button.tabIndex = open ? 0 : -1
+			}
+			if (open) {
+				this.tabIndex = null
+				this.removeAttribute("tabindex")
+			} else {
+				this.tabIndex = -1
+			}
+		})
 	}
 }
 

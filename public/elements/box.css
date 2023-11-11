@@ -55,28 +55,25 @@ img {
 :host([selected]) {
 	/* prettier-ignore */
 	box-shadow:
-					-2px -2px 0 0 var(--grid-fill),
-					02px 02px 0 0 var(--grid-fill),
-					-2px 02px 0 0 var(--grid-fill),
-					02px -2px 0 0 var(--grid-fill),
-					-3px -3px 0 0 var(--selected-box-outline),
-					03px 03px 0 0 var(--selected-box-outline),
-					-3px 03px 0 0 var(--selected-box-outline),
-					03px -3px 0 0 var(--selected-box-outline),
-					-4px -4px 0 0 var(--selected-box-outline),
-					04px 04px 0 0 var(--selected-box-outline),
-					-4px 04px 0 0 var(--selected-box-outline),
-					04px -4px 0 0 var(--selected-box-outline);
+		-2px -2px 0 0 var(--grid-fill),
+		02px 02px 0 0 var(--grid-fill),
+		-2px 02px 0 0 var(--grid-fill),
+		02px -2px 0 0 var(--grid-fill),
+		-4px -4px 0 0 var(--selected-box-outline),
+		04px 04px 0 0 var(--selected-box-outline),
+		-4px 04px 0 0 var(--selected-box-outline),
+		04px -4px 0 0 var(--selected-box-outline)
 }
 
 :host([on]) {
 	--box-fill: var(--box-on-fill);
 	--box-line: var(--box-on-line);
+	border: 1px solid var(--box-off-line);
 }
 
 :host(:focus:not([aria-selected="true"])) {
-	outline: 2px dashed var(--focus-outline);
-	outline-offset: 0;
+	outline: 2px solid var(--focus-outline);
+	outline-offset: 1px;
 }
 
 :host(:focus[aria-selected="true"]) {

@@ -59,7 +59,7 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 			return true
 		}
 		let layerNumber = this.layerNumber
-		let currentStep = memtree.getCurrentStepIndex(layerNumber)
+		let currentStep = memtree.getCurrentStepIndexInLayer(layerNumber)
 		if (currentStep != this.lastStep) {
 			let step = memtree.getLayerStep(layerNumber, currentStep)
 			if (step.on) {

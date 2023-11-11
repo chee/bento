@@ -38,9 +38,10 @@ export default class Step {
 		this.index = index
 		this.indexInGrid = step2gridStep(index)
 		this.indexInLayer = step2layerStep(index)
+		this.layerIndex = step2layer(index)
 		this.gridIndex = step2grid(index)
 		this.gridIndexInLayer = grid2layerGrid(step2grid(index))
-		this.layerIndex = step2layer(index)
+		console.log(this, "stepcons")
 	}
 
 	get on() {

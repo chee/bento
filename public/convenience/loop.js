@@ -74,6 +74,16 @@ export function steps(fn) {
  * @returns {T[]}
  */
 export function grids(fn) {
+	return range(GRIDS_PER_LAYER * LAYERS_PER_MACHINE).map(index => fn(index))
+}
+
+/**
+ * loop over the number of grids
+ * @template {any} T
+ * @param {(gridIdx: number) => T} fn
+ * @returns {T[]}
+ */
+export function layerGrids(fn) {
 	return range(GRIDS_PER_LAYER).map(index => fn(index))
 }
 

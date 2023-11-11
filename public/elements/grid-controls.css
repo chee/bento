@@ -1,10 +1,14 @@
+:host {
+	--control-size: calc(var(--box-size) / 2);
+}
+
 * {
 	touch-action: manipulation;
 }
 
 :focus {
-	outline: 2px dashed var(--focus-outline);
-	outline-offset: 5px;
+	outline: 1px solid var(--focus-outline);
+	outline-offset: 2px;
 }
 
 fieldset {
@@ -23,9 +27,10 @@ fieldset {
 	padding: 0;
 	box-sizing: border-box;
 	display: grid;
-	grid-template-columns: repeat(8, calc(var(--box-size) / 2));
+	grid-template-columns: repeat(8, var(--control-size));
 	gap: calc(0.25em - 2px);
 	padding-left: calc(0.25em + 2px);
+	margin-top: var(--box-gap);
 }
 
 legend {

@@ -56,7 +56,7 @@ export default class MemoryTree {
 		this.#notify = mem.notify
 		this.#layers = loop.layers(index => new Layer(mem, index))
 		this.#sounds = loop.layers(index => new Sound(mem, index))
-		this.#grids = loop.grids(index => new Grid(mem, index))
+		this.#grids = loop.layerGrids(index => new Grid(mem, index))
 		this.#steps = loop.steps(index => new Step(mem, index))
 	}
 
@@ -330,12 +330,14 @@ export default class MemoryTree {
 	}
 
 	/** @param {number} layer */
-	getCurrentStepIndex(layer) {
+	getCurrentStepIndexInLayer(layer) {
 		return this.#mem.currentSteps.at(layer)
 	}
 
 	get selectedLayerCurrentStep() {
-		return this.stopped ? -1 : this.getCurrentStepIndex(this.selectedLayer)
+		return this.stopped
+			? -1
+			: this.getCurrentStepIndexInLayer(this.selectedLayer)
 	}
 
 	get selectedLayerCurrentGrid() {
@@ -348,7 +350,7 @@ export default class MemoryTree {
 
 	/** @param {number} layer */
 	incrementStep(layer) {
-		let current = this.getCurrentStepIndex(layer)
+		let current = this.getCurrentStepIndexInLayer(layer)
 
 		let activeGrids = Array.from(
 			this.#mem.gridOns.subarray(
@@ -473,7 +475,8 @@ export default class MemoryTree {
 	}
 
 	get selectedGrid() {
-		return this.getSelectedLayer().selectedGrid
+		let layer = this.getSelectedLayer()
+		return layerGrid2layer(layer.index, layer.selectedGrid)
 	}
 
 	get selectedStep() {
@@ -511,9 +514,20 @@ export default class MemoryTree {
 
 		let bpm = this.bpm
 		let samplesPerBeat = (60 / bpm) * sampleRate
-		let currentStepIndex = this.getCurrentStepIndex(layerIndex)
+		let currentStepIndexInLayer = this.getCurrentStepIndexInLayer(layerIndex)
+		let currentStepIndex = layerStep2step(layerIndex, currentStepIndexInLayer)
 		let currentStep = this.getStep(currentStepIndex)
 		let currentGrid = this.getGrid(currentStep?.gridIndex || 0)
+		if (layerIndex == 1) {
+			console.log(
+				currentStepIndex,
+				layerIndex,
+				"tick",
+				currentStep.gridIndex,
+				currentStep
+			)
+		}
+
 		let speed = currentGrid.speed
 		let samplesPerStep = samplesPerBeat / (4 * speed)
 		let nextStepIndex = (tick / samplesPerStep) | 0

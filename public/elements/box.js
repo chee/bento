@@ -139,6 +139,7 @@ export default class BentoBox extends BentoElement {
 		this.set("selected", val, () => {
 			this.toggleAttribute("selected", val)
 			this.ariaSelected = val.toString()
+			this.focus()
 		})
 	}
 

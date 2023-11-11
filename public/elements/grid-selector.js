@@ -12,7 +12,7 @@ export default class BentoGridSelector extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `<div></div>`
-		loop.grids(index => {
+		loop.layerGrids(() => {
 			let minigrid = /** @type BentoMiniGrid */ (
 				document.createElement("bento-minigrid")
 			)

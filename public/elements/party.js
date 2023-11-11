@@ -1,6 +1,7 @@
 import MemoryTree from "../memory/tree/tree.js"
 import {bentoElements, BentoElement} from "./base.js"
 import * as loop from "../convenience/loop.js"
+import {grid2layerGrid, step2gridStep} from "../memory/convert.js"
 
 export default class BentoParty extends BentoElement {
 	connectedCallback() {
@@ -101,14 +102,6 @@ export default class BentoParty extends BentoElement {
 	}
 
 	/** @param {MemoryTree} memtree */
-	updateCurrentStep(memtree) {
-		this.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
-		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
-		this.selectedLayerCurrentGridStepIndex =
-			memtree.selectedLayerCurrentGridStep
-	}
-
-	/** @param {MemoryTree} memtree */
 	set tree(memtree) {
 		this.masterControls.playing = memtree.playing
 		this.masterControls.paused = memtree.paused
@@ -125,7 +118,9 @@ export default class BentoParty extends BentoElement {
 		})
 
 		this.set("selectedGridIndex", memtree.selectedGrid, () => {
-			this.gridSelector.selectedGridIndex = memtree.selectedGrid
+			this.gridSelector.selectedGridIndex = grid2layerGrid(
+				memtree.selectedGrid
+			)
 			this.grid.steps = getSelectedGridSteps(memtree)
 		})
 
@@ -141,6 +136,14 @@ export default class BentoParty extends BentoElement {
 		this.gridControls.grid = memtree.getSelectedGrid()
 
 		this.updateCurrentStep(memtree)
+	}
+
+	/** @param {MemoryTree} memtree */
+	updateCurrentStep(memtree) {
+		this.selectedLayerCurrentGridIndex = memtree.selectedLayerCurrentGrid
+		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
+		this.selectedLayerCurrentGridStepIndex =
+			memtree.selectedLayerCurrentGridStep
 	}
 
 	/** @type number */
@@ -209,7 +212,11 @@ export default class BentoParty extends BentoElement {
 /** @param {MemoryTree} memtree */
 function getSelectedGridSteps(memtree) {
 	return loop.gridSteps(index =>
-		memtree.getGridStep(memtree.selectedLayer, memtree.selectedGrid, index)
+		memtree.getGridStep(
+			memtree.selectedLayer,
+			grid2layerGrid(memtree.selectedGrid),
+			index
+		)
 	)
 }
 
@@ -222,7 +229,7 @@ function getSelectedLayerSteps(memtree) {
 
 /** @param {MemoryTree} memtree */
 function getSelectedLayerGrids(memtree) {
-	return loop.grids(index =>
+	return loop.layerGrids(index =>
 		memtree.getLayerGrid(memtree.selectedLayer, index)
 	)
 }

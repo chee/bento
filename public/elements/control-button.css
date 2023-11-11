@@ -32,7 +32,7 @@ button {
 }
 
 button:hover {
-	box-shadow: 2px 2px 2px 0 #00000011;
+	box-shadow: 2px 2px 2px 0 #00000021;
 	background: #ffffff11;
 }
 

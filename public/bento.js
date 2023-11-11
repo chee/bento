@@ -111,6 +111,7 @@ party.when("set-bpm", bpm => {
 })
 
 party.gridControls.when("set-grid-speed", message => {
+	console.log(message.index, message.value)
 	memtree.alterGrid(message.index, grid => {
 		grid.speed = message.value
 	})

@@ -42,7 +42,7 @@ export default class BentoControlPopout extends BentoElement {
 		this.shadow.appendChild(this.popout)
 		this.open = false
 		this.button.addEventListener("click", event => {
-			this.open = true
+			this.open = !this.open
 			event.stopImmediatePropagation()
 		})
 	}

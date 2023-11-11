@@ -10,19 +10,19 @@
 
 #popout {
 	display: none;
-	position: absolute;
-	top: calc(var(--control-size) - 2px);
 	left: calc(var(--control-size) - 1px);
 	background: var(--grid-controls-fill);
-	transform: translateX(-50%);
-	left: 50%;
 	border: 1px solid;
 	box-shadow: 2px 2px 2px #0003;
 	z-index: 1;
+	position: absolute;
+	transform: translateY(calc(-100%)) translateX(-50%);
 }
 
 bento-control-button {
 	/* border-left: 0; */
+	height: var(--control-size);
+	width: var(--control-size);
 }
 
 :host([open]) #popout {

@@ -41,6 +41,9 @@ export default class BentoParty extends BentoElement {
 		this.tape = this.querySelector("bento-tape")
 		this.poweroff = this.querySelector("bento-poweroff")
 		this.poweroff.append(icons.get("power"))
+		this.poweroff.addEventListener("click", () => {
+			this.announce("play")
+		})
 	}
 
 	/** @type boolean */

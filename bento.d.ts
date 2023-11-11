@@ -13,6 +13,7 @@ import BentoScreenControls from "./public/elements/screen-controls"
 import BentoScreenSelector from "./public/elements/screen-selector"
 import BentoGridSelector from "./public/elements/grid-selector"
 import BentoTape from "./public/elements/tape"
+import BentoControlPopout from "./public/elements/control-popout"
 
 declare global {
 	interface HTMLElementTagNameMap {
@@ -23,6 +24,7 @@ declare global {
 		"bento-layer-selector": BentoLayerSelector
 		"bento-screen-controls": BentoScreenControls
 		"bento-control-button": BentoControlButton
+		"bento-control-popout": BentoControlPopout
 		"bento-screen": BentoScreen
 		"bento-screen-selector": BentoScreenSelector
 		"bento-grid": BentoGrid

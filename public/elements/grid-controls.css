@@ -17,13 +17,13 @@ fieldset {
 	text-align: center;
 	align-items: center;
 	width: var(--total-width);
-	--grid-controls-fill: var(--machine-line);
-	--grid-controls-line: var(--machine-fill);
+	--grid-controls-fill: var(--machine-fill);
+	--grid-controls-line: var(--machine-line);
 	background: var(--grid-controls-fill);
 	color: var(--grid-controls-line);
 	appearance: none;
-	padding-top: 0.125em;
-	padding-bottom: 0.125em;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 legend {
@@ -40,11 +40,22 @@ select {
 	-moz-appearance: none;
 	appearance: none;
 	background: var(--grid-controls-fill);
-	color: var(--grid-controls-line);
+	color: var(--grid-controls-fill);
 	border: 1px solid;
 	width: 1rem;
 	height: 1rem;
 	text-align: center;
 	padding: 0;
-	margin-left: 0.5em;
+
+	border: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1rem;
+	height: 1rem;
+}
+
+label {
+	width: 1rem;
+	height: 1rem;
 }

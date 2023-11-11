@@ -1,18 +1,20 @@
 * {
 	touch-action: manipulation;
 }
+
 :host {
 	background: var(--screen-selector-fill);
 }
 
 div {
 	display: flex;
-	justify-content: center;
+	justify-content: end;
 	color: var(--screen-selector-line);
 	background: var(--screen-selector-fill);
-	padding: 0.125em 0;
+	--control-fill: var(--screen-selector-fill);
+	--control-line: var(--screen-selector-line);
 }
 
-div:empty {
-	padding: 0;
+bento-control-button {
+	border: 0;
 }

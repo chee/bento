@@ -1,11 +1,14 @@
 import {bentoElements, BentoElement} from "./base.js"
 
 /**
+ * @typedef {SVGElement|HTMLElement|string} ContentType
+ */
+
+/**
  * @typedef {Object} ControlSpec
- * @prop {SVGElement|HTMLElement|string|(SVGElement|HTMLElement|string)[]} content
+ * @prop {ContentType|[ContentType, ContentType]} content
  * @prop {string} name
  * @prop {string} label
- * @prop {boolean} [showName]
  */
 export default class BentoControlButton extends BentoElement {
 	/** @type {HTMLButtonElement} */
@@ -52,6 +55,7 @@ export default class BentoControlButton extends BentoElement {
 	set name(val) {
 		this.set("name", val, () => {
 			this.button.name = val
+			this.setAttribute("name", val)
 		})
 	}
 
@@ -84,7 +88,7 @@ export default class BentoControlButton extends BentoElement {
 }
 
 /** @param {ControlSpec["content"]} content */
-function createContent(content, className = "only") {
+export function createContent(content, className = "only") {
 	if (Array.isArray(content)) {
 		let [top, bottom] = content
 		let topElement = createContent(top, "top")

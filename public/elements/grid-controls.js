@@ -2,26 +2,32 @@ import Grid from "../memory/tree/grid.js"
 import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoGridControls extends BentoElement {
+	/** @type {import("./control-popout.js").PopoutChoiceSpec<number>[]} */
 	static speeds = [
 		{
 			value: 0.25,
-			label: "×¼"
+			description: "×¼",
+			label: "quarter speed"
 		},
 		{
 			value: 0.5,
-			label: "×½"
+			description: "×½",
+			label: "half speed"
 		},
 		{
 			value: 1,
-			label: "×1"
+			description: "×1",
+			label: "normal speed"
 		},
 		{
 			value: 2,
-			label: "×2"
+			description: "×2",
+			label: "double speed"
 		},
 		{
 			value: 4,
-			label: "×4"
+			description: "×4",
+			label: "quadruple speed"
 		}
 	]
 
@@ -36,8 +42,7 @@ export default class BentoGridControls extends BentoElement {
 		}
 	]
 
-	/** @type {HTMLSelectElement} */
-	#speedSelector
+	#speedSelector = document.createElement("bento-control-popout")
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
@@ -46,20 +51,23 @@ export default class BentoGridControls extends BentoElement {
 			</fieldset>`
 		this.attachStylesheet("grid-controls")
 		let fieldset = this.shadow.firstElementChild
-		let speedSelector = document.createElement("select")
-		for (let speed of BentoGridControls.speeds) {
-			let option = document.createElement("option")
-			option.textContent = speed.label
-			option.value = speed.value.toString()
-			speedSelector.appendChild(option)
-		}
-		fieldset.appendChild(speedSelector)
-		this.#speedSelector = speedSelector
 
-		speedSelector.addEventListener("change", () => {
-			this.announce("set-grid-speed", {
-				index: this.grid.index,
-				value: Number(this.#speedSelector.value)
+		this.#speedSelector.spec =
+			/** @type {import("./control-popout.js").PopoutControlSpec<number>} */ ({
+				content: ["speed", "×1"],
+				label: "Set the speed of this grid on this layer",
+				name: "speed",
+				choices: BentoGridControls.speeds,
+				value: this.speed || 1
+			})
+		fieldset.append(this.#speedSelector)
+
+		customElements.whenDefined("bento-control-popout").then(() => {
+			this.#speedSelector.when("choose", ({choice}) => {
+				this.announce("set-grid-speed", {
+					index: this.grid.index,
+					value: choice
+				})
 			})
 		})
 
@@ -88,7 +96,7 @@ export default class BentoGridControls extends BentoElement {
 
 	set speed(val) {
 		this.set("speed", val, () => {
-			this.#speedSelector.value = val.toString()
+			this.#speedSelector.value = val
 		})
 	}
 

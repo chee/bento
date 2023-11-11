@@ -45,27 +45,18 @@ export default class Grid {
 		this.#mem.gridLoops.set([val], this.index)
 	}
 
-	get speed() {
-		return this.#mem.gridSpeeds.at(this.index)
-	}
-
-	set speed(val) {
-		this.#mem.gridSpeeds.set([val], this.index)
-	}
-
 	toggle() {
 		this.on = !this.on
 	}
 
 	toJSON() {
-		return {
+		return /** @type const */ {
 			index: this.index,
 			indexInLayer: this.indexInLayer,
 			layerIndex: this.layerIndex,
 			on: this.on,
 			jump: this.jump,
-			loop: this.loop,
-			speed: this.speed
+			loop: this.loop
 		}
 	}
 
@@ -90,7 +81,7 @@ export default class Grid {
 			from.layerIndex * STEPS_PER_LAYER + from.indexInLayer * STEPS_PER_GRID
 
 		// todo this doesn't seem quite right. a little entangled
-		for (let s = 0; s <= STEPS_PER_GRID; s++) {
+		for (let s = 0; s < STEPS_PER_GRID; s++) {
 			let thisStepIndex = thisStepStart + s
 
 			let fromStepIndex = fromStepStart + s

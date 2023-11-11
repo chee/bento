@@ -348,38 +348,42 @@ export default class MemoryTree {
 		return step2gridStep(this.selectedLayerCurrentStep)
 	}
 
-	/** @param {number} layer */
-	incrementStep(layer) {
-		let current = this.getCurrentStepIndexInLayer(layer)
-
-		let activeGrids = Array.from(
-			this.#mem.gridOns.subarray(
-				layer * GRIDS_PER_LAYER,
-				layer * GRIDS_PER_LAYER + GRIDS_PER_LAYER
-			)
-		)
-			.map((on, index) => ({index, on}))
-			.filter(n => n.on)
+	/**
+	 * @param {number} layer
+	 * @param {number} current
+	 */
+	getNextStepIndex(layer, current) {
+		let activeGrids = this.getActiveGridIndices(layer)
 		if (current > STEPS_PER_LAYER) {
 			let grid = activeGrids[0]
 			if (grid) {
-				this.#mem.currentSteps.set([grid.index * STEPS_PER_GRID], layer)
+				return grid * STEPS_PER_GRID
 			}
 		} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
 			let absoluteCurrentGrid = Math.floor(current / STEPS_PER_GRID)
 			let nextGrid =
-				activeGrids.find(g => g.index > absoluteCurrentGrid)?.index ||
-				activeGrids[0]?.index ||
-				0
-			let nextStep = nextGrid * STEPS_PER_GRID
-			if (activeGrids.length == 0) {
-				nextStep = -1
-			}
-			this.#mem.currentSteps.set([nextStep], layer)
-		} else {
-			let next = current + 1
-			this.#mem.currentSteps.set([next], layer)
+				activeGrids.find(g => g > absoluteCurrentGrid) || activeGrids[0] || 0
+			return activeGrids.length == 0 ? -1 : nextGrid * STEPS_PER_GRID
 		}
+		return current + 1
+	}
+
+	/** @param {number} layer */
+	getActiveGridIndices(layer) {
+		let ons = this.#mem.gridOns.subarray(
+			layer * GRIDS_PER_LAYER,
+			layer * GRIDS_PER_LAYER + GRIDS_PER_LAYER
+		)
+		return Array.from(ons)
+			.map((on, index) => ({index, on}))
+			.filter(n => n.on)
+			.map(n => n.index)
+	}
+
+	/** @param {number} layer */
+	incrementStep(layer) {
+		let current = this.getCurrentStepIndexInLayer(layer)
+		this.#mem.currentSteps.set([this.getNextStepIndex(layer, current)], layer)
 		this.announce("steps", -1)
 	}
 
@@ -499,45 +503,5 @@ export default class MemoryTree {
 	 */
 	fixRegions(layer) {
 		this.clearRegions(layer)
-	}
-
-	/**
-	 * @param {number} tick
-	 * @param {number} layerIndex
-	 * @param {number} sampleRate
-	 */
-	tick(tick, layerIndex, sampleRate) {
-		if (this.stopped) {
-			this.#mem.currentSteps.set([-1], layerIndex)
-			return false
-		}
-
-		let bpm = this.bpm
-		let samplesPerBeat = (60 / bpm) * sampleRate
-		let currentStepIndexInLayer = this.getCurrentStepIndexInLayer(layerIndex)
-		let currentStepIndex = layerStep2step(layerIndex, currentStepIndexInLayer)
-		let currentStep = this.getStep(currentStepIndex)
-		let currentGrid = this.getGrid(currentStep?.gridIndex || 0)
-		if (layerIndex == 1) {
-			console.log(
-				currentStepIndex,
-				layerIndex,
-				"tick",
-				currentStep.gridIndex,
-				currentStep
-			)
-		}
-
-		let speed = currentGrid.speed
-		let samplesPerStep = samplesPerBeat / (4 * speed)
-		let nextStepIndex = (tick / samplesPerStep) | 0
-
-		if (nextStepIndex != this.lastNextStep) {
-			this.incrementStep(layerIndex)
-			this.lastNextStep = nextStepIndex
-			return true
-		}
-
-		return false
 	}
 }

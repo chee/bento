@@ -1,4 +1,5 @@
 import Grid from "../memory/tree/grid.js"
+import Layer from "../memory/tree/layer.js"
 import {bentoElements, BentoElement} from "./base.js"
 
 export default class BentoGridControls extends BentoElement {
@@ -46,26 +47,34 @@ export default class BentoGridControls extends BentoElement {
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
-			<fieldset>
-				<legend screenreader>grid controls</legend>
+			<fieldset id="layer-controls">
+				<legend>layer</legend>
 			</fieldset>`
+		/*
+		<fieldset id="grid-controls">
+				<legend>grid</legend>
+			</fieldset>
+			 */
 		this.attachStylesheet("grid-controls")
-		let fieldset = this.shadow.firstElementChild
+		let layerControls = this.shadow.getElementById("layer-controls")
+		let gridControls = this.shadow.getElementById("grid-controls")
 
 		this.#speedSelector.spec =
 			/** @type {import("./control-popout.js").PopoutControlSpec<number>} */ ({
 				content: ["speed", "×1"],
-				label: "Set the speed of this grid on this layer",
+				label: "Set the speed of this layer",
 				name: "speed",
 				choices: BentoGridControls.speeds,
 				value: this.speed || 1
 			})
-		fieldset.append(this.#speedSelector)
+		layerControls.append(this.#speedSelector)
 
 		customElements.whenDefined("bento-control-popout").then(() => {
 			this.#speedSelector.when("choose", ({choice}) => {
-				this.announce("set-grid-speed", {
-					index: this.grid.index,
+				// if (closest("bento-party").playing)
+				// await this.waitForZero()
+				this.announce("set-layer-speed", {
+					index: this.layer.index,
 					value: choice
 				})
 			})
@@ -107,10 +116,20 @@ export default class BentoGridControls extends BentoElement {
 
 	set grid(val) {
 		this.set("grid", val, () => {
-			this.speed = val.speed
 			this.jump = val.jump
 			this.loop = val.loop
 			this.on = val.on
+		})
+	}
+
+	/** @type {Layer["view"]} */
+	get layer() {
+		return this.get("layer")
+	}
+
+	set layer(val) {
+		this.set("layer", val, () => {
+			this.speed = val.speed
 		})
 	}
 

@@ -260,6 +260,11 @@ body {
 	font-display: swap;
 }
 
+
+svg[data-icon] {
+	display: none;
+}
+
 * {
 	/* disable bouncing */
 	overscroll-behavior: none;
@@ -430,6 +435,10 @@ bento-poweroff {
 	flex-direction: column;
 }
 
+bento-poweroff svg[data-icon="power"] {
+	display: block;
+}
+
 [loading] bento-poweroff,
 [fancy] bento-poweroff {
 	pointer-events: none;
@@ -440,7 +449,7 @@ bento-poweroff * {
 	margin: 0;
 }
 
-#power-icon {
+bento-poweroff svg[data-icon="power"] {
 	font-size: 4em;
 	font-weight: bold;
 	animation: pulse 2s ease infinite;
@@ -458,8 +467,4 @@ bento-poweroff * {
 	100% {
 		transform: scale(0.9199);
 	}
-}
-
-svg[data-icon] {
-	display: none;
 }

@@ -86,13 +86,24 @@ export default class BentoControlPopout extends BentoElement {
 	set spec(spec) {
 		this.set("spec", spec, () => {
 			let choice = spec.choices.find(c => c.value == spec.value)
-
+			this.name = spec.name
 			this.value = spec.value
 			this.button.spec = {
 				...spec,
 				content: [choice.title || spec.name, choice.description]
 			}
 			this.choices = spec.choices
+		})
+	}
+
+	/** @type {string} */
+	get name() {
+		return this.get("name")
+	}
+
+	set name(val) {
+		this.set("name", val, () => {
+			this.setAttribute("name", val)
 		})
 	}
 

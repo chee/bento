@@ -110,10 +110,9 @@ party.when("set-bpm", bpm => {
 	db.save()
 })
 
-party.gridControls.when("set-grid-speed", message => {
-	console.log(message.index, message.value)
-	memtree.alterGrid(message.index, grid => {
-		grid.speed = message.value
+party.gridControls.when("set-layer-speed", message => {
+	memtree.alterLayer(message.index, layer => {
+		layer.speed = message.value
 	})
 	db.save()
 })
@@ -147,6 +146,10 @@ party.when("copy-grid", message => {
 
 party.when("toggle-grid", index => {
 	memtree.alterGrid(index, grid => {
+		let activeGrids = memtree.getActiveGridIndices(grid.layerIndex)
+		if (activeGrids.length <= 1 && grid.on) {
+			return
+		}
 		grid.toggle()
 	})
 	db.save()

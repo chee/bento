@@ -1,5 +1,6 @@
 :host {
 	--control-size: calc(var(--box-size) / 2);
+	display: flex;
 }
 
 * {
@@ -15,31 +16,44 @@ fieldset {
 	border: none;
 	margin: 0;
 	padding: 0;
-
 	text-align: center;
 	align-items: center;
-	width: var(--total-width);
 	--grid-controls-fill: var(--machine-fill);
 	--grid-controls-line: var(--machine-line);
 	background: var(--grid-controls-fill);
 	color: var(--grid-controls-line);
 	appearance: none;
-	padding: 0;
 	box-sizing: border-box;
 	display: grid;
 	grid-template-columns: repeat(8, var(--control-size));
 	gap: calc(0.25em - 2px);
-	padding-left: calc(0.25em + 2px);
+	padding-left: calc(0.25em + 12px);
 	margin-top: var(--box-gap);
+	display: block;
+	width: initial;
+	position: relative;
+}
+
+fieldset:not(:last-of-type) {
+	border-right: 1px solid;
+	margin-right: 0.125em;
+	padding-right: 0.25em;
 }
 
 legend {
+	font-size: 12px;
+	text-transform: lowercase;
+	margin-bottom: 2px;
+	/* font-weight: bold; */
+	margin-left: -2px;
+	/** todo */
+	/* position: absolute; */
+	/* left: -10000px; */
+	/* overflow: hidden; */
+	transform: rotate(-90deg);
 	position: absolute;
-	left: -10000px;
-	top: auto;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
+	left: -2px;
+	top: calc(1em + 2px);
 }
 
 bento-control-popout {

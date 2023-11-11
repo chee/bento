@@ -1,5 +1,5 @@
 /** @typedef {
-"flip"|"play"|"pause"|"stop"|"poweroff"|"tape"|"record"|"loop"|"unknown"
+"flip"|"play"|"pause"|"stop"|"power"|"tape"|"record"|"loop"|"unknown"
 } IconName */
 
 /** @type {Map<IconName, SVGElement>} */

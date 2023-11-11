@@ -31,12 +31,22 @@ export default class Layer {
 		this.#mem.layerTypes.set([val], this.index)
 	}
 
+	get speed() {
+		/* todo this is a shame, but i can't get per-grid speed to work */
+		return this.#mem.layerSpeeds.at(this.index)
+	}
+
+	set speed(val) {
+		this.#mem.layerSpeeds.set([val], this.index)
+	}
+
 	toJSON() {
-		return {
+		return /** @type const */ ({
 			index: this.index,
 			type: this.type,
-			selectedGrid: this.selectedGrid
-		}
+			selectedGrid: this.selectedGrid,
+			speed: this.speed
+		})
 	}
 
 	get view() {

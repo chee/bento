@@ -9,8 +9,7 @@
 :host div {
 	display: grid;
 	grid-template-columns: repeat(8, var(--grid-selector-box-size));
-	padding-bottom: 0.3em;
-	padding-top: 0.25em;
+	padding-bottom: 0.25em;
 	gap: calc(0.25em - 2px);
 	margin-left: calc(0.25em + 2px);
 }

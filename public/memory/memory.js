@@ -82,6 +82,11 @@ export let arrays = {
 			LayerType.synth
 		]
 	},
+	layerSpeeds: {
+		type: Float32Array,
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
+		defaultFill: 1
+	},
 	layerSounds: {
 		type: Float32Array,
 		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) // * 2? then
@@ -102,11 +107,6 @@ export let arrays = {
 				return Number(!(i % (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)))
 			}
 		)
-	},
-	gridSpeeds: {
-		type: Float32Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
-		defaultFill: 1
 	},
 	gridLengths: {
 		type: Uint8Array,

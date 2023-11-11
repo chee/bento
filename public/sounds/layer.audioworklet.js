@@ -1,4 +1,5 @@
 import MemoryTree from "../memory/tree/tree.js"
+import * as Memory from "../memory/memory.js"
 
 /*
  * the transport is kept in a worker so that it can keep time uninterupted by
@@ -18,19 +19,52 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 			})
 			throw new Error(msg)
 		}
-		this.memtree = MemoryTree.from(buffer)
+		this.map = Memory.map(buffer)
+		this.memtree = new MemoryTree(this.map)
 		this.layerNumber = layerNumber
 		this.tick = 0
 	}
 
 	process() {
 		let memtree = this.memtree
-		this.tick += memtree.active ? 128 : 0
-		if (memtree.tick(this.tick, this.layerNumber, sampleRate)) {
-			this.port.postMessage("step-change")
+		if (memtree.active) {
+			this.tick += 128
+			let bpm = memtree.bpm
+			let samplesPerBeat = (60 / bpm) * sampleRate
+			let speed = this.map.layerSpeeds.at(this.layerNumber)
+			let samplesPerStep = samplesPerBeat / (4 * speed)
+			let internalTick =
+				((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
+			if (internalTick != this.internalTick) {
+				memtree.incrementStep(this.layerNumber)
+				this.port.postMessage("step-change")
+			}
+			this.internalTick = internalTick
+		} else {
+			this.tick = 0
 		}
 		return true
 	}
 }
+
+// /**
+//  * @param {MemoryTree} memtree
+//  * @param {number} layerNumber
+//  */
+// function getCurrentSpeed(memtree, layerNumber) {
+// 	// todo per-grid speed causes beat drift. WHY?
+// 	let currentStepIndexInLayer = memtree.getCurrentStepIndexInLayer(layerNumber)
+// 	let currentStepIndex = Memory.layerStep2step(
+// 		layerNumber,
+// 		currentStepIndexInLayer
+// 	)
+// 	let currentGridG = memtree.getGrid(
+// 		memtree.getStep(currentStepIndex).gridIndex
+// 	)
+// 	// return currentGrid.speed
+
+// 	let currentGrid = memtree.getGrid(layerNumber * Memory.GRIDS_PER_LAYER)
+// 	return currentGrid.speed
+// }
 
 registerProcessor("bento-layer", BentoLayerWorklet)

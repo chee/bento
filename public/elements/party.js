@@ -2,6 +2,7 @@ import MemoryTree from "../memory/tree/tree.js"
 import {bentoElements, BentoElement} from "./base.js"
 import * as loop from "../convenience/loop.js"
 import {grid2layerGrid, step2gridStep} from "../memory/convert.js"
+import icons from "../icons.js"
 
 export default class BentoParty extends BentoElement {
 	connectedCallback() {
@@ -38,6 +39,8 @@ export default class BentoParty extends BentoElement {
 		this.gridSelector = this.querySelector("bento-grid-selector")
 		this.gridControls = this.querySelector("bento-grid-controls")
 		this.tape = this.querySelector("bento-tape")
+		this.poweroff = this.querySelector("bento-poweroff")
+		this.poweroff.append(icons.get("power"))
 	}
 
 	/** @type boolean */
@@ -106,6 +109,7 @@ export default class BentoParty extends BentoElement {
 		this.masterControls.playing = memtree.playing
 		this.masterControls.paused = memtree.paused
 		this.masterControls.bpm = memtree.bpm
+		console.log(this.masterControls.playing)
 		this.playing = memtree.playing
 		this.paused = memtree.paused
 		this.active = memtree.active
@@ -133,6 +137,7 @@ export default class BentoParty extends BentoElement {
 		this.gridSelector.grids = getSelectedLayerGrids(memtree)
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
 		this.screen.selectedStep = memtree.getSelectedStep()
+		this.gridControls.layer = memtree.getSelectedLayer()
 		this.gridControls.grid = memtree.getSelectedGrid()
 
 		this.updateCurrentStep(memtree)
@@ -175,7 +180,10 @@ export default class BentoParty extends BentoElement {
 
 	set selectedLayerCurrentGridStepIndex(val) {
 		this.set("selectedLayerCurrentGridStepIndex", val, () => {
-			if (this.selectedGridIndex == this.gridSelector.currentGridIndex) {
+			if (
+				grid2layerGrid(this.selectedGridIndex) ==
+				this.gridSelector.currentGridIndex
+			) {
 				this.grid.currentStepIndex = val
 			} else {
 				this.grid.currentStepIndex = -1

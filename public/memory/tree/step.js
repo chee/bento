@@ -41,7 +41,6 @@ export default class Step {
 		this.layerIndex = step2layer(index)
 		this.gridIndex = step2grid(index)
 		this.gridIndexInLayer = grid2layerGrid(step2grid(index))
-		console.log(this, "stepcons")
 	}
 
 	get on() {

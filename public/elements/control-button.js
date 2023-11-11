@@ -5,7 +5,7 @@ import {bentoElements, BentoElement} from "./base.js"
  */
 
 /**
- * @typedef {Object} ControlSpec
+ * @typedef {Object} ButtonControlSpec
  * @prop {ContentType|[ContentType, ContentType]} content
  * @prop {string} name
  * @prop {string} label
@@ -15,7 +15,9 @@ export default class BentoControlButton extends BentoElement {
 	button = document.createElement("button")
 
 	connectedCallback() {
-		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
+		if (!this.shadow) {
+			this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
+		}
 		this.shadow.appendChild(this.button)
 		this.attachStylesheet("control-button")
 		this.button.addEventListener("click", event => {
@@ -34,7 +36,7 @@ export default class BentoControlButton extends BentoElement {
 		})
 	}
 
-	/** @type {ControlSpec} */
+	/** @type {ButtonControlSpec} */
 	get spec() {
 		return this.get("spec")
 	}
@@ -71,7 +73,7 @@ export default class BentoControlButton extends BentoElement {
 		})
 	}
 
-	/** @type {ControlSpec["content"]} */
+	/** @type {ButtonControlSpec["content"]} */
 	get content() {
 		return this.get("content")
 	}
@@ -81,13 +83,13 @@ export default class BentoControlButton extends BentoElement {
 			this.button.textContent = ""
 			let elements = createContent(val)
 			for (let element of elements) {
-				this.button.appendChild(element)
+				this.button.append(element)
 			}
 		})
 	}
 }
 
-/** @param {ControlSpec["content"]} content */
+/** @param {ButtonControlSpec["content"]} content */
 export function createContent(content, className = "only") {
 	if (Array.isArray(content)) {
 		let [top, bottom] = content
@@ -101,8 +103,11 @@ export function createContent(content, className = "only") {
 		span.classList.add(className)
 		return [span]
 	}
-	content.classList.add(className)
-	return [content]
+	if (content instanceof HTMLElement || content instanceof SVGElement) {
+		content.classList.add(className)
+		return [content]
+	}
+	return ["" + content]
 }
 
 bentoElements.define("bento-control-button", BentoControlButton)

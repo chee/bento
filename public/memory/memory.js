@@ -115,8 +115,7 @@ export let arrays = {
 	},
 	gridLoops: {
 		type: Uint8Array,
-		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
-		defaultFill: STEPS_PER_GRID
+		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER
 	},
 	gridJumps: {
 		type: Int8Array,

@@ -4,59 +4,62 @@ import Layer from "../memory/tree/layer.js"
 import {LayerType} from "../memory/constants.js"
 import Step from "../memory/tree/step.js"
 import icons from "../icons.js"
-import BentoControlButton from "./control-button.js"
+import * as controls from "./controls.js"
 
 /** @typedef {typeof ScreenControl[keyof typeof ScreenControl]} ScreenControl */
 export const ScreenControl = /** @type const */ ({
-	edit: "edit",
-	snip: "snip",
+	// wav
+	// edit: "edit",
+	// snip: "snip",
 	flip: "flip",
-	lift: "lift",
-	drop: "drop",
-	tune: "tune",
-	spread: "spread",
+	// lift: "lift",
+	// drop: "drop",
+	// tune: "tune",
+	// spread: "spread",
 	record: "record",
-	loop: "loop"
+	loop: "loop",
+
+	// key
+	hear: "hear"
 })
 
 const ScreenControlSet = /** @type const */ ({
 	[LayerType.sampler]: {
-		[Screen.wav]: [ScreenControl.flip, ScreenControl.record]
+		[Screen.wav]: [ScreenControl.flip, ScreenControl.record],
+		[Screen.key]: [ScreenControl.hear]
 	}
 })
 
 /**
- * @typedef {import("./control-button.js").ControlSpec & {
+ * @typedef {import("./control-button.js").ButtonControlSpec & {
 		stepProperty?: keyof Step["view"]
 	}} ScreenControlSpec
  */
 
-/** @type Map<ScreenControl, ScreenControlSpec> */
-let controls = new Map()
-
-controls.set("record", {
-	label: "Record a new sound for this layer",
-	name: "record",
-	content: icons.get("record")
-})
-
-controls.set("flip", {
-	label: "Flip the sound on this step",
-	name: "flip",
-	content: ["flip", icons.get("flip")],
-	stepProperty: "reversed"
-})
-
-controls.set("loop", {
-	label: "Loop the sound on this step",
-	name: "loop",
-	content: ["loop", icons.get("loop")],
-	stepProperty: "loop"
-})
-
 export default class BentoScreenControls extends BentoElement {
-	/** @type Map<keyof Step["view"], BentoControlButton> */
-	stepPropertyElements = new Map()
+	controlElements = /** @type const */ ({
+		record: controls.button({
+			label: "Record a new sound for this layer",
+			name: "record",
+			content: icons.get("record")
+		}),
+		hear: controls.button({
+			name: "hear",
+			content: ["hear", "🔈"],
+			label: "Hear the note when you play it"
+		}),
+		flip: controls.button({
+			label: "Flip the sound on this step",
+			name: "flip",
+			content: ["flip", icons.get("flip")]
+		}),
+		loop: controls.button({
+			label: "Loop the sound on this step",
+			name: "loop",
+			content: ["loop", icons.get("loop")]
+		})
+	})
+
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.container = this.shadow.appendChild(document.createElement("div"))
@@ -67,16 +70,6 @@ export default class BentoScreenControls extends BentoElement {
 		this.addEventListener("touchstart", event => {
 			event.stopImmediatePropagation()
 		})
-	}
-
-	/** @param {ScreenControl} control */
-	add(control) {
-		let c = controls.get(control)
-		let b = document.createElement("bento-control-button")
-		this.shadow.append(b)
-		for (let [key, value] of Object.entries(c)) {
-			b[key] = value
-		}
 	}
 
 	/** @type {Screen} */
@@ -113,20 +106,31 @@ export default class BentoScreenControls extends BentoElement {
 
 	set selectedStep(val) {
 		this.set("selectedStep", val, () => {
-			for (let key in val) {
-				let value = val[key]
-				if (typeof value == "boolean") {
-					let el = this.stepPropertyElements.get(
-						/** @type {keyof Step["view"]} */ (key)
-					)
-					if (el) {
-						el.on = value
-					}
-					this.toggleAttribute(key, value)
-				} else {
-					this.setAttribute(key, value)
-				}
-			}
+			this.flip = val.reversed
+		})
+	}
+
+	/** @type {boolean} */
+	get flip() {
+		return this.get("flip")
+	}
+
+	set flip(val) {
+		this.set("flip", val, () => {
+			this.toggleAttribute("flip", val)
+			this.controlElements.flip.on = val
+		})
+	}
+
+	/** @type {boolean} */
+	get hear() {
+		return this.get("hear")
+	}
+
+	set hear(val) {
+		this.set("hear", val, () => {
+			this.toggleAttribute("hear", val)
+			this.controlElements.hear.on = val
 		})
 	}
 
@@ -135,28 +139,19 @@ export default class BentoScreenControls extends BentoElement {
 		return this.get("controls")
 	}
 
-	set controls(val) {
-		this.set("controls", val, () => {
-			this.container.textContent = ``
-			if (!val) {
-				return
-			}
-			for (let screen of val) {
-				let button = document.createElement("bento-control-button")
-				let spec = controls.get(screen)
-				button.spec = spec
-				if (spec.stepProperty) {
-					this.stepPropertyElements.set(spec.stepProperty, button)
-				}
-				this.container.append(button)
-			}
-		})
-	}
-
 	enable() {
 		let selectedLayerType = this.selectedLayerType || LayerType.sampler
 		let selectedScreen = this.selectedScreen || Screen.wav
-		this.controls = ScreenControlSet[selectedLayerType]?.[selectedScreen]
+		let ctrl = ScreenControlSet[selectedLayerType]?.[selectedScreen]
+		this.set("controls", ctrl, () => {
+			this.container.textContent = ``
+			if (!ctrl) {
+				return
+			}
+			for (let screen of ctrl) {
+				this.container.append(this.controlElements[screen])
+			}
+		})
 	}
 }
 

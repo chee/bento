@@ -1,7 +1,9 @@
 import BentoParty from "./public/elements/party"
 import BentoNav from "./public/elements/nav"
 import BentoMachine from "./public/elements/machine"
-import BentoControlButton from "./public/elements/control-button"
+import BentoControlButton, {
+	ButtonControlSpec
+} from "./public/elements/control-button"
 import BentoBox from "./public/elements/box"
 import BentoGrid from "./public/elements/grid"
 import BentoGridControls from "./public/elements/grid-controls"
@@ -13,9 +15,14 @@ import BentoScreenControls from "./public/elements/screen-controls"
 import BentoScreenSelector from "./public/elements/screen-selector"
 import BentoGridSelector from "./public/elements/grid-selector"
 import BentoTape from "./public/elements/tape"
-import BentoControlPopout from "./public/elements/control-popout"
+import BentoControlPopout, {
+	PopoutControlSpec
+} from "./public/elements/control-popout"
 
 declare global {
+	type BentoControl = BentoControlButton | BentoControlPopout
+	type BentoControlSpec<T> = PopoutControlSpec<T> | ButtonControlSpec
+
 	interface HTMLElementTagNameMap {
 		"bento-party": BentoParty
 		"bento-nav": BentoNav

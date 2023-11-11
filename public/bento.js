@@ -117,6 +117,13 @@ party.gridControls.when("set-layer-speed", message => {
 	db.save()
 })
 
+party.gridControls.when("set-grid-loop", message => {
+	memtree.alterGrid(message.index, grid => {
+		grid.loop = message.value
+	})
+	db.save()
+})
+
 party.when("select-layer", index => {
 	memtree.selectedLayer = index
 	db.save()

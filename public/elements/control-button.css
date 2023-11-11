@@ -34,7 +34,7 @@ button {
 
 button:hover {
 	box-shadow: 2px 2px 2px 0 #00000021;
-	background: #ffffff11;
+	background: #ffffff47;
 }
 
 button[aria-checked="true"] {
@@ -62,7 +62,6 @@ button .bottom {
 
 button .only {
 	height: 1.5em;
-	width: 1.5em;
 }
 
 button svg * {

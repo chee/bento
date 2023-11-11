@@ -19,6 +19,7 @@ export default class Grid {
 		this.index = index
 		this.layerIndex = grid2layer(index)
 		this.indexInLayer = grid2layerGrid(index)
+		this.loops = 0
 	}
 
 	set on(val) {

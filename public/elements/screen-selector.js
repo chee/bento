@@ -56,7 +56,7 @@ export default class BentoScreenSelector extends BentoElement {
 		let selectedScreen = this.selectedScreen || Screen.wav
 		let selectedLayerType = this.selectedLayer?.type || LayerType.sampler
 		if (selectedLayerType == LayerType.sampler) {
-			for (let screen of [Screen.wav, Screen.mix]) {
+			for (let screen of [Screen.wav, Screen.mix, Screen.key]) {
 				let button = document.createElement("button")
 				button.name = screen
 				button.textContent = screen

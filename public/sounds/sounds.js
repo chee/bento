@@ -218,6 +218,7 @@ export async function loadKit(...urls) {
 		let audio = await fetchSound(url)
 		memtree.alterSound(+index, sound => {
 			sound.audio = audio
+			// sound.sampleRate = context.sampleRate
 		})
 	}
 }

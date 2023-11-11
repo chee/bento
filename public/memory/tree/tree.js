@@ -360,9 +360,19 @@ export default class MemoryTree {
 				return grid * STEPS_PER_GRID
 			}
 		} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
-			let absoluteCurrentGrid = Math.floor(current / STEPS_PER_GRID)
+			let currentGridIndex = Math.floor(current / STEPS_PER_GRID)
+			let currentGrid = this.#grids[currentGridIndex]
+			if (currentGrid.loop) {
+				console.log(currentGrid.loop, currentGrid.loops)
+				if (currentGrid.loops < currentGrid.loop) {
+					currentGrid.loops += 1
+					return currentGrid.indexInLayer * STEPS_PER_GRID
+				} else {
+					currentGrid.loops = 0
+				}
+			}
 			let nextGrid =
-				activeGrids.find(g => g > absoluteCurrentGrid) || activeGrids[0] || 0
+				activeGrids.find(g => g > currentGridIndex) || activeGrids[0] || 0
 			return activeGrids.length == 0 ? -1 : nextGrid * STEPS_PER_GRID
 		}
 		return current + 1

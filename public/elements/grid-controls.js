@@ -1,6 +1,7 @@
 import Grid from "../memory/tree/grid.js"
 import Layer from "../memory/tree/layer.js"
 import {bentoElements, BentoElement} from "./base.js"
+import * as controls from "./controls.js"
 
 export default class BentoGridControls extends BentoElement {
 	/** @type {import("./control-popout.js").PopoutChoiceSpec<number>[]} */
@@ -43,34 +44,66 @@ export default class BentoGridControls extends BentoElement {
 		}
 	]
 
-	#speedSelector = document.createElement("bento-control-popout")
+	controlElements = {
+		speed: controls.popout({
+			label: "Set the speed of this layer",
+			name: "speed",
+			choices: BentoGridControls.speeds,
+			value: this.speed || 1
+		}),
+		loop: controls.popout({
+			label: "Set the number of times this grid repeats",
+			name: "repeat",
+			value: this.loop || 0,
+			choices: [
+				{
+					label: "no repeats",
+					value: 0,
+					description: "no"
+				},
+				{
+					label: "1 repeat",
+					value: 1
+				},
+				{
+					label: "2 repeat",
+					value: 2
+				},
+				{
+					label: "3 repeat",
+					value: 3
+				},
+				{
+					label: "4 repeat",
+					value: 4
+				},
+				{
+					label: "infinite repeats",
+					value: 0xff,
+					description: "yes"
+				}
+			]
+		})
+	}
+
 	connectedCallback() {
 		this.shadow = this.attachShadow({mode: "closed"})
 		this.shadow.innerHTML = `
 			<fieldset id="layer-controls">
 				<legend>layer</legend>
-			</fieldset>`
-		/*
-		<fieldset id="grid-controls">
-				<legend>grid</legend>
 			</fieldset>
-			 */
+			<fieldset id="grid-controls">
+				<legend>grid</legend>
+			</fieldset>`
 		this.attachStylesheet("grid-controls")
 		let layerControls = this.shadow.getElementById("layer-controls")
 		let gridControls = this.shadow.getElementById("grid-controls")
 
-		this.#speedSelector.spec =
-			/** @type {import("./control-popout.js").PopoutControlSpec<number>} */ ({
-				content: ["speed", "×1"],
-				label: "Set the speed of this layer",
-				name: "speed",
-				choices: BentoGridControls.speeds,
-				value: this.speed || 1
-			})
-		layerControls.append(this.#speedSelector)
+		layerControls.append(this.controlElements.speed)
+		gridControls.append(this.controlElements.loop)
 
 		customElements.whenDefined("bento-control-popout").then(() => {
-			this.#speedSelector.when("choose", ({choice}) => {
+			this.controlElements.speed.when("choose", ({choice}) => {
 				// if (closest("bento-party").playing)
 				// await this.waitForZero()
 				this.announce("set-layer-speed", {
@@ -78,24 +111,13 @@ export default class BentoGridControls extends BentoElement {
 					value: choice
 				})
 			})
+			this.controlElements.loop.when("choose", ({choice}) => {
+				this.announce("set-grid-loop", {
+					index: this.grid.index,
+					value: choice
+				})
+			})
 		})
-
-		// let optgroup = document.createElement("optgroup")
-		// this.#speedSelector.appendChild(optgroup)
-		// optgroup.label = "ethically non-monogamous"
-		// for (let speed of BentoGridControls.polyamorousSpeeds) {
-		// 	let option = document.createElement("option")
-		// 	option.textContent = speed.label
-		// 	option.value = speed.value.toString()
-		// 	optgroup.appendChild(option)
-		// }
-		// let lengthSelector = document.createElement("select")
-		// for (let i = NUMBER_OF_STEPS; i > 2; i--) {
-		// 	let option = document.createElement("option")
-		// 	option.value = i.toString()
-		// 	option.textContent = i.toString()
-		// 	lengthSelector.append()
-		// }
 	}
 
 	/** @type {number} */
@@ -105,7 +127,7 @@ export default class BentoGridControls extends BentoElement {
 
 	set speed(val) {
 		this.set("speed", val, () => {
-			this.#speedSelector.value = val
+			this.controlElements.speed.value = val
 		})
 	}
 
@@ -148,7 +170,10 @@ export default class BentoGridControls extends BentoElement {
 	}
 
 	set loop(val) {
-		this.set("loop", val, () => {})
+		this.set("loop", val, () => {
+			console.log({val})
+			this.controlElements.loop.value = val
+		})
 	}
 
 	/** @type {boolean} */

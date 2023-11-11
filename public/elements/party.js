@@ -35,6 +35,9 @@ export default class BentoParty extends BentoElement {
 			this.screen.when("select-screen", name => {
 				this.screen.selectedScreen = name
 			})
+			this.screen.when("hear", () => {
+				this.hearKeys = !this.hearKeys
+			})
 		})
 		this.gridSelector = this.querySelector("bento-grid-selector")
 		this.gridControls = this.querySelector("bento-grid-controls")
@@ -43,6 +46,17 @@ export default class BentoParty extends BentoElement {
 		this.poweroff.append(icons.get("power"))
 		this.poweroff.addEventListener("click", () => {
 			this.announce("play")
+		})
+	}
+
+	/** @type boolean */
+	get hearKeys() {
+		return this.get("hearKeys")
+	}
+
+	set hearKeys(val) {
+		this.set("hearKeys", val, () => {
+			this.screen.controls.hear = val
 		})
 	}
 
@@ -112,7 +126,7 @@ export default class BentoParty extends BentoElement {
 		this.masterControls.playing = memtree.playing
 		this.masterControls.paused = memtree.paused
 		this.masterControls.bpm = memtree.bpm
-		console.log(this.masterControls.playing)
+
 		this.playing = memtree.playing
 		this.paused = memtree.paused
 		this.active = memtree.active

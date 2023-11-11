@@ -1,7 +1,7 @@
 import {bentoElements, BentoElement} from "./base.js"
 
 /**
- * @typedef {import("./control-button.js").ControlSpec} ControlSpec
+ * @typedef {import("./control-button.js").ButtonControlSpec} ControlSpec
  */
 
 /**
@@ -13,7 +13,7 @@ import {bentoElements, BentoElement} from "./base.js"
  * @typedef {Object} PopoutChoiceSpec
  * @prop {string} label
  * @prop {string} [title]
- * @prop {string} description
+ * @prop {string} [description]
  * @prop {Value} value
  */
 
@@ -90,7 +90,10 @@ export default class BentoControlPopout extends BentoElement {
 			this.value = spec.value
 			this.button.spec = {
 				...spec,
-				content: [choice.title || spec.name, choice.description]
+				content: [
+					spec.name || choice.title,
+					choice.description || choice.title || spec.value.toString()
+				]
 			}
 			this.choices = spec.choices
 		})
@@ -123,9 +126,14 @@ export default class BentoControlPopout extends BentoElement {
 		}
 		this.set("value", val, () => {
 			let choice = this.choices.find(c => c.value == val)
+			if (!choice) {
+				console.warn(`no choice for value`, val)
+				return
+			}
+
 			this.button.content = [
 				choice.title || this.button.name,
-				choice.description
+				choice.description || choice.value.toString()
 			]
 		})
 	}
@@ -136,13 +144,12 @@ export default class BentoControlPopout extends BentoElement {
 
 			for (let choice of val) {
 				let choiceButton = document.createElement("bento-control-button")
-
+				let title = choice.title
+				let description = choice.description || choice.value.toString()
 				choiceButton.spec = {
 					...choice,
-					name: choice.description,
-					content: choice.title
-						? [choice.title, choice.description]
-						: choice.description
+					name: description || title,
+					content: title ? [title, description] : description
 				}
 
 				this.popout.append(choiceButton)

@@ -414,7 +414,7 @@ bento-party:not([fancy]) {
 
 bento-poweroff {
 	position: absolute;
-	top: 1.5em;
+	top: 1.3em;
 	left: 0;
 	right: 0;
 	bottom: 0;

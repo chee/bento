@@ -15,7 +15,7 @@ export default class BentoControlButton extends BentoElement {
 	button = document.createElement("button")
 
 	connectedCallback() {
-		this.shadow = this.attachShadow({mode: "closed"})
+		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
 		this.shadow.appendChild(this.button)
 		this.attachStylesheet("control-button")
 		this.button.addEventListener("click", event => {

@@ -2,7 +2,7 @@
 	--minigrid-fill: var(--grid-fill);
 	--dot-on-fill: var(--box-on-fill);
 	--dot-off-fill: var(--minigrid-fill);
-	--selected-minigrid-outline: white;
+	--selected-minigrid-outline: var(--selected-box-outline);
 	--minigrid-play-icon: var(--machine-line);
 	--minigrid-on-line: var(--machine-line);
 	--minigrid-off-line: color-mix(

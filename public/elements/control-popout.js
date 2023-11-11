@@ -57,15 +57,14 @@ export default class BentoControlPopout extends BentoElement {
 			this.toggleAttribute("open", open)
 			let current = this.choices.find(c => c.value == this.value)
 			// todo clearly written by a sleepy rabbit :: fix
-			let button = Array.from(
+			let currentChoice = Array.from(
 				this.shadow.querySelectorAll("bento-control-button")
 			).find(b => {
-				console.log(b.name)
 				return b.getAttribute("name") == current?.description
 			})
 
-			if (button) {
-				button.button.focus()
+			if (currentChoice) {
+				currentChoice.button.focus()
 			}
 
 			if (open) {
@@ -143,6 +142,7 @@ export default class BentoControlPopout extends BentoElement {
 						name: this.button.name,
 						choice: choice.value
 					})
+					this.button.button.focus()
 				})
 			}
 		})

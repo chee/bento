@@ -1,7 +1,7 @@
 :host {
 	/* border-top: 1px solid var(--machine-line); */
 	display: block;
-	background: var(--prominent-fill);
+	/* background: var(--prominent-fill); */
 	box-sizing: border-box;
 	--grid-selector-box-size: calc(var(--box-size) / 2);
 }

@@ -48,13 +48,15 @@ button.bottom {
 
 button .top {
 	font-size: 10px;
+	margin-top: 2px;
 }
 
 button .bottom {
 	height: 100%;
 	width: 100%;
-	margin-bottom: 1px;
-	font-size: 12px;
+	margin-bottom: 0px;
+	font-size: 16px;
+	line-height: 1em;
 }
 
 button .only {

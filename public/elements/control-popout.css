@@ -2,21 +2,35 @@
 	position: relative;
 }
 
+:host([open]) {
+	border: 0px solid;
+}
+
 #popout {
 	display: none;
 	position: absolute;
-	top: 0;
+	top: -1px;
+	left: calc((var(--box-size) / 2) - 1px);
 	background: var(--grid-controls-fill);
 	transform: translateX(-50%);
 	left: 50%;
-	border: 2px solid;
+	border: 1px solid;
 	box-shadow: 2px 2px 2px #0003;
 }
 
 bento-control-button {
-	border-left: 0;
+	/* border-left: 0; */
 }
 
 :host([open]) #popout {
 	display: flex;
+}
+
+:host(:focus) {
+	outline: 1px solid var(--focus-outline) !important;
+	outline-offset: 0 !important;
+}
+
+:host([open]:focus) {
+	outline: 0 !important;
 }

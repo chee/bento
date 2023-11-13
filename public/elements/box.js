@@ -24,6 +24,18 @@ export default class BentoBox extends BentoElement {
 		this.addEventListener("dragleave", this.#dragleave)
 		this.addEventListener("drop", this.#drop)
 		this.addEventListener("dragstart", this.#dragstart)
+		let mousedown = false
+		this.addEventListener("mousedown", event => {
+			mousedown = true
+		})
+		this.addEventListener("mouseup", event => {
+			mousedown = false
+		})
+		this.addEventListener("focus", event => {
+			if (!this.selected && !mousedown) {
+				this.announce("select-step", this.step.indexInGrid)
+			}
+		})
 	}
 
 	/** @param {KeyboardEvent} event */

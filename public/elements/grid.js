@@ -25,8 +25,6 @@ export default class BentoGrid extends BentoElement {
 				box.id = stepIdx.toString()
 				this.shadow.appendChild(box)
 			})
-			this.boxes[0].autofocus = true
-			this.boxes[0].focus()
 		})
 
 		this.shadow.addEventListener(
@@ -106,7 +104,10 @@ export default class BentoGrid extends BentoElement {
 	set selectedStepIndex(val) {
 		this.set("selectedStepIndex", val, () => {
 			for (let box of this.boxes) {
-				box.selected = val == box.step.indexInGrid
+				let selected = val == box.step.indexInGrid
+				box.selected = selected
+				box.autofocus = selected
+				selected && box.focus()
 			}
 		})
 	}

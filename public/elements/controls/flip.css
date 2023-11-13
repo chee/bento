@@ -1,0 +1,8 @@
+button:not([aria-checked="true"]) svg {
+	transform: scaleX(-1);
+}
+
+svg {
+	width: 100%;
+	height: 100%;
+}

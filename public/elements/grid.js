@@ -4,6 +4,7 @@ import BentoBox from "./box.js"
 import Modmask from "../io/modmask.js"
 import Step from "../memory/tree/step.js"
 import Grid from "../memory/tree/grid.js"
+import {LayerType} from "../memory/constants.js"
 
 export default class BentoGrid extends BentoElement {
 	/** @type {BentoBox[]} */
@@ -120,6 +121,17 @@ export default class BentoGrid extends BentoElement {
 			for (let box of this.boxes) {
 				box.playing = box.step.indexInGrid == val
 			}
+		})
+	}
+
+	/** @type {keyof typeof LayerType} */
+	get layerType() {
+		return this.get("layerType")
+	}
+
+	set layerType(val) {
+		this.set("layerType", val, () => {
+			this.setAttribute("layer-type", val)
 		})
 	}
 

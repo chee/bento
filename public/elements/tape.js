@@ -37,7 +37,9 @@ export default class BentoTape extends BentoElement {
 		if (this.recording) {
 			counter.innerHTML = "<span>•</span>".repeat(seconds)
 			this.interval = setInterval(function () {
-				counter.removeChild(counter.lastElementChild)
+				if (counter.lastElementChild) {
+					counter.removeChild(counter.lastElementChild)
+				}
 			}, 1000)
 		} else {
 			clearInterval(this.interval)

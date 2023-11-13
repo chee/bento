@@ -21,6 +21,14 @@ export default class Sound {
 		this.#mem.soundVersions.set([this.version + 1], this.layer)
 	}
 
+	/**
+	 * @param {number} start
+	 * @param {number} end
+	 */
+	clip(start, end) {
+		this.audio = this.left.subarray(start, end)
+	}
+
 	get left() {
 		let start = this.layer * SOUND_SIZE
 		return this.#mem.layerSounds.subarray(start, start + SOUND_SIZE)

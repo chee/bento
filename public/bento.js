@@ -117,6 +117,13 @@ party.gridControls.when("set-layer-speed", message => {
 	db.save()
 })
 
+party.gridControls.when("set-layer-type", message => {
+	memtree.alterLayer(message.index, layer => {
+		layer.type = message.value
+	})
+	db.save()
+})
+
 party.gridControls.when("set-grid-loop", message => {
 	memtree.alterGrid(message.index, grid => {
 		grid.loop = message.value
@@ -194,10 +201,11 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 	})
 
 	party.screen.when("clip-sound", message => {
-		let from = message.from
+		let from = memtree.getStep(message.from)
 		memtree.alterSound(memtree.selectedLayer, sound => {
 			sound.clip(from.start, from.end)
 		})
+		memtree.clearRegions(memtree.selectedLayer)
 		db.save()
 	})
 
@@ -211,6 +219,13 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 	party.screen.controls.when("loop", message => {
 		memtree.alterStep(memtree.selectedStep, step => {
 			step.loop = !step.loop
+		})
+		db.save()
+	})
+
+	party.screen.controls.when("layer-type", layerType => {
+		memtree.alterLayer(memtree.selectedLayer, layer => {
+			layer.type = layerType
 		})
 		db.save()
 	})

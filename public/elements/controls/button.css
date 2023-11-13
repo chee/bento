@@ -38,46 +38,19 @@ button:hover {
 }
 
 button[aria-checked="true"] {
-	background: var(--control-line);
 	color: var(--control-fill);
-}
-
-button .top,
-button.bottom {
-	line-height: 1em;
-}
-
-button .top {
-	font-size: 10px;
-	margin-top: 2px;
-	height: 1em;
-}
-
-button .bottom {
-	height: 1em;
-	margin-bottom: 0px;
-	font-size: 16px;
-	line-height: 1em;
-}
-
-button .only {
-	height: 1.5em;
+	background: var(--control-line);
 }
 
 button svg * {
-	stroke: var(--screen-line);
-	fill: var(--screen-line);
-}
-
-button[aria-checked="true"] svg * {
-	stroke: var(--selected-screen-selector-button-line);
-	fill: var(--selected-screen-selector-button-line);
-}
-
-button:not([aria-checked="true"])[name="flip"] svg {
-	transform: scaleX(-1);
+	stroke: currentColor;
+	fill: currentColor;
 }
 
 button:focus {
 	outline: 2px solid var(--focus-outline);
+}
+
+#title {
+	font-size: 11px;
 }

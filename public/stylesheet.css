@@ -25,10 +25,10 @@
 
 	/* =controls= */
 	--button-border-radius: 0;
-	--controls-fill: var(--machine-fill);
-	--controls-line: var(--machine-line);
-	--master-controls-fill: var(--controls-fill);
-	--master-controls-line: var(--controls-line);
+	--control-fill: var(--machine-fill);
+	--control-line: var(--machine-line);
+	--master-controls-fill: var(--control-fill);
+	--master-controls-line: var(--control-line);
 	--master-controls-shadow-color: var(--machine-shadow-color);
 	--settings-fill: var(--master-controls-fill);
 	--settings-line: var(--master-controls-line);
@@ -227,7 +227,7 @@ body {
 	--region-line: black;
 	--prominent-fill: #ffffec;
 	--prominent-line: #000;
-	--controls-line: #000;
+	--control-line: #000;
 	--pan-right-mix: #02019a;
 	--box-off-line: #aeefec;
 	--box-off-fill: #ffffec;
@@ -293,6 +293,7 @@ bento-party {
 		(var(--box-size) * var(--number-of-boxes)) +
 			(var(--box-gap) * (var(--number-of-boxes) * 2))
 	);
+	--control-size: calc(var(--box-size) / 2);
 	font-family: var(--font-family);
 	background: var(--page-fill);
 	box-sizing: content-box;

@@ -67,6 +67,16 @@ export class BentoElement extends HTMLElement {
 		}
 	}
 
+	/** @param {string} name */
+	addStylesheet(name) {
+		let stylesheet = document.createElement("link")
+		stylesheet.rel = "stylesheet"
+		stylesheet.href = `/elements/${name}.css`
+		if (this.shadow != null) {
+			this.shadow.appendChild(stylesheet)
+		}
+	}
+
 	/**
 	 * @template {keyof BentoEvents} Name
 	 * @param {Name} name
@@ -135,7 +145,7 @@ export class BentoElement extends HTMLElement {
 	 * @param {P} prop
 	 * @param {this[P]} val
 	 */
-	setDefault(prop, val) {
+	setImmediately(prop, val) {
 		this.#props.set(prop, val)
 	}
 

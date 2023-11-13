@@ -1,0 +1,8 @@
+#popout {
+	min-width: calc(var(--control-size) * 3);
+	background: var(--control-fill);
+}
+
+:host {
+	font-size: 12px;
+}

@@ -24,7 +24,7 @@ export default class Synth extends BentoSoundSource {
 		rightosc.connect(rightpan)
 		this.#oscillators = [leftosc, rightosc]
 		this.width = 0.1
-		this.type = "sine"
+		this.type = "square"
 	}
 
 	get width() {
@@ -54,7 +54,7 @@ export default class Synth extends BentoSoundSource {
 				break
 			case "sawtooth":
 			case "square":
-				this.#startGain = 0.2
+				this.#startGain = 0.3
 				break
 		}
 

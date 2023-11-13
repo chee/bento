@@ -1,0 +1,39 @@
+fieldset {
+	border: none;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	align-items: center;
+	background: var(--control-fill);
+	color: var(--control-line);
+	appearance: none;
+	box-sizing: border-box;
+	display: flex;
+	/* grid-template-columns: repeat(8, var(--control-size)); */
+	padding-left: calc(0.25em + 12px);
+	margin-top: var(--box-gap);
+	width: fit-content;
+	position: relative;
+}
+
+fieldset:not(:last-of-type) {
+	border-right: 1px solid;
+	margin-right: 0.125em;
+	padding-right: 0.25em;
+}
+
+legend {
+	font-size: 12px;
+	text-transform: lowercase;
+	margin-bottom: 2px;
+	margin-left: -2px;
+	transform: rotate(-90deg);
+	position: absolute;
+	left: -2px;
+	top: calc(1em + 2px);
+	color: var(--control-line);
+}
+
+fieldset > :not(legend) {
+	margin-left: 2px;
+}

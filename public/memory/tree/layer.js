@@ -20,15 +20,18 @@ export default class Layer {
 		this.#mem.layerSelectedGrids.set([val], this.index)
 	}
 
+	/** @type {keyof typeof LayerType} */
 	get type() {
-		return (
-			/** @type LayerType */ (this.#mem.layerTypes.at(this.index)) ||
-			LayerType.sampler
-		)
+		let type = this.#mem.layerTypes.at(this.index)
+		return {
+			0: "off",
+			1: "sampler",
+			2: "synth"
+		}[type]
 	}
 
 	set type(val) {
-		this.#mem.layerTypes.set([val], this.index)
+		this.#mem.layerTypes.set([LayerType[val]], this.index)
 	}
 
 	get speed() {
@@ -40,12 +43,21 @@ export default class Layer {
 		this.#mem.layerSpeeds.set([val], this.index)
 	}
 
+	get muted() {
+		return this.#mem.layerMuteds.at(this.index)
+	}
+
+	set muted(val) {
+		this.#mem.layerMuteds.set([val], this.index)
+	}
+
 	toJSON() {
 		return /** @type const */ ({
 			index: this.index,
 			type: this.type,
 			selectedGrid: this.selectedGrid,
-			speed: this.speed
+			speed: this.speed,
+			muted: this.muted
 		})
 	}
 

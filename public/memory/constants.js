@@ -1,7 +1,7 @@
 export const SOUND_SIZE = 2 ** 16 * 4
 export const SAMPLERS_PER_MACHINE = 4
-export const SYNTHS_PER_MACHINE = 0
-export const LAYERS_PER_MACHINE = SAMPLERS_PER_MACHINE + SYNTHS_PER_MACHINE
+export const SYNTHS_PER_MACHINE = 1
+export const LAYERS_PER_MACHINE = 8
 export const GRIDS_PER_LAYER = 8
 export const STEPS_PER_GRID = 16
 export const STEPS_PER_LAYER = GRIDS_PER_LAYER * STEPS_PER_GRID
@@ -11,8 +11,9 @@ export const NUMBER_OF_KEYS = 16
 /* for a time when there are an odd number of layers */
 export const LAYER_NUMBER_OFFSET = 4 - (LAYERS_PER_MACHINE % 4)
 
-/** @typedef {typeof LayerType[keyof typeof LayerType]} LayerType */
+/** @enum {typeof LayerType[keyof typeof LayerType]} */
 export const LayerType = /** @type const */ ({
+	off: 0,
 	sampler: 1,
 	synth: 2
 })
@@ -33,4 +34,11 @@ export const DrawingRegion = /** @type const */ ({
 	end: 1,
 	x: 2,
 	xMultiplier: 3
+})
+
+/** @enum {typeof StepState[keyof typeof StepState]} */
+export const StepState = /** @type const */ ({
+	off: 0,
+	on: 1,
+	ctrl: 2
 })

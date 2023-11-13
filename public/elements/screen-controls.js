@@ -4,10 +4,11 @@ import Layer from "../memory/tree/layer.js"
 import {LayerType} from "../memory/constants.js"
 import Step from "../memory/tree/step.js"
 import icons from "../icons.js"
-import * as controls from "./controls.js"
 
 /** @typedef {typeof ScreenControl[keyof typeof ScreenControl]} ScreenControl */
 export const ScreenControl = /** @type const */ ({
+	// sound:
+	type: "type",
 	// wav
 	// edit: "edit",
 	// snip: "snip",
@@ -24,46 +25,39 @@ export const ScreenControl = /** @type const */ ({
 })
 
 const ScreenControlSet = /** @type const */ ({
-	[LayerType.sampler]: {
-		[Screen.wav]: [ScreenControl.flip, ScreenControl.record],
+	sampler: {
+		[Screen.wav]: {
+			sound: [ScreenControl.type, ScreenControl.record],
+			step: [ScreenControl.flip]
+		},
 		[Screen.key]: [ScreenControl.hear]
 	}
 })
 
-/**
- * @typedef {import("./control-button.js").ButtonControlSpec & {
-		stepProperty?: keyof Step["view"]
-	}} ScreenControlSpec
- */
-
 export default class BentoScreenControls extends BentoElement {
 	controlElements = /** @type const */ ({
-		record: controls.button({
-			label: "Record a new sound for this layer",
-			name: "record",
-			content: icons.get("record")
-		}),
-		hear: controls.button({
-			name: "hear",
-			content: ["hear", "🔈"],
-			label: "Hear the note when you play it"
-		}),
-		flip: controls.button({
-			label: "Flip the sound on this step",
-			name: "flip",
-			content: ["flip", icons.get("flip")]
-		}),
-		loop: controls.button({
-			label: "Loop the sound on this step",
-			name: "loop",
-			content: ["loop", icons.get("loop")]
-		})
+		record: document.createElement("bento-record-button"),
+		hear: document.createElement("bento-hear-button"),
+		flip: document.createElement("bento-flip-button"),
+		loop: document.createElement("bento-loop-button"),
+		type: document.createElement("bento-layer-type-selector")
 	})
 
 	connectedCallback() {
-		this.shadow = this.attachShadow({mode: "closed"})
-		this.container = this.shadow.appendChild(document.createElement("div"))
-		this.attachStylesheet("screen-controls")
+		if (!this.shadow) {
+			this.shadow = this.attachShadow({mode: "closed"})
+			this.shadow.innerHTML = `
+			<fieldset id="sound-controls">
+				<legend>sound</legend>
+			</fieldset>
+			<fieldset id="step-controls">
+				<legend>step</legend>
+			</fieldset>`
+			this.addStylesheet("control-strip")
+			this.addStylesheet("screen-controls")
+		}
+		this.soundControlsContainer = this.shadow.getElementById("sound-controls")
+		this.stepControlsContainer = this.shadow.getElementById("step-controls")
 		this.addEventListener("mousedown", event => {
 			event.stopImmediatePropagation()
 		})
@@ -88,7 +82,7 @@ export default class BentoScreenControls extends BentoElement {
 		this.selectedLayerType = val.type
 	}
 
-	/** @type {LayerType} */
+	/** @type {keyof typeof LayerType} */
 	get selectedLayerType() {
 		return this.get("selectedLayerType")
 	}
@@ -96,6 +90,7 @@ export default class BentoScreenControls extends BentoElement {
 	set selectedLayerType(val) {
 		this.set("selectedLayerType", val, () => {
 			this.enable()
+			this.controlElements.type.value = val
 		})
 	}
 
@@ -135,21 +130,36 @@ export default class BentoScreenControls extends BentoElement {
 	}
 
 	/** @type {ScreenControl[]?} */
-	get controls() {
-		return this.get("controls")
+	get soundControls() {
+		return this.get("soundControls")
+	}
+
+	get stepControls() {
+		return this.get("stepControls")
 	}
 
 	enable() {
-		let selectedLayerType = this.selectedLayerType || LayerType.sampler
-		let selectedScreen = this.selectedScreen || Screen.wav
+		let selectedLayerType = this.selectedLayerType
+		let selectedScreen = this.selectedScreen
 		let ctrl = ScreenControlSet[selectedLayerType]?.[selectedScreen]
-		this.set("controls", ctrl, () => {
-			this.container.textContent = ``
-			if (!ctrl) {
+		this.set("soundControls", ctrl?.sound, () => {
+			this.soundControlsContainer.textContent = ``
+			if (!ctrl?.sound) {
 				return
 			}
-			for (let screen of ctrl) {
-				this.container.append(this.controlElements[screen])
+			this.soundControlsContainer.innerHTML = `<legend>sound</legend>`
+			for (let screen of ctrl?.sound) {
+				this.soundControlsContainer.append(this.controlElements[screen])
+			}
+		})
+		this.set("stepControls", ctrl?.step, () => {
+			this.stepControlsContainer.textContent = ``
+			if (!ctrl?.step) {
+				return
+			}
+			this.stepControlsContainer.innerHTML = `<legend>step</legend>`
+			for (let screen of ctrl?.step) {
+				this.stepControlsContainer.append(this.controlElements[screen])
 			}
 		})
 	}

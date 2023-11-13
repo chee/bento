@@ -1,0 +1,28 @@
+#popout {
+	background: var(--control-line);
+	transform: translateY(-100%) translateX(-50%);
+	flex-wrap: wrap;
+}
+
+:host([open]) #popout {
+	display: flex;
+}
+
+bento-control-button {
+	/* border-left: 0; */
+	height: var(--control-size);
+	width: var(--control-size);
+}
+
+#popout bento-control-button {
+	border: 0;
+}
+
+:host(:focus) {
+	outline: 1px solid var(--focus-outline) !important;
+	outline-offset: 0 !important;
+}
+
+:host([open]:focus) {
+	outline: 0 !important;
+}

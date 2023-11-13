@@ -1,0 +1,7 @@
+svg {
+	width: 70%;
+}
+
+svg * {
+	stroke-width: 10px;
+}

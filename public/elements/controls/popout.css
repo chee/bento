@@ -1,0 +1,24 @@
+:host {
+	position: relative;
+	height: var(--control-size);
+	width: var(--control-size);
+}
+
+:host([open]) {
+	border: 0px solid;
+}
+
+#popout {
+	display: none;
+	position: absolute;
+	left: calc(var(--control-size) - 1px);
+	background: var(--control-line);
+	border: 1px solid;
+	box-shadow: 2px 2px 2px #0003;
+	z-index: 1;
+	transform: translateY(-50%) translateX(-50%);
+}
+
+:host([open]) #popout {
+	display: block;
+}

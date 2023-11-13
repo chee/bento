@@ -1,0 +1,35 @@
+:host {
+	width: 100%;
+	border-radius: var(--layer-selector-border-radius)
+		var(--layer-selector-border-radius) 0 0;
+	background: var(--layer-selector-fill);
+	color: var(--layer-selector-fill);
+}
+
+:host(:not([on])) {
+	display: none;
+}
+
+button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border: 0;
+	cursor: pointer;
+	background: transparent;
+	width: 100%;
+	text-align: center;
+	position: relative;
+	color: currentColor;
+}
+
+:host([aria-selected="true"]) {
+	background: var(--selected-layer-selector-fill);
+	color: var(--selected-layer-selector-line);
+	cursor: unset;
+}

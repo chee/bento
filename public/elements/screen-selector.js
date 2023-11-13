@@ -1,7 +1,6 @@
 import Layer from "../memory/tree/layer.js"
 import {bentoElements, BentoElement} from "./base.js"
 import {Screen} from "../graphics/constants.js"
-import {LayerType} from "../memory/constants.js"
 
 export default class BentoScreenSelector extends BentoElement {
 	connectedCallback() {
@@ -53,18 +52,28 @@ export default class BentoScreenSelector extends BentoElement {
 
 	enable() {
 		this.nav.textContent = ``
-		let selectedScreen = this.selectedScreen || Screen.wav
-		let selectedLayerType = this.selectedLayer?.type || LayerType.sampler
-		if (selectedLayerType == LayerType.sampler) {
-			for (let screen of [Screen.wav, Screen.mix, Screen.key]) {
-				let button = document.createElement("button")
-				button.name = screen
-				button.textContent = screen
-				button.role = "radio"
-				this.nav.append(button)
-				if (screen == selectedScreen) {
-					button.ariaChecked = "true"
-				}
+		let selectedScreen = this.selectedScreen
+		let selectedLayerType = this.selectedLayer?.type
+		/** @type {Screen[]} */
+		let screens = {
+			sampler: [Screen.wav, Screen.mix, Screen.key],
+			synth: [Screen.mix, Screen.key],
+			off: []
+		}[selectedLayerType]
+		for (let screen of screens) {
+			let button = document.createElement("button")
+			button.name = screen
+			button.textContent = screen
+			button.role = "radio"
+			this.nav.append(button)
+			if (screen == selectedScreen) {
+				button.ariaChecked = "true"
+			}
+		}
+		if (!screens.includes(selectedScreen)) {
+			if (screens[0]) {
+				this.announce("select-screen", screens[0])
+				this.nav.children[0].ariaChecked = "true"
 			}
 		}
 	}

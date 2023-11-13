@@ -3,6 +3,7 @@ import {bentoElements, BentoElement} from "./base.js"
 import * as loop from "../convenience/loop.js"
 import {grid2layerGrid, step2gridStep} from "../memory/convert.js"
 import icons from "../icons.js"
+import {LayerType} from "../memory/constants.js"
 
 export default class BentoParty extends BentoElement {
 	connectedCallback() {
@@ -136,6 +137,12 @@ export default class BentoParty extends BentoElement {
 			this.grid.steps = getSelectedGridSteps(memtree)
 			this.layerSelector.selectedLayerIndex = memtree.selectedLayer
 			this.screen.layer = memtree.getSelectedLayer()
+			this.grid.layerType = this.screen.layer.type
+		})
+
+		this.set("selectedLayerType", memtree.getSelectedLayer().type, () => {
+			this.screen.layer = memtree.getSelectedLayer()
+			this.grid.layerType = this.screen.layer.type
 		})
 
 		this.set("selectedGridIndex", memtree.selectedGrid, () => {
@@ -150,6 +157,7 @@ export default class BentoParty extends BentoElement {
 		})
 
 		// get your wallet out
+		this.layerSelector.layers = getLayers(memtree)
 		this.grid.steps = getSelectedGridSteps(memtree)
 		this.gridSelector.grids = getSelectedLayerGrids(memtree)
 		this.gridSelector.steps = getSelectedLayerSteps(memtree)
@@ -166,6 +174,11 @@ export default class BentoParty extends BentoElement {
 		this.selectedLayerCurrentStepIndex = memtree.selectedLayerCurrentStep
 		this.selectedLayerCurrentGridStepIndex =
 			memtree.selectedLayerCurrentGridStep
+	}
+
+	/** @type {keyof typeof LayerType} */
+	get selectedLayerType() {
+		return this.get("selectedLayerType")
 	}
 
 	/** @type number */
@@ -257,6 +270,11 @@ function getSelectedLayerGrids(memtree) {
 	return loop.layerGrids(index =>
 		memtree.getLayerGrid(memtree.selectedLayer, index)
 	)
+}
+
+/** @param {MemoryTree} memtree */
+function getLayers(memtree) {
+	return loop.layers(index => memtree.getLayer(index))
 }
 
 bentoElements.define("bento-party", BentoParty)

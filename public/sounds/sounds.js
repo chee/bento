@@ -22,7 +22,7 @@ function normalize(sound) {
 		max = Math.max(Math.abs(f32), max)
 	}
 	if (max != 0) {
-		let mult = 1 / max
+		let mult = (1 / max) * 0.99
 		loop.range(sound.length).forEach(index => {
 			sound[index] *= mult
 		})
@@ -168,7 +168,7 @@ export async function start() {
 		let source
 		let type = layer.type
 
-		if (type == LayerType.sampler) {
+		if (type == "sampler") {
 			let sampler = new AudioWorkletNode(context, "bento-sampler", {
 				processorOptions,
 				numberOfInputs: 0,
@@ -182,11 +182,13 @@ export async function start() {
 			quiet.connect(passthru.in)
 			passthru.connect(context.destination)
 			source = passthru
-		} else if (type == LayerType.synth) {
+		} else if (type == "synth") {
 			let synth = new Synth(context)
 			synth.connect(quiet)
 			quiet.connect(context.destination)
 			source = synth
+		} else {
+			source = new Passthru(context)
 		}
 
 		let transport = new AudioWorkletNode(context, "bento-layer", {
@@ -199,7 +201,8 @@ export async function start() {
 			// todo make this unnecesary
 			if (message == "step-change") {
 				memtree.announce("steps", -1)
-				let step = memtree.getStep(idx)
+				let stepIndex = memtree.getCurrentLayerStepIndex(idx)
+				let step = memtree.getStep(stepIndex)
 				if (step.on && source) {
 					source.play(step)
 				}

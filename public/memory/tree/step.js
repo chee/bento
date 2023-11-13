@@ -1,4 +1,4 @@
-import {DYNAMIC_RANGE, NUMBER_OF_KEYS} from "../constants.js"
+import {DYNAMIC_RANGE, NUMBER_OF_KEYS, StepState} from "../constants.js"
 import {
 	grid2layerGrid,
 	step2grid,
@@ -48,6 +48,14 @@ export default class Step {
 	}
 
 	set on(val) {
+		this.#mem.stepOns.set([+val], this.index)
+	}
+
+	get state() {
+		return /** @type StepState */ (this.#mem.stepOns.at(this.index))
+	}
+
+	set state(val) {
 		this.#mem.stepOns.set([+val], this.index)
 	}
 
@@ -180,7 +188,8 @@ export default class Step {
 			start: this.start,
 			end: this.end,
 			reversed: this.reversed,
-			loop: this.loop
+			loop: this.loop,
+			state: this.state
 		})
 	}
 

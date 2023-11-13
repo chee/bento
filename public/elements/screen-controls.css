@@ -3,16 +3,10 @@
 }
 
 :host {
-	background: var(--screen-selector-fill);
-}
-
-div {
+	background: var(--screen-fill);
 	display: flex;
-	justify-content: end;
-	color: var(--screen-selector-line);
-	background: var(--screen-selector-fill);
-	--control-fill: var(--screen-selector-fill);
-	--control-line: var(--screen-selector-line);
+	--control-fill: var(--screen-fill);
+	--control-line: var(--screen-line);
 }
 
 bento-control-button {

@@ -92,6 +92,10 @@ export let arrays = {
 		size: SOUND_SIZE * (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) // * 2? then
 		// place the right channel at layer+lpm from the left channel
 	},
+	layerMuteds: {
+		type: Uint8Array,
+		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
+	},
 	currentSteps: {
 		type: Uint8Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET,
@@ -122,7 +126,6 @@ export let arrays = {
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER,
 		defaultFill: 0
 	},
-	/* todo, this could be an enum for the type of ON the step is */
 	stepOns: {
 		type: Uint8Array,
 		size: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * STEPS_PER_LAYER,
@@ -130,7 +133,13 @@ export let arrays = {
 		//                    .toString(2)
 		//                    .split("")
 		//	                   .map(Number)
-		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1]
+		// prettier-ignore
+		default: [
+			1,	0,	0,	0,
+			1,	0,	0,	0,
+			1,	0,	0,	1,
+			1,	0,	1,	0
+		]
 	},
 	stepReverseds: {
 		type: Uint8Array,

@@ -56,7 +56,7 @@ export default class MemoryTree {
 		this.#notify = mem.notify
 		this.#layers = loop.layers(index => new Layer(mem, index))
 		this.#sounds = loop.layers(index => new Sound(mem, index))
-		this.#grids = loop.layerGrids(index => new Grid(mem, index))
+		this.#grids = loop.grids(index => new Grid(mem, index))
 		this.#steps = loop.steps(index => new Step(mem, index))
 	}
 
@@ -306,6 +306,9 @@ export default class MemoryTree {
 		this.#mem.currentSteps.set(
 			Array(LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET).fill(-1)
 		)
+		this.#grids.forEach(grid => {
+			grid.loops = 0
+		})
 		this.announce("master", Master.playing)
 	}
 
@@ -349,33 +352,37 @@ export default class MemoryTree {
 	}
 
 	/**
-	 * @param {number} layer
-	 * @param {number} current
+	 * @param {number} layerIndex
+	 * @param {number} currentStepIndex
 	 */
-	getNextStepIndex(layer, current) {
-		let activeGrids = this.getActiveGridIndices(layer)
-		if (current > STEPS_PER_LAYER) {
+	getNextStepIndex(layerIndex, currentStepIndex) {
+		let activeGrids = this.getActiveGridIndices(layerIndex)
+		if (currentStepIndex > STEPS_PER_LAYER) {
 			let grid = activeGrids[0]
 			if (grid) {
 				return grid * STEPS_PER_GRID
 			}
-		} else if (current % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
-			let currentGridIndex = Math.floor(current / STEPS_PER_GRID)
+		} else if (currentStepIndex % STEPS_PER_GRID == STEPS_PER_GRID - 1) {
+			let currentGridIndex = step2grid(
+				layerStep2step(layerIndex, currentStepIndex)
+			)
 			let currentGrid = this.#grids[currentGridIndex]
-			if (currentGrid.loop) {
-				console.log(currentGrid.loop, currentGrid.loops)
+
+			// todo move this logic to grid.js itself
+			if (currentGrid.loop > 0) {
 				if (currentGrid.loops < currentGrid.loop) {
 					currentGrid.loops += 1
 					return currentGrid.indexInLayer * STEPS_PER_GRID
-				} else {
-					currentGrid.loops = 0
 				}
 			}
+			currentGrid.loops = 0
 			let nextGrid =
-				activeGrids.find(g => g > currentGridIndex) || activeGrids[0] || 0
+				activeGrids.find(g => g > currentGrid.indexInLayer) ||
+				activeGrids[0] ||
+				0
 			return activeGrids.length == 0 ? -1 : nextGrid * STEPS_PER_GRID
 		}
-		return current + 1
+		return currentStepIndex + 1
 	}
 
 	/** @param {number} layer */
@@ -499,6 +506,11 @@ export default class MemoryTree {
 		return this.getStep(
 			gridStep2step(selectedLayer, selectedGrid, this.selectedUiStep)
 		).index
+	}
+
+	/** @param {number} layer*/
+	getCurrentLayerStepIndex(layer) {
+		return layerStep2step(layer, this.#mem.currentSteps.at(layer))
 	}
 
 	/** @param {number} layer */

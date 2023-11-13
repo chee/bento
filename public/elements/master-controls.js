@@ -91,7 +91,7 @@ export default class BentoMasterControls extends BentoElement {
 		})
 
 		fieldset.appendChild(settingsButton)
-		this.setDefault("bpm", 120)
+		this.setImmediately("bpm", 120)
 	}
 
 	/** @type number */

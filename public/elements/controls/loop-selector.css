@@ -1,0 +1,3 @@
+#popout {
+	min-width: calc(var(--control-size) * 5);
+}

@@ -67,4 +67,4 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 // 	return currentGrid.speed
 // }
 
-registerProcessor("bento-layer", BentoLayerWorklet)
+registerProcessor("bento-transport", BentoLayerWorklet)

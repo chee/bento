@@ -36,6 +36,12 @@ export default class BentoParty extends BentoElement {
 			this.screen.when("select-screen", name => {
 				this.screen.selectedScreen = name
 			})
+			this.screen.when("layer-type", type => {
+				this.announce("select-layer-type", {
+					layer: this.selectedLayerIndex,
+					type
+				})
+			})
 			this.screen.when("hear", () => {
 				this.hearKeys = !this.hearKeys
 			})

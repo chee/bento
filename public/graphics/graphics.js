@@ -53,6 +53,13 @@ export async function init() {
 			screen
 		})
 	})
+
+	screenElement.when("select-screen", screen => {
+		screenWorker.postMessage({
+			type: "screen",
+			screen
+		})
+	})
 }
 
 /**

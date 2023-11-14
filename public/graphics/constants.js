@@ -5,7 +5,8 @@ export const Screen = /** @type const */ ({
 	env: "env",
 	key: "key",
 	flt: "flt",
-	spc: "spc"
+	spc: "spc",
+	snd: "snd"
 })
 
 export const DPI = 4

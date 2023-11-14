@@ -4,7 +4,7 @@ import {bentoElements, BentoElement} from "../base.js"
 export default class BentoControlButton extends BentoElement {
 	/** @type {HTMLButtonElement} */
 	button = document.createElement("button")
-	announcer = event => {
+	#announcer = event => {
 		this.announce(this.name, this.value)
 	}
 
@@ -13,12 +13,12 @@ export default class BentoControlButton extends BentoElement {
 			this.shadow = this.attachShadow({mode: "closed"})
 			this.shadow.appendChild(this.button)
 			this.attachStylesheet("controls/button")
-			this.button.addEventListener("click", this.announcer)
 		}
+		this.button.addEventListener("click", this.#announcer)
 	}
 
 	disconnectedCallback() {
-		this.button.removeEventListener("click", this.announcer)
+		this.button.removeEventListener("click", this.#announcer)
 	}
 
 	/** @type {boolean} */

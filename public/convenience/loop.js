@@ -3,8 +3,7 @@ import {
 	GRIDS_PER_LAYER,
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER,
-	SAMPLERS_PER_MACHINE,
-	SYNTHS_PER_MACHINE
+	SAMPLERS_PER_MACHINE
 } from "../memory/memory.js"
 
 /**
@@ -43,18 +42,6 @@ export function layers(fn) {
  */
 export function samplers(fn) {
 	return range(SAMPLERS_PER_MACHINE).map(index => fn(index))
-}
-
-/**
- * loop over the number of sawsquaresines
- * @template {any} T
- * @param {(layerIdx: number) => T} fn
- * @returns {T[]}
- */
-export function synths(fn) {
-	return range(SYNTHS_PER_MACHINE).map(index =>
-		fn(SAMPLERS_PER_MACHINE + index)
-	)
 }
 
 /**

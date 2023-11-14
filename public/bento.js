@@ -117,13 +117,6 @@ party.gridControls.when("set-layer-speed", message => {
 	db.save()
 })
 
-party.gridControls.when("set-layer-type", message => {
-	memtree.alterLayer(message.index, layer => {
-		layer.type = message.value
-	})
-	db.save()
-})
-
 party.gridControls.when("set-grid-loop", message => {
 	memtree.alterGrid(message.index, grid => {
 		grid.loop = message.value
@@ -222,13 +215,13 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 		})
 		db.save()
 	})
+})
 
-	party.screen.controls.when("layer-type", layerType => {
-		memtree.alterLayer(memtree.selectedLayer, layer => {
-			layer.type = layerType
-		})
-		db.save()
+party.when("select-layer-type", message => {
+	memtree.alterLayer(message.layer, layer => {
+		layer.type = message.type
 	})
+	db.save()
 })
 
 party.screen.when("drawing-region-start", x => {
@@ -377,7 +370,6 @@ document.addEventListener(
 )
 
 // todo move below to some kind of machine/settings.js
-
 party.when("toggle-settings", () => {
 	party.settings.open = !party.settings.open
 	setTimeout(() => {

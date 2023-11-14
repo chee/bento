@@ -3,7 +3,6 @@ import {Screen} from "../graphics/constants.js"
 import Layer from "../memory/tree/layer.js"
 import {LayerType} from "../memory/constants.js"
 import Step from "../memory/tree/step.js"
-import icons from "../icons.js"
 
 /** @typedef {typeof ScreenControl[keyof typeof ScreenControl]} ScreenControl */
 export const ScreenControl = /** @type const */ ({
@@ -31,6 +30,16 @@ const ScreenControlSet = /** @type const */ ({
 			step: [ScreenControl.flip]
 		},
 		[Screen.key]: [ScreenControl.hear]
+	},
+	synth: {
+		[Screen.snd]: {
+			sound: [ScreenControl.type]
+		}
+	},
+	off: {
+		[Screen.snd]: {
+			sound: [ScreenControl.type]
+		}
 	}
 })
 

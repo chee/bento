@@ -78,8 +78,7 @@ export let arrays = {
 			LayerType.sampler,
 			LayerType.sampler,
 			LayerType.sampler,
-			LayerType.sampler,
-			LayerType.synth
+			LayerType.sampler
 		]
 	},
 	layerSpeeds: {
@@ -108,7 +107,7 @@ export let arrays = {
 			{length: (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET) * GRIDS_PER_LAYER},
 			// 1 at the start of every layer, 0 everywhere else
 			(_, i) => {
-				return Number(!(i % (LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET)))
+				return Number(i % GRIDS_PER_LAYER == 0)
 			}
 		)
 	},

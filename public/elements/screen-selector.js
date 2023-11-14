@@ -57,8 +57,8 @@ export default class BentoScreenSelector extends BentoElement {
 		/** @type {Screen[]} */
 		let screens = {
 			sampler: [Screen.wav, Screen.mix, Screen.key],
-			synth: [Screen.mix, Screen.key],
-			off: []
+			synth: [Screen.snd, Screen.mix, Screen.key],
+			off: [Screen.snd]
 		}[selectedLayerType]
 		for (let screen of screens) {
 			let button = document.createElement("button")

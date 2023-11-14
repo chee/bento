@@ -1,4 +1,3 @@
-import {LayerType} from "../../memory/constants.js"
 import {bentoElements, BentoElement} from "../base.js"
 import BentoControlButton from "./button.js"
 
@@ -6,8 +5,13 @@ import BentoControlButton from "./button.js"
 export default class BentoControlPopout extends BentoElement {
 	button = document.createElement("bento-control-button")
 	popout = document.createElement("div")
-	#windowListener = () => {
+	#onWindowClick = () => {
 		this.open = false
+	}
+	#toggle = event => {
+		event.stopImmediatePropagation()
+		this.open = !this.open
+		this.announce("open")
 	}
 	connectedCallback() {
 		if (!this.shadow) {
@@ -19,15 +23,12 @@ export default class BentoControlPopout extends BentoElement {
 			this.popout.role = "dialog"
 			this.shadow.appendChild(this.popout)
 			this.open = false
-			this.button.addEventListener("click", event => {
-				event.stopPropagation()
-				this.open = !this.open
-				this.announce("open")
-			})
-			this.popout.addEventListener("choose", value => {
-				this.announce(this.name, value)
-			})
 		}
+		this.button.addEventListener("click", this.#toggle)
+	}
+
+	disconnectedCallback() {
+		this.button.removeEventListener("click", this.#toggle)
 	}
 
 	/** @type boolean */
@@ -39,9 +40,9 @@ export default class BentoControlPopout extends BentoElement {
 		this.set("open", open, () => {
 			this.toggleAttribute("open", open)
 			if (open) {
-				window.addEventListener("click", this.#windowListener)
+				window.addEventListener("click", this.#onWindowClick)
 			} else {
-				window.removeEventListener("click", this.#windowListener)
+				window.removeEventListener("click", this.#onWindowClick)
 			}
 		})
 	}
@@ -136,10 +137,10 @@ export class BentoSpeedSelector extends BentoControlPopout {
 				this.popout.append(button)
 				this.choiceElements.push(button)
 			}
-			this.button.when(this.name, (_, event) => {
-				event.stopImmediatePropagation()
-			})
 		}
+		this.button.when(this.name, (_, event) => {
+			event.stopImmediatePropagation()
+		})
 	}
 
 	/** @type {any} */
@@ -212,10 +213,10 @@ export class BentoLoopSelector extends BentoControlPopout {
 				this.popout.append(button)
 				this.choiceElements.push(button)
 			}
-			this.button.when(this.name, (_, event) => {
-				event.stopImmediatePropagation()
-			})
 		}
+		this.button.when(this.name, (_, event) => {
+			event.stopImmediatePropagation()
+		})
 	}
 
 	/** @type {any} */
@@ -271,10 +272,10 @@ export class BentoLayerTypeSelector extends BentoControlPopout {
 				this.popout.append(button)
 				this.choiceElements.push(button)
 			}
-			this.button.when(this.name, (_, event) => {
-				event.stopImmediatePropagation()
-			})
 		}
+		this.button.when(this.name, (_, event) => {
+			event.stopImmediatePropagation()
+		})
 	}
 
 	/** @type {any} */

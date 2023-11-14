@@ -1,5 +1,6 @@
-import {DYNAMIC_RANGE} from "../memory/constants.js"
+import Step from "../memory/tree/step.js"
 import MemoryTree from "../memory/tree/tree.js"
+import quietparty from "./quietparty.js"
 import {Scale, pitch2freq} from "./scale.js"
 
 class BentoSamplerWorklet extends AudioWorkletProcessor {
@@ -18,7 +19,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		}
 		this.memtree = MemoryTree.from(buffer)
 		this.layerNumber = layerNumber
-		this.lastStep = -1
+		this.lastStepIndex = -1
 		this.tick = 0
 		// todo caching of portions
 		/** @type Map<string, Float32Array> */
@@ -26,6 +27,10 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		this.portion = new Float32Array(0)
 		this.scale = Scale.HarmonicMinor
 		this.loop = false
+		this.point = 0
+
+		/** @type {Step["view"]} */
+		this.portionStep
 	}
 
 	/**
@@ -38,40 +43,43 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		let memtree = this.memtree
 		let layerIndex = this.layerNumber
 		let stepIndex = memtree.getCurrentStepIndexInLayer(layerIndex)
-		if (stepIndex != this.lastStep) {
+		let layer = memtree.getLayer(layerIndex)
+
+		if (layer.type != "sampler") {
+			return false
+		}
+
+		if (stepIndex != this.lastStepIndex) {
 			let step = memtree.getLayerStep(layerIndex, stepIndex)
 
 			if (step.on) {
 				let sound = memtree.getSound(layerIndex)
-				this.point = 0
-				this.loop = step.loop
+				this.portionStep = step
 				// todo stereo?
 				this.portion = sound.left.subarray(
 					step.start,
 					step.end || sound.length
 				)
+				this.point = 0
 				if (step.reversed) {
 					this.portion = this.portion.slice().reverse()
 				}
 				this.playbackRate = pitch2freq(step.pitch, this.scale)
-				this.pan = step.pan / (DYNAMIC_RANGE / 2) || 0
 			}
 		}
 
-		this.lastStep = stepIndex
+		this.lastStepIndex = stepIndex
 
 		let quantumPortionLength = this.portion.length - this.point
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {
-			if (this.loop && i > quantumPortionLength - 1) {
-				this.point = 0
-			}
 			let p = this.point
 			if (i < quantumPortionLength) {
 				let s1 = this.portion[p | 0] || 0
 				let s2 = this.portion[(p | 0) + 1] || 0
 				let s = s1 + (p % 1) * (s2 - s1) || 0
-				left[i] = right[i] = s
+
+				;[left[i], right[i]] = quietparty(this.portionStep, [s, s])
 			} else {
 				left[i] = right[i] = 0
 			}

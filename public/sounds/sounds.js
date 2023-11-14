@@ -1,8 +1,8 @@
 import {SOUND_SIZE, LayerType} from "../memory/constants.js"
 import * as loop from "../convenience/loop.js"
-import Synth from "./sources/synth.js"
-import Passthru from "./sources/passthru.js"
 import MemoryTree from "../memory/tree/tree.js"
+let party = document.querySelector("bento-party")
+
 let context = new AudioContext()
 // in milliseconds
 let MAX_RECORDING_LENGTH = (SOUND_SIZE / context.sampleRate) * 1000
@@ -119,8 +119,6 @@ document.addEventListener("visibilitychange", () => {
 	}
 })
 
-let party = document.querySelector("bento-party")
-
 export async function pause() {}
 
 export async function play() {
@@ -141,6 +139,59 @@ export async function play() {
 	iphoneSilenceElement.play()
 }
 
+await context.audioWorklet.addModule("/sounds/transport.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/sampler.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/quietparty.audioworklet.js")
+
+/** @type AudioWorkletNode[] */
+let transports = []
+
+/** @type AudioWorkletNode[] */
+let layers = []
+
+/**
+ * @param {number} layerIndex
+ * @param {keyof typeof LayerType} layerType
+ */
+export function wire(layerIndex, layerType) {
+	let processorOptions = {buffer: sharedarraybuffer, layerNumber: layerIndex}
+
+	if (layerIndex in transports == false) {
+		let transport = new AudioWorkletNode(context, "bento-transport", {
+			processorOptions
+		})
+		transports[layerIndex] = transport
+		transport.port.onmessage = event => {
+			if (event.data == "step-change") {
+				party.updateCurrentStep(memtree)
+			}
+		}
+	}
+
+	if (layerIndex in layers) {
+		try {
+			layers[layerIndex].disconnect(context.destination)
+		} catch (error) {
+			console.warn("error disconnecting", error)
+		}
+	}
+
+	if (layerType == "sampler") {
+		let sampler = new AudioWorkletNode(context, "bento-sampler", {
+			processorOptions,
+			numberOfInputs: 0,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
+		})
+		sampler.connect(context.destination)
+		layers[layerIndex] = sampler
+	} else if (layerType == "synth") {
+	} else if (layerType == "off") {
+	}
+}
+
 export async function start() {
 	await play()
 	if (alreadyFancy) {
@@ -151,65 +202,10 @@ export async function start() {
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
 
-	loop.layers(idx => {
-		let layer = memtree.getLayer(idx)
-		let processorOptions = {buffer: sharedarraybuffer, layerNumber: idx}
-
-		let quiet = new AudioWorkletNode(context, "quiet-party", {
-			processorOptions,
-			numberOfInputs: 1,
-			numberOfOutputs: 1,
-			channelCount: 2,
-			outputChannelCount: [2],
-			channelInterpretation: "speakers"
-		})
-
-		/** @type {import("./sources/source.js").default | void} */
-		let source
-		let type = layer.type
-
-		if (type == "sampler") {
-			let sampler = new AudioWorkletNode(context, "bento-sampler", {
-				processorOptions,
-				numberOfInputs: 0,
-				numberOfOutputs: 1,
-				channelCount: 2,
-				outputChannelCount: [2],
-				channelInterpretation: "speakers"
-			})
-			let passthru = new Passthru(context)
-			sampler.connect(quiet)
-			quiet.connect(passthru.in)
-			passthru.connect(context.destination)
-			source = passthru
-		} else if (type == "synth") {
-			let synth = new Synth(context)
-			synth.connect(quiet)
-			quiet.connect(context.destination)
-			source = synth
-		} else {
-			source = new Passthru(context)
-		}
-
-		let transport = new AudioWorkletNode(context, "bento-layer", {
-			processorOptions
-		})
-
-		transport.port.onmessage = event => {
-			let message = event.data
-			party.updateCurrentStep(memtree)
-			// todo make this unnecesary
-			if (message == "step-change") {
-				memtree.announce("steps", -1)
-				let stepIndex = memtree.getCurrentLayerStepIndex(idx)
-				let step = memtree.getStep(stepIndex)
-				if (step.on && source) {
-					source.play(step)
-				}
-			}
-		}
+	loop.layers(idx => wire(idx, memtree.getLayer(idx).type))
+	party.when("select-layer-type", message => {
+		wire(message.layer, message.type)
 	})
-
 	alreadyFancy = true
 }
 
@@ -251,7 +247,3 @@ export async function init(buffer) {
 	sharedarraybuffer = buffer
 	memtree = MemoryTree.from(buffer)
 }
-
-await context.audioWorklet.addModule("/sounds/layer.audioworklet.js")
-await context.audioWorklet.addModule("/sounds/sampler.audioworklet.js")
-await context.audioWorklet.addModule("/sounds/quietparty.audioworklet.js")

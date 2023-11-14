@@ -33,7 +33,6 @@ export default class BentoSoundSource extends BentoAudioNode {
 	 * @param {Step["view"]} step
 	 */
 	play(step) {
-		// TODO use bpm to calculate a value for targetValueAtTime
 		this.filter.freq = step.filterFrequency
 		this.filter.q = step.filterQ
 	}

@@ -4,10 +4,9 @@
 		var(--layer-selector-border-radius) 0 0;
 	background: var(--layer-selector-fill);
 	color: var(--layer-selector-fill);
-}
-
-:host(:not([on])) {
-	display: none;
+	position: relative;
+	height: 1.2em;
+	flex: 2;
 }
 
 button {
@@ -24,8 +23,11 @@ button {
 	background: transparent;
 	width: 100%;
 	text-align: center;
-	position: relative;
 	color: currentColor;
+}
+
+:host(:not([on])) {
+	flex: 1;
 }
 
 :host([aria-selected="true"]) {

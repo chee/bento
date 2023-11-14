@@ -1,3 +1,4 @@
+import {LayerType} from "../memory/constants.js"
 import Layer from "../memory/tree/layer.js"
 import {bentoElements, BentoElement} from "./base.js"
 
@@ -24,6 +25,7 @@ export default class BentoLayerSelectorChoice extends BentoElement {
 			this.name = String.fromCharCode(layer.index + 97)
 			this.muted = !layer.muted
 			this.on = layer.type != "off"
+			this.type = layer.type
 		})
 	}
 
@@ -57,6 +59,17 @@ export default class BentoLayerSelectorChoice extends BentoElement {
 	set on(val) {
 		this.set("on", val, () => {
 			this.toggleAttribute("on", val)
+		})
+	}
+
+	/** @type {keyof typeof LayerType} */
+	get type() {
+		return this.get("type")
+	}
+
+	set type(val) {
+		this.set("type", val, () => {
+			this.setAttribute("type", val)
 		})
 	}
 

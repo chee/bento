@@ -51,14 +51,18 @@ class QuietPartyWorklet extends AudioWorkletProcessor {
 			left: outputs[0][0],
 			right: outputs[0][1]
 		}
+		let layerNumber = this.layerNumber
 		let memtree = this.memtree
-		if (memtree.playing && memtree.paused) {
+		let layer = memtree.getLayer(layerNumber)
+		if (layer.type == "off") {
+			return true
+		} else if (memtree.playing && memtree.paused) {
 			return true
 		} else if (!memtree.playing) {
 			this.lastStep = -1
 			return true
 		}
-		let layerNumber = this.layerNumber
+
 		let currentStep = memtree.getCurrentStepIndexInLayer(layerNumber)
 		if (currentStep != this.lastStep) {
 			let step = memtree.getLayerStep(layerNumber, currentStep)

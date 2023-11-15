@@ -56,7 +56,7 @@ export default class BentoScreenSelector extends BentoElement {
 		let selectedLayerType = this.selectedLayer?.type
 		/** @type {Screen[]} */
 		let screens = {
-			sampler: [Screen.wav, Screen.mix],
+			sampler: [Screen.wav, Screen.mix, Screen.key],
 			synth: [Screen.snd, Screen.mix, Screen.key],
 			off: [Screen.snd]
 		}[selectedLayerType]

@@ -1,3 +1,4 @@
+import Step from "../../memory/tree/step.js"
 import {pitch2freq} from "../scale.js"
 import BentoSoundSource from "./source.js"
 
@@ -79,19 +80,21 @@ export default class Synth extends BentoSoundSource {
 		this.#started = true
 	}
 
-	/** @param {import("public/public/memory/memory.js").StepDetails} step */
+	/** @param {Step["view"]} step */
 	play(step) {
 		super.play(step)
 		if (!this.#started) {
 			this.start()
 		}
-
-		let freq = pitch2freq(step.pitch, this.scale)
-		this.#frequency = 440 * freq
-		// this.out.gain.value = 1
-		let time = this.context.currentTime
-		// todo this magic should happen in quiet-party and be a function of envelope
-		this.out.gain.setValueAtTime(this.#startGain, time)
-		this.out.gain.setTargetAtTime(0, time, 0.1)
+		if (step.on) {
+			let freq = pitch2freq(step.pitch, this.scale)
+			this.#frequency = 440 * freq
+			// this.out.gain.value = 1
+			let time = this.context.currentTime
+			// todo this magic should happen in quiet-party and be a function of
+			// envelope
+			this.out.gain.setValueAtTime(this.#startGain, time)
+			this.out.gain.setTargetAtTime(0, time, 0.1)
+		}
 	}
 }

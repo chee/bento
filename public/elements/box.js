@@ -2,6 +2,7 @@ import {bentoElements, BentoElement} from "./base.js"
 import Modmask from "../io/modmask.js"
 import * as dt from "../io/data-transfer.js"
 import Step from "../memory/tree/step.js"
+import {LayerType} from "../memory/constants.js"
 
 let squircle = `
 	<svg id="squircle" viewBox="-64 -64 608 608" xmlns="http://www.w3.org/2000/svg">
@@ -187,6 +188,17 @@ export default class BentoBox extends BentoElement {
 
 	get wav() {
 		return this.get("wav")
+	}
+
+	/** @type {keyof typeof LayerType} */
+	get layerType() {
+		return this.get("layerType")
+	}
+
+	set layerType(val) {
+		this.set("layerType", val, () => {
+			this.setAttribute("layer-type", val)
+		})
 	}
 
 	/** @returns {HTMLImageElement} */

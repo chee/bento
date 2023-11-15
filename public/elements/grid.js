@@ -133,6 +133,9 @@ export default class BentoGrid extends BentoElement {
 	set layerType(val) {
 		this.set("layerType", val, () => {
 			this.setAttribute("layer-type", val)
+			for (let box of this.boxes) {
+				box.layerType = val
+			}
 		})
 	}
 

@@ -1,6 +1,10 @@
 import {SOUND_SIZE, LayerType} from "../memory/constants.js"
 import * as loop from "../convenience/loop.js"
 import MemoryTree from "../memory/tree/tree.js"
+import Passthru from "./sources/passthru.js"
+import BentoSoundSource from "./sources/source.js"
+import Synth from "./sources/synth.js"
+import {getStep} from "../io/data-transfer.js"
 let party = document.querySelector("bento-party")
 
 let context = new AudioContext()
@@ -146,7 +150,7 @@ await context.audioWorklet.addModule("/sounds/quietparty.audioworklet.js")
 /** @type AudioWorkletNode[] */
 let transports = []
 
-/** @type AudioWorkletNode[] */
+/** @type BentoSoundSource[] */
 let layers = []
 
 /**
@@ -164,13 +168,20 @@ export function wire(layerIndex, layerType) {
 		transport.port.onmessage = event => {
 			if (event.data == "step-change") {
 				party.updateCurrentStep(memtree)
+				let layer = layers[layerIndex]
+				if (layer) {
+					let step = memtree.getStep(
+						memtree.getLayerCurrentStepAbsoluteIndex(layerIndex)
+					)
+					layer.play(step)
+				}
 			}
 		}
 	}
 
 	if (layerIndex in layers) {
 		try {
-			layers[layerIndex].disconnect(context.destination)
+			layers[layerIndex].destroy()
 		} catch (error) {
 			console.warn("error disconnecting", error)
 		}
@@ -185,10 +196,25 @@ export function wire(layerIndex, layerType) {
 			outputChannelCount: [2],
 			channelInterpretation: "speakers"
 		})
-		sampler.connect(context.destination)
-		layers[layerIndex] = sampler
+		let source = new Passthru(context, sampler)
+		source.connect(context.destination)
+		layers[layerIndex] = source
 	} else if (layerType == "synth") {
+		let quietparty = new AudioWorkletNode(context, "quiet-party", {
+			processorOptions,
+			numberOfInputs: 1,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
+		})
+		let source = new Synth(context)
+		source.out.gain.value = 0.000001
+		source.connect(quietparty)
+		quietparty.connect(context.destination)
+		layers[layerIndex] = source
 	} else if (layerType == "off") {
+		delete layers[layerIndex]
 	}
 }
 

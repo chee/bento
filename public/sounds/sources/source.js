@@ -33,9 +33,14 @@ export default class BentoSoundSource extends BentoAudioNode {
 	 * @param {Step["view"]} step
 	 */
 	play(step) {
-		this.filter.freq = step.filterFrequency
-		this.filter.q = step.filterQ
+		if (step.on) {
+			this.filter.freq = step.filterFrequency
+			this.filter.q = step.filterQ
+		}
 	}
+
+	/** @type AudioNode */
+	#destination
 
 	/**
 	 * @param {AudioNode} destination
@@ -43,6 +48,7 @@ export default class BentoSoundSource extends BentoAudioNode {
 	 * @param {number?} [input]
 	 */
 	connect(destination, output, input) {
+		this.#destination = destination
 		if (input != null) {
 			return this.out.connect(destination, output, input)
 		}
@@ -50,5 +56,15 @@ export default class BentoSoundSource extends BentoAudioNode {
 			return this.out.connect(destination, output)
 		}
 		return this.out.connect(destination)
+	}
+
+	destroy() {
+		this.out.gain.value = 0.000001
+		this.source.disconnect(this.filter.in)
+		this.filter.out.disconnect(this.out)
+		this.out.disconnect(this.#destination)
+		this.source = null
+		this.filter = null
+		this.out = null
 	}
 }

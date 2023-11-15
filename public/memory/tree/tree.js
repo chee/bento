@@ -509,7 +509,7 @@ export default class MemoryTree {
 	}
 
 	/** @param {number} layer*/
-	getCurrentLayerStepIndex(layer) {
+	getLayerCurrentStepAbsoluteIndex(layer) {
 		return layerStep2step(layer, this.#mem.currentSteps.at(layer))
 	}
 

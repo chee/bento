@@ -2,10 +2,21 @@
 import BentoSoundSource from "./source.js"
 
 export default class Passthru extends BentoSoundSource {
-	/** @param {AudioContext} context */
-	constructor(context) {
+	/** @type AudioNode */
+	#source
+
+	/**
+	 * @param {AudioContext} context
+	 * @param {AudioWorkletNode} node
+	 */
+	constructor(context, node) {
 		super(context)
-		this.in = new GainNode(context, {gain: 1})
-		this.in.connect(this.source)
+		node.connect(this.source)
+		this.#source = node
+	}
+
+	destroy() {
+		this.#source.disconnect(this.source)
+		super.destroy()
 	}
 }

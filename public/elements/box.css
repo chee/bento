@@ -48,7 +48,7 @@ img {
 	position: relative;
 }
 
-:host([on][with-wav]) #wavimg {
+:host([on][with-wav][layer-type="sampler"]) #wavimg {
 	display: block;
 }
 

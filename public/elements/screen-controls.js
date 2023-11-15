@@ -26,7 +26,7 @@ export const ScreenControl = /** @type const */ ({
 const ScreenControlSet = /** @type const */ ({
 	sampler: {
 		[Screen.wav]: {
-			sound: [ScreenControl.record],
+			sound: [ScreenControl.type, ScreenControl.record],
 			step: [ScreenControl.flip]
 		},
 		[Screen.key]: [ScreenControl.hear]

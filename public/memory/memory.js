@@ -78,7 +78,7 @@ export let arrays = {
 			LayerType.sampler,
 			LayerType.sampler,
 			LayerType.sampler,
-			LayerType.synth
+			LayerType.sampler
 		]
 	},
 	layerSpeeds: {

@@ -4,7 +4,6 @@ import MemoryTree from "../memory/tree/tree.js"
 import Passthru from "./sources/passthru.js"
 import BentoSoundSource from "./sources/source.js"
 import Synth from "./sources/synth.js"
-import {getStep} from "../io/data-transfer.js"
 let party = document.querySelector("bento-party")
 
 let context = new AudioContext()
@@ -272,4 +271,5 @@ export function empty() {
 export async function init(buffer) {
 	sharedarraybuffer = buffer
 	memtree = MemoryTree.from(buffer)
+	memtree.sampleRate = context.sampleRate
 }

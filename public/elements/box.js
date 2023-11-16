@@ -2,7 +2,7 @@ import {bentoElements, BentoElement} from "./base.js"
 import Modmask from "../io/modmask.js"
 import * as dt from "../io/data-transfer.js"
 import Step from "../memory/tree/step.js"
-import {LayerType} from "../memory/constants.js"
+import {LayerType, StepState} from "../memory/constants.js"
 
 let squircle = `
 	<svg id="squircle" viewBox="-64 -64 608 608" xmlns="http://www.w3.org/2000/svg">
@@ -225,6 +225,14 @@ export default class BentoBox extends BentoElement {
 			this.ariaChecked = step.on.toString()
 			this.toggleAttribute("on", step.on)
 		})
+
+		this.set("state", step.state, () => {
+			this.setAttribute("state", step.state.toString())
+		})
+	}
+	/** @type {StepState} */
+	get state() {
+		return this.get("state")
 	}
 
 	get step() {

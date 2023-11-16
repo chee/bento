@@ -51,12 +51,17 @@ export default class Step {
 		this.#mem.stepOns.set([+val], this.index)
 	}
 
+	/** @type {keyof typeof StepState} */
 	get state() {
-		return /** @type StepState */ (this.#mem.stepOns.at(this.index))
+		return {
+			0: "off",
+			1: "on",
+			2: "ctrl"
+		}[this.#mem.stepOns.at(this.index)]
 	}
 
 	set state(val) {
-		this.#mem.stepOns.set([+val], this.index)
+		this.#mem.stepOns.set([StepState[val]], this.index)
 	}
 
 	get attack() {
@@ -143,11 +148,11 @@ export default class Step {
 	}
 
 	get loop() {
-		return Boolean(this.#mem.stepLoops.at(this.index))
+		return this.#mem.stepLoops.at(this.index)
 	}
 
 	set loop(val) {
-		this.#mem.stepLoops.set([+val], this.index)
+		this.#mem.stepLoops.set([val], this.index)
 	}
 
 	/**

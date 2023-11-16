@@ -29,10 +29,8 @@ class BentoLayerWorklet extends AudioWorkletProcessor {
 		let memtree = this.memtree
 		if (memtree.active) {
 			this.tick += 128
-			let bpm = memtree.bpm
-			let samplesPerBeat = (60 / bpm) * sampleRate
 			let speed = this.map.layerSpeeds.at(this.layerNumber)
-			let samplesPerStep = samplesPerBeat / (4 * speed)
+			let samplesPerStep = memtree.samplesPerBeat / (4 * speed)
 			let internalTick =
 				((this.tick / samplesPerStep) | 0) % Memory.STEPS_PER_GRID
 			if (internalTick != this.internalTick) {

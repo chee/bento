@@ -11,7 +11,7 @@ export const Scale = /** @type const */ ({
  */
 // todo octaves
 // lol i am so bad at math
-export function pitch2freq(pitch, scale) {
+export function pitch2playbackrate(pitch, scale) {
 	let noteIndex = pitch % scale.length
 	// everything means
 	if (pitch < 0) {

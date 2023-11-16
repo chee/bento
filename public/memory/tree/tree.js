@@ -264,17 +264,33 @@ export default class MemoryTree {
 		return this.#mem.master.at(Master.selectedLayer)
 	}
 
+	/**
+	 * @type number
+	 */
 	get bpm() {
 		return this.#mem.master.at(Master.bpm) || 120
 	}
 
-	/**
-	 * @param {number} val
-	 */
 	set bpm(val) {
 		let bpm = Math.clamp(val || 120, 20, 240)
 		this.#mem.master.set([bpm], Master.bpm)
 		this.announce("master", Master.bpm)
+	}
+
+	/**
+	 * @type {number}
+	 */
+	get sampleRate() {
+		return this.#mem.sampleRate.at(0)
+	}
+
+	set sampleRate(val) {
+		this.#mem.sampleRate.set([val])
+		this.announce("master", -1)
+	}
+
+	get samplesPerBeat() {
+		return (60 / this.bpm) * this.sampleRate
 	}
 
 	get selectedUiStep() {

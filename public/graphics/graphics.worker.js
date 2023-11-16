@@ -61,9 +61,10 @@ function fillRegion(start, end, fill) {
  * @prop {number} x
  * @prop {number} xm
  * @prop {number} height
+ * @prop {number} markers
  * @param {DrawSampleLineArguments} args
  */
-function drawSampleLine({style, array, x, xm, height}) {
+function drawSampleLine({style, array, x, xm, height, markers}) {
 	context.beginPath()
 	context.strokeStyle = style.line
 	context.lineWidth = DPI
@@ -233,6 +234,9 @@ function wav(_frame = 0, force = false) {
 		return requestAnimationFrame(update)
 	}
 	let step = memtree.getSelectedStep()
+	// todo do something with step playback rate step pitch2playbackrate
+	let samplesPerBeat = memtree.samplesPerBeat
+	let samplesPerStep = samplesPerBeat / 4
 
 	let {canvas} = context
 	let regionIsBeingDrawn = memtree.regionIsBeingDrawn

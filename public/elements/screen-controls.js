@@ -20,14 +20,15 @@ export const ScreenControl = /** @type const */ ({
 	loop: "loop",
 
 	// key
-	hear: "hear"
+	hear: "hear",
+	ctrl: "ctrl"
 })
 
 const ScreenControlSet = /** @type const */ ({
 	sampler: {
 		[Screen.wav]: {
 			sound: [ScreenControl.type, ScreenControl.record],
-			step: [ScreenControl.flip]
+			step: [ScreenControl.loop, ScreenControl.flip, ScreenControl.ctrl]
 		},
 		[Screen.key]: [ScreenControl.hear]
 	},
@@ -48,8 +49,9 @@ export default class BentoScreenControls extends BentoElement {
 		record: document.createElement("bento-record-button"),
 		hear: document.createElement("bento-hear-button"),
 		flip: document.createElement("bento-flip-button"),
-		loop: document.createElement("bento-loop-button"),
-		type: document.createElement("bento-layer-type-selector")
+		loop: document.createElement("bento-loop-selector"),
+		type: document.createElement("bento-layer-type-selector"),
+		ctrl: document.createElement("bento-control-button")
 	})
 
 	connectedCallback() {
@@ -73,6 +75,9 @@ export default class BentoScreenControls extends BentoElement {
 		this.addEventListener("touchstart", event => {
 			event.stopImmediatePropagation()
 		})
+		this.controlElements.ctrl.name = "ctrl"
+		this.controlElements.ctrl.button.textContent = "ctrl"
+		this.controlElements.loop.displayName = "trig"
 	}
 
 	/** @type {Screen} */
@@ -111,6 +116,19 @@ export default class BentoScreenControls extends BentoElement {
 	set selectedStep(val) {
 		this.set("selectedStep", val, () => {
 			this.flip = val.reversed
+			this.loop = val.loop
+		})
+	}
+
+	/** @type {number} */
+	get loop() {
+		return this.get("loop")
+	}
+
+	set loop(val) {
+		this.set("loop", val, () => {
+			this.setAttribute("loop", val.toString())
+			this.controlElements.loop.value = val
 		})
 	}
 

@@ -1,5 +1,5 @@
 import Step from "../../memory/tree/step.js"
-import {pitch2freq} from "../scale.js"
+import {pitch2playbackrate} from "../scale.js"
 import BentoSoundSource from "./source.js"
 
 export default class Synth extends BentoSoundSource {
@@ -87,7 +87,7 @@ export default class Synth extends BentoSoundSource {
 			this.start()
 		}
 		if (step.on) {
-			let freq = pitch2freq(step.pitch, this.scale)
+			let freq = pitch2playbackrate(step.pitch, this.scale)
 			this.#frequency = 440 * freq
 			// this.out.gain.value = 1
 			let time = this.context.currentTime

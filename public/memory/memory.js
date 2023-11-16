@@ -47,6 +47,10 @@ export let arrays = {
 		size: 16,
 		default: [120]
 	},
+	sampleRate: {
+		type: Uint32Array,
+		size: 1
+	},
 	soundLengths: {
 		type: Uint32Array,
 		size: LAYERS_PER_MACHINE + LAYER_NUMBER_OFFSET
@@ -263,6 +267,7 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
 			if (name == "notify") continue
+			if (name == "sampleRate") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
 				memory.master.set([safe.master.at(Master.bpm)], Master.bpm)
@@ -324,6 +329,7 @@ export function save(memory, safe, fields = new Set(Object.keys(memory))) {
 			if (name == "currentSteps") continue
 			if (name == "drawingRegion") continue
 			if (name == "notify") continue
+			if (name == "sampleRate") continue
 			// maybe move play/paused out so master can be completely ignored
 			if (name == "master") {
 				safe.master.set([memory.master.at(Master.bpm)], Master.bpm)

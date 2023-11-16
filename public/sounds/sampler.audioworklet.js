@@ -1,7 +1,7 @@
 import Step from "../memory/tree/step.js"
 import MemoryTree from "../memory/tree/tree.js"
 import quietparty from "./quietparty.js"
-import {Scale, pitch2freq} from "./scale.js"
+import {Scale, pitch2playbackrate} from "./scale.js"
 
 class BentoSamplerWorklet extends AudioWorkletProcessor {
 	/** @param {{processorOptions: {buffer: SharedArrayBuffer, layerNumber:
@@ -28,6 +28,7 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 		this.scale = Scale.HarmonicMinor
 		this.loop = false
 		this.point = 0
+		this.loops = 0
 
 		/** @type {Step["view"]} */
 		this.portionStep
@@ -49,6 +50,10 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 			return false
 		}
 
+		if (memtree.stopped) {
+			return true
+		}
+
 		if (stepIndex != this.lastStepIndex) {
 			let step = memtree.getLayerStep(layerIndex, stepIndex)
 
@@ -56,21 +61,31 @@ class BentoSamplerWorklet extends AudioWorkletProcessor {
 				let sound = memtree.getSound(layerIndex)
 				this.portionStep = step
 				// todo stereo?
-				this.portion = sound.left.subarray(
-					step.start,
-					step.end || sound.length
-				)
-				this.point = 0
+				if (step.state == "on") {
+					this.portion = sound.left.subarray(
+						step.start,
+						step.end || sound.length
+					)
+					this.point = 0
+				}
+
+				this.loops = 0
 				if (step.reversed) {
 					this.portion = this.portion.slice().reverse()
 				}
-				this.playbackRate = pitch2freq(step.pitch, this.scale)
+				this.playbackRate = pitch2playbackrate(step.pitch, this.scale)
 			}
 		}
 
 		this.lastStepIndex = stepIndex
 
 		let quantumPortionLength = this.portion.length - this.point
+		if (this.point > this.portion.length) {
+			if (this.portionStep.loop && this.loops < this.portionStep.loop) {
+				this.loops += 1
+				this.point = 0
+			}
+		}
 		let [left, right] = outputs[0]
 		for (let i = 0; i < 128; i++) {
 			let p = this.point

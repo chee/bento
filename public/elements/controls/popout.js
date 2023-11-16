@@ -202,7 +202,7 @@ export class BentoLoopSelector extends BentoControlPopout {
 			this.label = "The number of repeats"
 			this.top.id = "title"
 			this.bottom.id = "bottom"
-			this.top.append(this.name)
+			this.top.textContent = this.displayName || this.name
 			this.button.button.append(this.top, this.bottom)
 			for (let loop of BentoLoopSelector.loops) {
 				let button = document.createElement("bento-control-button")
@@ -216,6 +216,17 @@ export class BentoLoopSelector extends BentoControlPopout {
 		}
 		this.button.when(this.name, (_, event) => {
 			event.stopImmediatePropagation()
+		})
+	}
+
+	/** @type string */
+	get displayName() {
+		return this.get("displayName")
+	}
+
+	set displayName(val) {
+		this.set("displayName", val, () => {
+			this.top.textContent = val
 		})
 	}
 

@@ -2,8 +2,7 @@ import {
 	LAYERS_PER_MACHINE,
 	GRIDS_PER_LAYER,
 	STEPS_PER_GRID,
-	STEPS_PER_LAYER,
-	SAMPLERS_PER_MACHINE
+	STEPS_PER_LAYER
 } from "../memory/memory.js"
 
 /**
@@ -32,16 +31,6 @@ export function range(start, end, step = 1) {
  */
 export function layers(fn) {
 	return range(LAYERS_PER_MACHINE).map(index => fn(index))
-}
-
-/**
- * loop over the number of samplers
- * @template {any} T
- * @param {(layerIdx: number) => T} fn
- * @returns {T[]}
- */
-export function samplers(fn) {
-	return range(SAMPLERS_PER_MACHINE).map(index => fn(index))
 }
 
 /**

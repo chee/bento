@@ -249,10 +249,10 @@ export async function loadKit(...urls) {
 
 export async function loadKitFromPath(base) {
 	return loadKit(
-		`${base}/a.wav`,
-		`${base}/b.wav`,
-		`${base}/c.wav`,
-		`${base}/d.wav`
+		`${base}/a.flac`,
+		`${base}/b.flac`,
+		`${base}/c.flac`,
+		`${base}/d.flac`
 	)
 }
 

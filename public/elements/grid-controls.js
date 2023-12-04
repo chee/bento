@@ -28,6 +28,7 @@ export default class BentoGridControls extends BentoElement {
 		layerControls.append(this.controlElements.speed)
 		// gridControls.append(this.controlElements.jump)
 		gridControls.append(this.controlElements.loop)
+		this.controlElements.loop.displayName = "repeat"
 
 		customElements.whenDefined("bento-control-popout").then(() => {
 			this.controlElements.speed.when("speed", value => {

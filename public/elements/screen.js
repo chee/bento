@@ -1,11 +1,12 @@
 import {bentoElements, BentoElement} from "./base.js"
 import BentoScreenSelector from "./screen-selector.js"
 import * as dt from "../io/data-transfer.js"
-import {LayerType, NUMBER_OF_KEYS} from "../memory/memory.js"
+import {NUMBER_OF_KEYS} from "../memory/memory.js"
 import {DPI, Screen} from "../graphics/constants.js"
 import BentoScreenControls from "./screen-controls.js"
 import Layer from "../memory/tree/layer.js"
 import Step from "../memory/tree/step.js"
+import * as icons from "../icons.js"
 
 /**
  * @typedef {Object} StyleMap

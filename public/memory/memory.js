@@ -45,7 +45,7 @@ export let arrays = {
 	master: {
 		type: Uint8Array,
 		size: 16,
-		default: [120]
+		default: [96]
 	},
 	sampleRate: {
 		type: Uint32Array,
@@ -82,7 +82,7 @@ export let arrays = {
 			LayerType.sampler,
 			LayerType.sampler,
 			LayerType.sampler,
-			LayerType.synth
+			LayerType.sampler
 		]
 	},
 	layerSpeeds: {

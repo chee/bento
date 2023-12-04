@@ -71,6 +71,18 @@ img {
 	border: 1px solid var(--box-off-line);
 }
 
+:host([state="ctrl"]):before {
+	content: "ctrl";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
 :host(:focus:not([aria-selected="true"])) {
 	outline: 2px solid var(--focus-outline);
 	outline-offset: 1px;

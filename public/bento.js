@@ -218,7 +218,11 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 
 	party.screen.controls.when("ctrl", message => {
 		memtree.alterStep(memtree.selectedStep, step => {
-			step.state = step.on ? "ctrl" : "off"
+			if (step.state == "off" || step.state == "on") {
+				step.state = "ctrl"
+			} else {
+				step.state = "off"
+			}
 		})
 		db.save()
 	})

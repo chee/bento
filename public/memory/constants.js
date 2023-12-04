@@ -1,5 +1,5 @@
 export const SOUND_SIZE = 2 ** 16 * 4
-export const SAMPLERS_PER_MACHINE = 4
+
 export const LAYERS_PER_MACHINE = 4
 export const GRIDS_PER_LAYER = 8
 export const STEPS_PER_GRID = 16

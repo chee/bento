@@ -1,7 +1,7 @@
 import {BentoElement, bentoElements} from "./base.js"
 import {Screen} from "../graphics/constants.js"
 import Layer from "../memory/tree/layer.js"
-import {LayerType} from "../memory/constants.js"
+import {LayerType, StepState} from "../memory/constants.js"
 import Step from "../memory/tree/step.js"
 
 /** @typedef {typeof ScreenControl[keyof typeof ScreenControl]} ScreenControl */
@@ -27,19 +27,20 @@ export const ScreenControl = /** @type const */ ({
 const ScreenControlSet = /** @type const */ ({
 	sampler: {
 		[Screen.wav]: {
-			sound: [ScreenControl.type, ScreenControl.record],
+			sound: [ScreenControl.record],
 			step: [ScreenControl.loop, ScreenControl.flip, ScreenControl.ctrl]
 		},
-		[Screen.key]: [ScreenControl.hear]
-	},
-	synth: {
-		[Screen.snd]: {
-			sound: [ScreenControl.type]
-		}
-	},
-	off: {
-		[Screen.snd]: {
-			sound: [ScreenControl.type]
+		[Screen.mix]: {
+			sound: [ScreenControl.record],
+			step: [ScreenControl.loop, ScreenControl.flip, ScreenControl.ctrl]
+		},
+		[Screen.flt]: {
+			sound: [ScreenControl.record],
+			step: [ScreenControl.loop, ScreenControl.flip, ScreenControl.ctrl]
+		},
+		[Screen.key]: {
+			sound: [ScreenControl.record],
+			step: [ScreenControl.loop, ScreenControl.flip, ScreenControl.ctrl]
 		}
 	}
 })
@@ -117,6 +118,7 @@ export default class BentoScreenControls extends BentoElement {
 		this.set("selectedStep", val, () => {
 			this.flip = val.reversed
 			this.loop = val.loop
+			this.ctrl = val.state == "ctrl"
 		})
 	}
 
@@ -141,6 +143,18 @@ export default class BentoScreenControls extends BentoElement {
 		this.set("flip", val, () => {
 			this.toggleAttribute("flip", val)
 			this.controlElements.flip.on = val
+		})
+	}
+
+	/** @type {boolean} */
+	get ctrl() {
+		return this.get("ctrl")
+	}
+
+	set ctrl(val) {
+		this.set("ctrl", val, () => {
+			this.toggleAttribute("ctrl", val)
+			this.controlElements.ctrl.on = val
 		})
 	}
 

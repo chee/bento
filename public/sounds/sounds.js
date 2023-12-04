@@ -186,7 +186,7 @@ export function wire(layerIndex, layerType) {
 		}
 	}
 
-	if (layerType == "sampler") {
+	if (true) {
 		let sampler = new AudioWorkletNode(context, "bento-sampler", {
 			processorOptions,
 			numberOfInputs: 0,

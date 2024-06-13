@@ -13,24 +13,26 @@ features:
 	• set the bpm
 	• per-layer bpm divider (¼×, ½×, 1×, 2×, 4× the main bpm)
 	• v cool
+	• per-step volume control
+	• per-step pitch control (¹²√₂)
+
 
 todo:
 	• per-step AR envelope
-	• per-step volume control
-	• per-step reverse
-	• per-layer length (polyrhythms)
+	✓ per-step reverse
+	✓ per-layer length (polyrhythms)
 	• better keyboard, touch, and mouse controls for multi-ops
 	  * snarf
 	  * xerox
 	  * yank
 	  * shift
 	  * etc
-	• drag and drop one step to another
+	✓ drag and drop one step to another
 	• per-layer base sample speed (fine tune between 50% + 200%)
-	• upload sample from disk
+	✓ upload sample from disk
 	• load sample from URL
 	• drag and drop sample into layer waveform
-	• saving
+	• saving (to disk)
 	  * current layer + sounds
 	  * many layers + sounds
 	• sharing
@@ -41,12 +43,10 @@ todo:
 	• p.o. SY1 mode
 	• offline
 	• swing
-	• bring the stop button back!
+	✓ bring the stop button back!
 	• progressive web app improvements
 	• pretty unfurling for discord y slack &c
 	• _dynamic_ unfurling for discord y slack &c
 	• fx
 	• expression language for user fx
 	✓ move canvas drawing off main thread (done!)
-todo but hard:
-	• per-step pitch control (¹²√₂)

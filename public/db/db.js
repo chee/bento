@@ -127,7 +127,7 @@ export async function getPatternNames() {
 export function getSlugFromLocation() {
 	return (
 		(typeof window != "undefined" &&
-			window.location?.pathname.match(RegExp("patterns/([^/]+)"))?.[1]) ||
+			window.location?.hash.match(RegExp("patterns/([^/]+)"))?.[1]) ||
 		"bento"
 	)
 }

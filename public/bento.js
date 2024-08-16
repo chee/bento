@@ -58,7 +58,7 @@ async function getFancy() {
 			"",
 			slug == "bento"
 				? "/" + location.search
-				: `/patterns/${slug}/` + location.search
+				: "/" + location.search + `#/patterns/${slug}/`
 		)
 		party.slug = slug
 		party.tree = memtree
@@ -445,7 +445,7 @@ async function saveAs(/** @type {string} */ name) {
 			history.pushState(
 				{slug},
 				"",
-				slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
+				slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
 			)
 			party.slug = slug
 			party.tree = memtree
@@ -465,7 +465,7 @@ async function loadPattern() {
 		history.pushState(
 			{slug},
 			"",
-			slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
+			slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
 		)
 		party.slug = slug
 		party.tree = memtree
@@ -484,7 +484,7 @@ async function newPattern() {
 	history.pushState(
 		{slug},
 		"",
-		slug == "bento" ? "/" : `/patterns/${slug}/` + location.search
+		slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
 	)
 	await db.load(slug)
 	await sounds.loadDefaultKit()

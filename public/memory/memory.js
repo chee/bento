@@ -248,6 +248,27 @@ export function map(buffer) {
 	return memory
 }
 
+/**
+ * @param {MemoryMap} memory
+ * @param {ArrayBuffer} [buffer]
+ * @returns {ArrayBuffer}
+ */
+export function unmap(memory, buffer = new ArrayBuffer(size)) {
+	let offset = 0
+
+	for (let [name, arrayInfo] of Object.entries(arrays)) {
+		try {
+			new arrayInfo.type(buffer, offset, arrayInfo.size).set(memory[name])
+		} catch (error) {
+			console.error(error)
+			throw new Error(error)
+		}
+		offset += arrayInfo.size * arrayInfo.type.BYTES_PER_ELEMENT
+	}
+
+	return buffer
+}
+
 /*
  * load and save are very similar procedures and it is extremely tempting to make
  * them the same function, but they are not the same.
@@ -289,6 +310,14 @@ export function load(memory, safe, fields = new Set(Object.keys(safe))) {
 				if (!(name in safe)) {
 					console.warn(`can't copy ${name} to a safe which does not have it`)
 					continue
+				}
+				if (memory[name].length != safe[name].length) {
+					console.debug(
+						arrayInfo.type,
+						name,
+						memory[name].length,
+						safe[name].length
+					)
 				}
 
 				let content = /** @type {typeof arrayInfo.type.prototype} */ (
@@ -367,8 +396,7 @@ export function save(memory, safe, fields = new Set(Object.keys(memory))) {
  * Returns a fresh array buffer that can be loaded
  * @returns {MemoryMap}
  */
-export function fresh() {
-	let arraybuffer = new ArrayBuffer(size)
+export function fresh(arraybuffer = new ArrayBuffer(size)) {
 	let memory = /** @type {MemoryMap}*/ ({})
 	let offset = 0
 	for (let [name, arrayInfo] of Object.entries(arrays)) {

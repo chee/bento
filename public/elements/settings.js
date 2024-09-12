@@ -74,6 +74,22 @@ export default class BentoSettings extends BentoElement {
 			},
 			this.shadow.firstElementChild
 		)
+		this.createButton(
+			{
+				name: "load",
+				type: "button",
+				label: "load from file"
+			},
+			this.shadow.firstElementChild
+		)
+		this.createButton(
+			{
+				name: "save",
+				type: "button",
+				label: "save to file"
+			},
+			this.shadow.firstElementChild
+		)
 	}
 
 	get open() {

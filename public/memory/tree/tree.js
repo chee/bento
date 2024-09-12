@@ -22,7 +22,7 @@ import {
 	STEPS_PER_GRID,
 	STEPS_PER_LAYER
 } from "../constants.js"
-import {map} from "../memory.js"
+import {map, unmap} from "../memory.js"
 
 /**
  * @typedef {Object} AlterSelectedMap
@@ -541,5 +541,27 @@ export default class MemoryTree {
 	 */
 	fixRegions(layer) {
 		this.clearRegions(layer)
+	}
+
+	get memory() {
+		return this.#mem
+	}
+
+	blob() {
+		return new Blob([unmap(this.#mem)], {type: "application/x-o-x-o"})
+	}
+
+	async compressed() {
+		return await new Response(
+			this.blob().stream().pipeThrough(new CompressionStream("gzip"))
+		).blob()
+	}
+
+	url() {
+		return URL.createObjectURL(this.blob())
+	}
+
+	async compressedURL() {
+		return URL.createObjectURL(await this.compressed())
 	}
 }

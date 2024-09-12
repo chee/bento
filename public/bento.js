@@ -2,13 +2,19 @@ import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
 import {
 	size as MEMORY_SIZE,
+	fresh,
 	grid2layerGrid,
+	load,
 	map,
-	step2gridStep
+	save,
+	size,
+	step2gridStep,
+	unmap
 } from "./memory/memory.js"
 import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
+import Modmask from "./io/modmask.js"
 
 let sharedarraybuffer = new SharedArrayBuffer(MEMORY_SIZE)
 
@@ -29,6 +35,7 @@ async function getFancy() {
 	try {
 		if (!db.fancy()) {
 			await db.load()
+
 			if (sounds.empty()) {
 				await sounds.loadDefaultKit()
 			}
@@ -79,6 +86,64 @@ fancyListeners.map(name =>
 		passive: true
 	})
 )
+
+addEventListener(
+	"keydown",
+	/**
+	 *
+	 * @param {KeyboardEvent} event
+	 */
+	async event => {
+		if (event.key == "s" && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault()
+			saveToFile()
+		}
+		if (event.key == "o" && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault()
+			openAndLoadFile()
+		}
+	}
+)
+
+async function saveToFile() {
+	let buffer = new ArrayBuffer(size)
+	let safe = fresh(buffer)
+	save(memtree.memory, safe)
+
+	let blob = new Blob([buffer], {type: "application/x-bento"})
+	let compressed = await new Response(
+		blob.stream().pipeThrough(new CompressionStream("gzip"))
+	).blob()
+	let url = URL.createObjectURL(compressed)
+	let a = document.createElement("a")
+	a.download = (history.state?.slug || "bento") + ".bento"
+	a.href = url
+	a.click()
+}
+
+/**
+ *
+ * @param {File} file
+ */
+async function loadFromFile(file) {
+	let match = file.name.match(/(?<slug>.*)\.bento/)
+	if (!match || !match.groups) {
+		throw new Error(
+			`can't load ${file.name}! bad name, should be something.bento`
+		)
+	}
+	let slug = db.slugify(match.groups.slug)
+
+	let decomp = await new Response(
+		file.stream().pipeThrough(new DecompressionStream("gzip"))
+	).blob()
+	let ab = await decomp.arrayBuffer()
+	let safe = map(ab)
+	load(memtree.memory, safe)
+	pushSlug(slug)
+	party.slug = slug
+	party.tree = memtree
+}
 
 async function init() {
 	await db.init(sharedarraybuffer)
@@ -412,6 +477,33 @@ party.settings.when("reset", async () => {
 	}
 })
 
+party.settings.when("save", async () => {
+	await saveToFile()
+})
+
+function openAndLoadFile() {
+	let input = document.createElement("input")
+
+	input.type = "file"
+	input.multiple = false
+	input.accept = "*.bento"
+	input.click()
+	input.addEventListener(
+		"input",
+		/**
+		 * @param {InputEvent} event
+		 */
+		event => {
+			let file = input.files.item(0)
+			loadFromFile(file)
+		}
+	)
+}
+
+party.settings.when("load", async () => {
+	openAndLoadFile()
+})
+
 addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	await db.load(slug)
@@ -442,16 +534,24 @@ async function saveAs(/** @type {string} */ name) {
 			}
 			db.save(slug)
 
-			history.pushState(
-				{slug},
-				"",
-				slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
-			)
+			pushSlug(slug)
 			party.slug = slug
 			party.tree = memtree
 			openScreen()
 		}
 	}
+}
+
+/**
+ *
+ * @param {string} slug
+ */
+function pushSlug(slug) {
+	history.pushState(
+		{slug},
+		"",
+		slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
+	)
 }
 
 async function loadPattern() {

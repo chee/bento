@@ -136,7 +136,9 @@ const cacheFirst = async ({request, preloadResponsePromise = null}) => {
 
 	try {
 		const responseFromNetwork = await fetch(request)
-		putInCache(request, responseFromNetwork.clone())
+		if (responseFromNetwork.ok) {
+			putInCache(request, responseFromNetwork.clone())
+		}
 		return responseFromNetwork
 	} catch (error) {
 		return new Response(

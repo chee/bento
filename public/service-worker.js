@@ -1,5 +1,5 @@
 // update this when changing the service worker
-const SERVICE_WORKER_VERSION = "v1"
+const SERVICE_WORKER_VERSION = "v2"
 
 const addResourcesToCache = async resources => {
 	const cache = await caches.open(SERVICE_WORKER_VERSION)
@@ -10,7 +10,7 @@ self.addEventListener("install", event => {
 	event.waitUntil(
 		addResourcesToCache([
 			// "/404.html",
-			// "/aux/app.webmanifest",
+			// "/app.webmanifest",
 			// "/aux/apple-touch-icon.png",
 			// "/aux/fonts/font.ttf",
 			// "/aux/fonts/fs.woff",

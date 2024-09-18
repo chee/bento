@@ -19,8 +19,21 @@ async function registerServiceWorker() {
 		}
 	}
 }
-
 registerServiceWorker()
+if (navigator.userAgent.match(/18\.\d+ Safari/)) {
+	document.write(/*html*/ `
+		<p>
+			Sorry! Apple has broken <b>bento</b> in the latest version of Safari
+			by making it impossible to share an array buffer larger than 906404 bytes.
+		</p>
+
+		<p>
+			It'll be fixed in a few months, but until then I am so sorry to say there is
+			no way to make <b>bento</b> work on Safari. 😭
+		</p>
+	`)
+	throw new (class SafariError extends Error {})("Safari")
+}
 
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"

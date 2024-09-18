@@ -1,5 +1,5 @@
 // update this when changing the service worker
-const SERVICE_WORKER_VERSION = "v3"
+const SERVICE_WORKER_VERSION = "v4"
 
 const addResourcesToCache = async resources => {
 	const cache = await caches.open(SERVICE_WORKER_VERSION)

@@ -1,0 +1,12 @@
+<script type="module">
+    let context = new AudioContext
+    await context.audioWorklet.addModule("data:application/javascript,class%20Test%20extends%20AudioWorkletProcessor%7Bprocess()%7Breturn%20true%7D%7DregisterProcessor(%221%22%2C%20Test)")
+    await context.audioWorklet.addModule("data:application/javascript,class%20Test%20extends%20AudioWorkletProcessor%7Bprocess()%7Breturn%20true%7D%7DregisterProcessor(%222%22%2C%20Test)")
+    let sharedarraybuffer = new SharedArrayBuffer(906405)
+    new AudioWorkletNode(context, "1", {
+        processorOptions: { sharedarraybuffer }
+    })
+    new AudioWorkletNode(context, "2", {
+        processorOptions: { sharedarraybuffer }
+    })
+</script>

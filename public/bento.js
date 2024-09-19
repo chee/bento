@@ -20,7 +20,7 @@ async function registerServiceWorker() {
 	}
 }
 await registerServiceWorker()
-if (navigator.userAgent.match(/18\.\d+ Safari/)) {
+if (navigator.userAgent.match(/18\.0 Safari/)) {
 	document.write(/*html*/ `
 		<p>
 			Sorry! Apple has broken <b>bento</b> in the latest version of Safari
@@ -28,7 +28,7 @@ if (navigator.userAgent.match(/18\.\d+ Safari/)) {
 		</p>
 
 		<p>
-			It'll be fixed in a few months, but until then I am so sorry to say there is
+			It'll be fixed in October, but until then I am so sorry to say there is
 			no way to make <b>bento</b> work on Safari. 😭
 		</p>
 	`)

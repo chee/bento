@@ -19,7 +19,9 @@ async function registerServiceWorker() {
 		}
 	}
 }
-await registerServiceWorker()
+
+registerServiceWorker()
+
 if (navigator.userAgent.match(/18\.0 Safari/)) {
 	document.write(/*html*/ `
 		<p>
@@ -32,7 +34,7 @@ if (navigator.userAgent.match(/18\.0 Safari/)) {
 			no way to make <b>bento</b> work on Safari. 😭
 		</p>
 	`)
-	throw new (class SafariError extends Error {})("Safari")
+	throw new (class SafariError extends Error {})("safari")
 }
 
 import * as sounds from "./sounds/sounds.js"

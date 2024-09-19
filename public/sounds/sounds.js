@@ -145,12 +145,55 @@ export async function play() {
 await context.audioWorklet.addModule("/sounds/transport.audioworklet.js")
 await context.audioWorklet.addModule("/sounds/sampler.audioworklet.js")
 await context.audioWorklet.addModule("/sounds/quietparty.audioworklet.js")
+await context.audioWorklet.addModule("/sounds/safari18.audioworklet.js")
 
 /** @type AudioWorkletNode[] */
 let transports = []
 
 /** @type BentoSoundSource[] */
 let layers = []
+
+/**
+ * @param {number} layerIndex
+ * @param {keyof typeof LayerType} layerType
+ */
+export function safari18wire(layerIndex, layerType) {
+	let processorOptions = {buffer: sharedarraybuffer, layerNumber: layerIndex}
+
+	if (layerIndex in transports == false) {
+		if (layerIndex in layers) {
+			try {
+				layers[layerIndex].destroy()
+			} catch (error) {
+				console.warn("error disconnecting", error)
+			}
+		}
+		let transport = new AudioWorkletNode(context, "safari-18", {
+			processorOptions,
+			numberOfInputs: 0,
+			numberOfOutputs: 1,
+			channelCount: 2,
+			outputChannelCount: [2],
+			channelInterpretation: "speakers"
+		})
+		transports[layerIndex] = transport
+		transport.port.onmessage = event => {
+			if (event.data == "step-change") {
+				party.updateCurrentStep(memtree)
+				let layer = layers[layerIndex]
+				if (layer) {
+					let step = memtree.getStep(
+						memtree.getLayerCurrentStepAbsoluteIndex(layerIndex)
+					)
+					layer.play(step)
+				}
+			}
+		}
+		let source = new Passthru(context, transport)
+		source.connect(context.destination)
+		layers[layerIndex] = source
+	}
+}
 
 /**
  * @param {number} layerIndex
@@ -198,24 +241,11 @@ export function wire(layerIndex, layerType) {
 		let source = new Passthru(context, sampler)
 		source.connect(context.destination)
 		layers[layerIndex] = source
-	} else if (layerType == "synth") {
-		let quietparty = new AudioWorkletNode(context, "quiet-party", {
-			processorOptions,
-			numberOfInputs: 1,
-			numberOfOutputs: 1,
-			channelCount: 2,
-			outputChannelCount: [2],
-			channelInterpretation: "speakers"
-		})
-		let source = new Synth(context)
-		source.out.gain.value = 0.000001
-		source.connect(quietparty)
-		quietparty.connect(context.destination)
-		layers[layerIndex] = source
-	} else if (layerType == "off") {
-		delete layers[layerIndex]
+	} else {
 	}
 }
+
+let safari18 = navigator.userAgent.match(/18\.0 (Mobile\/[A-Z0-9]+ )?Safari/)
 
 export async function start() {
 	await play()
@@ -227,7 +257,9 @@ export async function start() {
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
 
-	loop.layers(idx => wire(idx, memtree.getLayer(idx).type))
+	loop.layers(idx =>
+		(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
+	)
 	party.when("select-layer-type", message => {
 		wire(message.layer, message.type)
 	})

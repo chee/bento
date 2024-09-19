@@ -22,34 +22,6 @@ async function registerServiceWorker() {
 
 registerServiceWorker()
 
-let safari18 = navigator.userAgent.match(/18\.0 (Mobile\/[A-Z0-9]+ )?Safari/)
-if (safari18) {
-	document.write(/*html*/ `
-		<p>
-			Sorry! Apple has broken <b>bento</b> in the latest version of Safari
-			by making it impossible to share an array buffer larger than 906404 bytes.
-		</p>
-
-		<p>
-			It'll be fixed at the end of October, but until then I am so sorry to say there is
-			no way to make <b>bento</b> work on Safari. 😭
-		</p>
-
-		<p>
-			Please come back when ${
-				safari18[1] ? "i" : "mac"
-			}OS 18.1 comes out at the end of October 2024
-		</p>
-${
-	safari18[1]
-		? /*html*/ `<p>If Apple let us use different browser engines on the telephone i could recommend you use one of those instead</p>`
-		: ""
-}
-		
-	`)
-	throw new (class SafariError extends Error {})("safari 18.0")
-}
-
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
 import {

@@ -22,7 +22,7 @@ async function registerServiceWorker() {
 
 registerServiceWorker()
 
-if (navigator.userAgent.match(/18\.0 Safari/)) {
+if (navigator.userAgent.match(/18\.0 (Mobile\/[A-Z0-9]+ )?Safari/)) {
 	document.write(/*html*/ `
 		<p>
 			Sorry! Apple has broken <b>bento</b> in the latest version of Safari

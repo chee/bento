@@ -1,5 +1,5 @@
 // update this when changing the service worker
-const SERVICE_WORKER_VERSION = "v4"
+const SERVICE_WORKER_VERSION = "v5"
 
 const addResourcesToCache = async resources => {
 	const cache = await caches.open(SERVICE_WORKER_VERSION)
@@ -7,6 +7,7 @@ const addResourcesToCache = async resources => {
 }
 
 self.addEventListener("install", event => {
+	self.skipWaiting()
 	event.waitUntil(
 		addResourcesToCache([
 			// "/404.html",

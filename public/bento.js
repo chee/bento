@@ -19,7 +19,7 @@ async function registerServiceWorker() {
 		}
 	}
 }
-registerServiceWorker()
+await registerServiceWorker()
 if (navigator.userAgent.match(/18\.\d+ Safari/)) {
 	document.write(/*html*/ `
 		<p>

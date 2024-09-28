@@ -245,7 +245,7 @@ export function wire(layerIndex, layerType) {
 	}
 }
 
-let safari18 = navigator.userAgent.match(/18\.0 (Mobile\/[A-Z0-9]+ )?Safari/)
+let safari18 = navigator.userAgent.match(/Safari\/60[45]\.1/)
 
 export async function start() {
 	await play()

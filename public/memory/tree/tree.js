@@ -31,6 +31,10 @@ import {map, unmap} from "../memory.js"
  * @prop {Grid} grid
  */
 
+/**
+ * @typedef {(kind: "layers"|"grids"|"steps"|"sounds"|"master", index: number) => void} MemoryListener
+ */
+
 export default class MemoryTree {
 	/** @type {import("../memory").MemoryMap} */
 	#mem
@@ -65,7 +69,7 @@ export default class MemoryTree {
 		return new MemoryTree(map(buffer))
 	}
 
-	/** @type {Set<() => void>} */
+	/** @type {Set<MemoryListener>} */
 	#listeners = new Set()
 
 	/**
@@ -74,7 +78,7 @@ export default class MemoryTree {
 	 */
 	announce(item, index) {
 		for (let listener of this.#listeners) {
-			listener()
+			listener(item, index)
 		}
 		if (item && index != null) {
 			// something in here for the workers
@@ -83,7 +87,7 @@ export default class MemoryTree {
 		}
 	}
 
-	/** @param {() => void} fn */
+	/** @param {MemoryListener} fn */
 	listen(fn) {
 		this.#listeners.add(fn)
 		return () => this.#listeners.delete(fn)

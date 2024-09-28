@@ -3,7 +3,6 @@ import * as loop from "../convenience/loop.js"
 import MemoryTree from "../memory/tree/tree.js"
 import Passthru from "./sources/passthru.js"
 import BentoSoundSource from "./sources/source.js"
-import Synth from "./sources/synth.js"
 let party = document.querySelector("bento-party")
 
 let context = new AudioContext()
@@ -248,22 +247,21 @@ export function wire(layerIndex, layerType) {
 let safari18 = navigator.userAgent.match(/Safari\/60[45]\.1/)
 
 export async function start() {
-	await play()
-	if (alreadyFancy) {
-		return
-	}
-	let analyzer = context.createAnalyser()
-	analyzer.fftSize = 2048
-	// todo write analysis to memory periodically
-	// let analysis = new Float32Array(analyzer.fftSize)
-
-	loop.layers(idx =>
-		(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
-	)
-	party.when("select-layer-type", message => {
-		wire(message.layer, message.type)
-	})
-	alreadyFancy = true
+	// await play()
+	// if (alreadyFancy) {
+	// 	return
+	// }
+	// let analyzer = context.createAnalyser()
+	// analyzer.fftSize = 2048
+	// // todo write analysis to memory periodically
+	// // let analysis = new Float32Array(analyzer.fftSize)
+	// loop.layers(idx =>
+	// 	(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
+	// )
+	// party.when("select-layer-type", message => {
+	// 	wire(message.layer, message.type)
+	// })
+	// alreadyFancy = true
 }
 
 /**
@@ -301,7 +299,7 @@ export function empty() {
  * @return {Promise}
  */
 export async function init(buffer) {
-	sharedarraybuffer = buffer
+	/* 	sharedarraybuffer = buffer
 	memtree = MemoryTree.from(buffer)
-	memtree.sampleRate = context.sampleRate
+	memtree.sampleRate = context.sampleRate */
 }

@@ -6,6 +6,9 @@ import {
 import {grid2layer, grid2layerGrid} from "../convert.js"
 import Step from "./step.js"
 
+/**
+ * @typedef {ReturnType<Grid['toJSON']>} GridJSON
+ */
 export default class Grid {
 	/** @type {import("../memory").MemoryMap} */
 	#mem

@@ -8,9 +8,11 @@ import {
 } from "../convert.js"
 
 /**
+ * @typedef {ReturnType<Step['toJSON']>} StepJSON
+ */
+/**
  * @typedef {Step["view"]} StepView
  */
-
 export default class Step {
 	static properties = /** @type const */ ({
 		on: Boolean,
@@ -206,6 +208,9 @@ export default class Step {
 		"gridIndexInLayer"
 	]
 
+	/**
+	 * @type {Readonly<ReturnType<Step['toJSON']>>}
+	 */
 	get view() {
 		return Object.freeze(this.toJSON())
 	}

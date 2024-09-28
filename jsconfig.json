@@ -4,7 +4,7 @@
 		"allowJs": true,
 		"checkJs": true,
 		"module": "es2022",
-		"lib": ["es2022", "dom", "webworker"],
-		"baseUrl": "./public"
+		"moduleResolution": "Bundler",
+		"lib": ["es2022", "dom"]
 	}
 }

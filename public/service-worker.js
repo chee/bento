@@ -1,3 +1,7 @@
+/// <reference no-default-lib="true"/>
+/// <reference lib="ES2015" />
+/// <reference types="@secret-types/serviceworker" />
+
 // update this when changing the service worker
 const SERVICE_WORKER_VERSION = "v12"
 

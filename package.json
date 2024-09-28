@@ -11,6 +11,7 @@
 		"start": "npx serve public"
 	},
 	"dependencies": {
+		"@secret-types/serviceworker": "npm:@types/serviceworker@^0.0.96",
 		"@types/audioworklet": "^0.0.50"
 	},
 	"prettier": {

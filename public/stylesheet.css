@@ -240,6 +240,18 @@ body {
 }
 
 /* ====*==== */
+@font-face {
+	font-family: qp;
+	src: url("/aux/fonts/iosevka-qp-regular.woff2") format("woff2");
+	font-display: swap;
+}
+
+@font-face {
+	font-family: qp;
+	src: url("/aux/fonts/iosevka-qp-light.woff2") format("woff2");
+	font-display: swap;
+	font-weight: 200;
+}
 
 @font-face {
 	font-family: fs;

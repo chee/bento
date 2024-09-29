@@ -242,19 +242,6 @@ body {
 /* ====*==== */
 
 @font-face {
-	font-family: qp;
-	src: url("/aux/fonts/iosevka-qp-regular.ttf") format("truetype");
-	font-display: swap;
-}
-
-@font-face {
-	font-family: qp;
-	src: url("/aux/fonts/iosevka-qp-light.ttf") format("truetype");
-	font-display: swap;
-	font-weight: 200;
-}
-
-@font-face {
 	font-family: fs;
 	src: url("/aux/fonts/fs.woff");
 	font-display: swap;

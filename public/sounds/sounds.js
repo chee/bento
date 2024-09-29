@@ -36,7 +36,7 @@ function normalize(sound) {
  * trim zeros from the beginning of audio
  * @param {Float32Array} sound
  */
-function trim(sound) {
+export function trim(sound) {
 	// i have NO IDEA what i'm doing.  what is -144dB in 32-bit float???????????
 	let noisefloor = 1e-33
 
@@ -247,21 +247,21 @@ export function wire(layerIndex, layerType) {
 let safari18 = navigator.userAgent.match(/Safari\/60[45]\.1/)
 
 export async function start() {
-	// await play()
-	// if (alreadyFancy) {
-	// 	return
-	// }
-	// let analyzer = context.createAnalyser()
-	// analyzer.fftSize = 2048
-	// // todo write analysis to memory periodically
-	// // let analysis = new Float32Array(analyzer.fftSize)
-	// loop.layers(idx =>
-	// 	(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
-	// )
-	// party.when("select-layer-type", message => {
-	// 	wire(message.layer, message.type)
-	// })
-	// alreadyFancy = true
+	await play()
+	if (alreadyFancy) {
+		return
+	}
+	let analyzer = context.createAnalyser()
+	analyzer.fftSize = 2048
+	// todo write analysis to memory periodically
+	// let analysis = new Float32Array(analyzer.fftSize)
+	loop.layers(idx =>
+		(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
+	)
+	party.when("select-layer-type", message => {
+		wire(message.layer, message.type)
+	})
+	alreadyFancy = true
 }
 
 /**
@@ -270,10 +270,14 @@ export async function start() {
 export async function loadKit(...urls) {
 	for (let [index, url] of Object.entries(urls)) {
 		let audio = await fetchSound(url)
-		memtree.alterSound(+index, sound => {
-			sound.audio = audio
-			// sound.sampleRate = context.sampleRate
-		})
+		memtree.alterSound(
+			+index,
+			sound => {
+				sound.audio = audio
+				// sound.sampleRate = context.sampleRate
+			},
+			"load-kit"
+		)
 	}
 }
 
@@ -299,7 +303,7 @@ export function empty() {
  * @return {Promise}
  */
 export async function init(buffer) {
-	/* 	sharedarraybuffer = buffer
+	sharedarraybuffer = buffer
 	memtree = MemoryTree.from(buffer)
-	memtree.sampleRate = context.sampleRate */
+	memtree.sampleRate = context.sampleRate
 }

@@ -1,5 +1,6 @@
 import * as share from "./share.js"
 import * as Memory from "../memory/memory.js"
+import {isValidAutomergeUrl} from "../automerge/automerge-repo-slim.js"
 
 /** @type {IDBDatabase} */
 let db
@@ -88,6 +89,9 @@ export async function exists(id = getSlugFromLocation()) {
 }
 
 export function save(id = getSlugFromLocation()) {
+	if (isValidAutomergeUrl(id)) {
+		return
+	}
 	worker.postMessage({
 		type: "save",
 		id
@@ -124,6 +128,10 @@ export async function getPatternNames() {
 	return names.result
 }
 
+/**
+ *
+ * @returns {string | import("@automerge/automerge-repo").AutomergeUrl}
+ */
 export function getSlugFromLocation() {
 	return (
 		(typeof window != "undefined" &&

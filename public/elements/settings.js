@@ -1,10 +1,5 @@
 import {bentoElements, BentoElement} from "./base.js"
 
-let featureflags = new URLSearchParams(location.search.slice(1))
-for (let [flag, value] of featureflags.entries()) {
-	document.documentElement.setAttribute(flag, value)
-}
-
 /** @typedef {Object} ControlSpec
  * @prop {string} name
  * @prop {string} type
@@ -45,13 +40,11 @@ export default class BentoSettings extends BentoElement {
 		this.shadow = this.attachShadow({mode: "closed", delegatesFocus: true})
 		this.shadow.innerHTML = `<div></div>`
 		this.attachStylesheet("settings")
-		if (featureflags.has("jam")) {
-			this.createButton({
-				name: "jam",
-				type: "button",
-				label: "jam"
-			})
-		}
+		this.createButton({
+			name: "jam",
+			type: "button",
+			label: "jam"
+		})
 		this.createButton({
 			name: "save-as",
 			type: "button",

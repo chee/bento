@@ -189,7 +189,7 @@ async function init() {
 		await db.init(sharedarraybuffer)
 	}
 	await graphics.init()
-	await sounds.init(sharedarraybuffer)
+	await sounds.init(sharedarraybuffer, memtree)
 }
 
 await init()

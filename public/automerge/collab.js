@@ -89,6 +89,7 @@ export async function init(sab) {
 			return true
 		}
 	})
+	window.repo = repo
 	await repo.networkSubsystem.whenReady()
 	document.dispatchEvent(new CustomEvent("repo"))
 }
@@ -131,8 +132,16 @@ export async function start(url, memtree) {
 	let handle = repo.find(url)
 	window.handle = handle
 	let firstLoadComplete = false
+	/** @type {DocHandle<CollaborativeSound>[]} */
+	let soundHandles = []
 	await handle.doc().then(async doc => {
-		loop.layers(index =>
+		soundHandles = loop.layers(index => {
+			/** @type {DocHandle<CollaborativeSound>} */
+			return repo.find(doc.sounds[index])
+		})
+		let sounds = await Promise.all(soundHandles.map(handle => handle.doc()))
+
+		loop.layers(index => {
 			memtree.alterLayer(
 				index,
 				m => {
@@ -143,8 +152,24 @@ export async function start(url, memtree) {
 				},
 				"automerge"
 			)
-		)
-		loop.grids(index =>
+			memtree.alterSound(
+				index,
+				sound => {
+					for (let key in sounds[index]) {
+						if (key == "bytes" || key == "version") {
+						} else {
+							sound[key] = sounds[index][key]
+						}
+					}
+					sound.audio = u82f(sounds[index].bytes).subarray(
+						0,
+						sounds[index].length
+					)
+				},
+				"automerge"
+			)
+		})
+		loop.machineGrids(index =>
 			memtree.alterGrid(
 				index,
 				m => {
@@ -156,10 +181,13 @@ export async function start(url, memtree) {
 				"automerge"
 			)
 		)
-		loop.steps(index =>
+		loop.machineSteps(index =>
 			memtree.alterStep(
 				index,
 				m => {
+					if (!m) {
+						m = new Step(memtree.memory, index)
+					}
 					let p = doc.steps[index]
 					for (let key in p) {
 						m[key] = p[key]
@@ -168,31 +196,6 @@ export async function start(url, memtree) {
 				"automerge"
 			)
 		)
-		let sounds = await Promise.all(
-			loop.layers(index => {
-				/** @type {DocHandle<CollaborativeSound>} */
-				let handle = repo.find(doc.sounds[index])
-				return handle.doc()
-			})
-		)
-		loop.layers(index => {
-			memtree.alterSound(
-				index,
-				sound => {
-					for (let key in sounds[index]) {
-						if (key == "bytes" || key == "version") {
-						} else {
-							// sound[key] = sounds[index][key]
-						}
-					}
-					sound.audio = u82f(sounds[index].bytes).subarray(
-						0,
-						sounds[index].length
-					)
-				},
-				"automerge"
-			)
-		})
 		firstLoadComplete = true
 	})
 	let preventPatchApplications = false
@@ -201,47 +204,20 @@ export async function start(url, memtree) {
 		if (!firstLoadComplete) return
 		preventPatchApplications = true
 		switch (kind) {
-			case "layers": {
-				handle.change(
-					pattern => {
-						let ps = pattern.layers[index]
-						let ms = memtree.layers[index]
-						for (let key in ps) {
-							key = /** @type {keyof typeof ms} */ (key)
-							if (ps[key] != ms[key]) {
-								ps[key] = ms[key]
-							}
-						}
-					},
-					{message: "memtree"}
-				)
-				break
-			}
-			case "grids": {
-				handle.change(
-					pattern => {
-						let ps = pattern.grids[index]
-						let ms = memtree.grids[index]
-						for (let key in ps) {
-							key = /** @type {keyof typeof ms} */ (key)
-							if (ps[key] != ms[key]) {
-								ps[key] = ms[key]
-							}
-						}
-					},
-					{message: "memtree"}
-				)
-				break
-			}
+			case "layers":
+			case "grids":
 			case "steps": {
 				handle.change(
 					pattern => {
-						let ps = pattern.steps[index]
-						let ms = memtree.steps[index]
-						for (let key in ps) {
-							key = /** @type {keyof typeof ms} */ (key)
-							if (ps[key] != ms[key]) {
-								ps[key] = ms[key] ?? null
+						let patternItem = pattern[kind][index]
+						let memtreeItem = memtree[kind][index]
+						if (!memtreeItem) {
+							console.error("yup")
+						}
+						for (let key in patternItem) {
+							key = /** @type {keyof typeof memtreeItem} */ (key)
+							if (patternItem[key] != memtreeItem[key]) {
+								patternItem[key] = memtreeItem[key] ?? null
 							}
 						}
 					},
@@ -250,9 +226,22 @@ export async function start(url, memtree) {
 				break
 			}
 			case "sounds": {
-				handle.change(
-					pattern => {
-						pattern
+				/** @type {DocHandle<CollaborativeSound>} */
+				let soundHandle = soundHandles[index]
+				soundHandle.change(
+					sound => {
+						const memsound = memtree.sounds[index]
+						for (let key in sound) {
+							if (key == "bytes" || key == "version") {
+							} else {
+								sound[key] = memsound[key]
+							}
+						}
+						// todo should maybe create a whole new sound when this
+						// happens because otherwise phew it's gonna get LARGE
+						sound.bytes = f2u8(
+							memsound.left.subarray(0, memtree.sounds[index].length)
+						)
 					},
 					{message: "memtree"}
 				)
@@ -273,6 +262,13 @@ export async function start(url, memtree) {
 		preventPatchApplications = false
 	})
 
+	let kindAlterMap = /** @type {const} */ ({
+		steps: "alterStep",
+		grids: "alterGrid",
+		layers: "alterLayer",
+		sounds: "alterSound"
+	})
+
 	/**
 	 *
 	 * @param {DocHandleChangePayload} change
@@ -282,8 +278,12 @@ export async function start(url, memtree) {
 		for (let patch of change.patches) {
 			let [kind, index] = patch.path.splice(0, 2)
 			switch (patch.action) {
+				case "splice":
 				case "put": {
-					let {value, conflict} = patch
+					let {value} = patch
+					if ("conflict" in patch) {
+						console.error("a put conflict happened", patch)
+					}
 					if (
 						kind == "master" &&
 						index == "bpm" &&
@@ -292,122 +292,42 @@ export async function start(url, memtree) {
 						memtree.bpm = patch.value
 						continue
 					}
-					let key = patch.path.shift()
-					if (kind == "steps") {
-						if (key != null) {
-							memtree.alterStep(
-								+index,
-								step => {
-									step[key] = value
-								},
-								"automerge"
-							)
-						} else {
-							memtree.alterStep(
-								+index,
-								step => {
-									for (let key in value) {
-										step[key] = value[key]
+					let patchKey = patch.path.shift()
+					const fn = kindAlterMap[/** @type {keyof kindAlterMap}*/ (kind)]
+					if (fn) {
+						memtree[fn](
+							+index,
+							item => {
+								if (!item) {
+									if (kind == "steps") {
+										item = new Step(memtree.memory, +index)
+									} else {
+										console.error(`unexpected lazy ${kind}!`)
 									}
-								},
-								"automerge"
-							)
-						}
-					} else if (kind == "grids") {
-						if (key != null) {
-							memtree.alterGrid(
-								+index,
-								grid => {
-									grid[key] = value
-								},
-								"automerge"
-							)
-						} else {
-							memtree.alterGrid(
-								+index,
-								grid => {
-									for (let key in value) {
-										grid[key] = value[key]
+								}
+								if (kind == "sounds") {
+									console.error("sounds", patchKey, value)
+								} else {
+									if (patchKey == null) {
+										for (let key in /** @type {any[]} */ (value)) {
+											item[key] = value[key]
+										}
+									} else {
+										item[patchKey] = value
 									}
-								},
-								"automerge"
-							)
-						}
-					} else if (kind == "sounds") {
-						console.info("SOUNDS HAPEN")
+								}
+							},
+							"automerge"
+						)
 					}
-
 					continue
 				}
-				case "del": {
-					continue
-				}
-				case "splice": {
-					let {value} = patch
-					let key = patch.path.shift()
-					if (kind == "steps") {
-						if (value == "on" || value == "off") {
-							memtree.alterStep(
-								+index,
-								step => {
-									step[key] = value
-								},
-								"automerge"
-							)
-						} else if (key != null) {
-							memtree.alterStep(
-								+index,
-								step => {
-									step[key] = value
-								},
-								"automerge"
-							)
-						} else {
-							memtree.alterStep(
-								+index,
-								step => {
-									for (let key in value) {
-										step[key] = value[key]
-									}
-								},
-								"automerge"
-							)
-						}
-					} else if (kind == "grids") {
-						if (key != null) {
-							memtree.alterGrid(
-								+index,
-								grid => {
-									grid[key] = value
-								},
-								"automerge"
-							)
-						} else {
-							memtree.alterGrid(
-								+index,
-								grid => {
-									for (let key in value) {
-										grid[key] = value[key]
-									}
-								},
-								"automerge"
-							)
-						}
-					}
-
-					continue
-				}
-				case "inc": {
-					console.error("INC!")
-					continue
-				}
-				case "insert": {
-					console.log("INSERT!")
-					continue
-				}
+				case "del":
+				case "inc":
+				case "insert":
 				case "mark":
 				case "unmark": {
-					console.error("MARK!")
+					console.error(`unhandled ${patch.action} occurred!`)
 					continue
 				}
 				case "conflict": {
@@ -419,9 +339,61 @@ export async function start(url, memtree) {
 		firstLoadComplete = true
 	}
 	handle.on("change", onchange)
+
+	/**
+	 *
+	 * @param {DocHandleChangePayload} change
+	 */
+	function onsoundchange(change) {
+		for (let patch of change.patches) {
+			let key = patch.path.shift()
+			switch (patch.action) {
+				case "splice":
+				case "put": {
+					let {value} = patch
+					if ("conflict" in patch) {
+						console.error("a put conflict happened", patch)
+					}
+					memtree.alterSound(
+						// todo correct index
+						0,
+						sound => {
+							if (key == "bytes" || key == "version") {
+							} else {
+								sound[key] = value
+							}
+
+							sound.audio = u82f(value).subarray(
+								0,
+								change.patchInfo.after.length
+							)
+						},
+						"automerge"
+					)
+					continue
+				}
+				case "del":
+				case "inc":
+				case "insert":
+				case "mark":
+				case "unmark": {
+					console.error(`unhandled ${patch.action} occurred!`)
+					continue
+				}
+				case "conflict": {
+					console.warn("OH NO A CONFLICT", patch)
+					continue
+				}
+			}
+		}
+	}
+
+	soundHandles.forEach(sound => sound.on("change", onsoundchange))
+
 	unlisten = () => {
 		dispose()
 		handle.off("change", onchange)
+		soundHandles.forEach(sound => sound.off("change", onsoundchange))
 	}
 }
 
@@ -443,13 +415,13 @@ export function create(memtree) {
 	const grids = {}
 	/** @type {Record<number, import("../memory/tree/step.js").StepJSON>} steps */
 	const steps = {}
-	loop.layers(
-		index => (layers[index] = new Layer(memtree.memory, index).toJSON())
-	)
-	loop.grids(
+	loop.layers(index => {
+		layers[index] = new Layer(memtree.memory, index).toJSON()
+	})
+	loop.machineGrids(
 		index => (grids[index] = new Grid(memtree.memory, index).toJSON())
 	)
-	loop.steps(
+	loop.machineSteps(
 		index => (steps[index] = new Step(memtree.memory, index).toJSON())
 	)
 	loop.layers(index => {

@@ -302,8 +302,8 @@ export function empty() {
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
  */
-export async function init(buffer) {
+export async function init(buffer, mainmemtree) {
 	sharedarraybuffer = buffer
-	memtree = MemoryTree.from(buffer)
+	memtree = mainmemtree
 	memtree.sampleRate = context.sampleRate
 }

@@ -148,6 +148,8 @@ export async function start(url, memtree) {
 					let p = doc.layers[index]
 					for (let key in p) {
 						m[key] = p[key]
+						if (key == "length") {
+						}
 					}
 				},
 				"automerge"
@@ -231,17 +233,17 @@ export async function start(url, memtree) {
 				soundHandle.change(
 					sound => {
 						const memsound = memtree.sounds[index]
+						// todo should maybe create a whole new sound when this
+						// happens because otherwise phew it's gonna get LARGE
+						sound.bytes = f2u8(
+							memsound.left.subarray(0, memtree.sounds[index].length)
+						)
 						for (let key in sound) {
 							if (key == "bytes" || key == "version") {
 							} else {
 								sound[key] = memsound[key]
 							}
 						}
-						// todo should maybe create a whole new sound when this
-						// happens because otherwise phew it's gonna get LARGE
-						sound.bytes = f2u8(
-							memsound.left.subarray(0, memtree.sounds[index].length)
-						)
 					},
 					{message: "memtree"}
 				)
@@ -341,59 +343,65 @@ export async function start(url, memtree) {
 	handle.on("change", onchange)
 
 	/**
-	 *
-	 * @param {DocHandleChangePayload} change
+	 * @param {number} index
+	 * @returns {(change: DocHandleChangePayload) => void}
 	 */
-	function onsoundchange(change) {
-		for (let patch of change.patches) {
-			let key = patch.path.shift()
-			switch (patch.action) {
-				case "splice":
-				case "put": {
-					let {value} = patch
-					if ("conflict" in patch) {
-						console.error("a put conflict happened", patch)
+	function createonsoundchange(index) {
+		return function onsoundchange(change) {
+			for (let patch of change.patches) {
+				let key = patch.path.shift()
+				switch (patch.action) {
+					case "splice":
+					case "put": {
+						let {value} = patch
+						if ("conflict" in patch) {
+							console.error("a put conflict happened", patch)
+						}
+						memtree.alterSound(
+							// todo correct index
+							index,
+							sound => {
+								if (key == "bytes") {
+									sound.audio = u82f(value).subarray(
+										index,
+										change.patchInfo.after.length
+									)
+								} else if (key == "version") {
+								} else {
+									sound[key] = value
+								}
+							},
+							"automerge"
+						)
+						continue
 					}
-					memtree.alterSound(
-						// todo correct index
-						0,
-						sound => {
-							if (key == "bytes" || key == "version") {
-							} else {
-								sound[key] = value
-							}
-
-							sound.audio = u82f(value).subarray(
-								0,
-								change.patchInfo.after.length
-							)
-						},
-						"automerge"
-					)
-					continue
-				}
-				case "del":
-				case "inc":
-				case "insert":
-				case "mark":
-				case "unmark": {
-					console.error(`unhandled ${patch.action} occurred!`)
-					continue
-				}
-				case "conflict": {
-					console.warn("OH NO A CONFLICT", patch)
-					continue
+					case "del":
+					case "inc":
+					case "insert":
+					case "mark":
+					case "unmark": {
+						console.error(`unhandled ${patch.action} occurred!`)
+						continue
+					}
+					case "conflict": {
+						console.warn("OH NO A CONFLICT", patch)
+						continue
+					}
 				}
 			}
 		}
 	}
 
-	soundHandles.forEach(sound => sound.on("change", onsoundchange))
+	const offsoundchanges = loop.layers(i => {
+		const onsoundchange = createonsoundchange(i)
+		soundHandles[i].on("change", onsoundchange)
+		return () => soundHandles[i].off("change", onsoundchange)
+	})
 
 	unlisten = () => {
 		dispose()
 		handle.off("change", onchange)
-		soundHandles.forEach(sound => sound.off("change", onsoundchange))
+		offsoundchanges.forEach(o => o())
 	}
 }
 

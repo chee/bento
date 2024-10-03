@@ -7,10 +7,7 @@ import Step from "../memory/tree/step.js"
 import Sound from "../memory/tree/sound.js"
 import Grid from "../memory/tree/grid.js"
 import MemoryTree from "../memory/tree/tree.js"
-import {insertAt} from "./automerge-repo-slim.js"
 import * as loop from "../loop.js"
-import {Master} from "../memory/constants.js"
-import {trim} from "../sounds/sounds.js"
 
 /**
  *
@@ -139,7 +136,9 @@ export async function start(url, memtree) {
 			/** @type {DocHandle<CollaborativeSound>} */
 			return repo.find(doc.sounds[index])
 		})
+
 		let sounds = await Promise.all(soundHandles.map(handle => handle.doc()))
+		memtree.bpm = doc.master.bpm
 
 		loop.layers(index => {
 			memtree.alterLayer(

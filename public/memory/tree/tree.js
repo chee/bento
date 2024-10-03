@@ -305,11 +305,11 @@ export default class MemoryTree {
 	 * @type number
 	 */
 	get bpm() {
-		return this.#mem.master.at(Master.bpm) || 120
+		return this.#mem.master.at(Master.bpm)
 	}
 
 	set bpm(val) {
-		let bpm = Math.clamp(val || 120, 20, 240)
+		let bpm = Math.clamp(val, 20, 240)
 		this.#mem.master.set([bpm], Master.bpm)
 		this.announce("master", Master.bpm)
 	}
@@ -318,7 +318,7 @@ export default class MemoryTree {
 	 * @param {number} val
 	 */
 	setBPM(val, source = "unknown") {
-		let bpm = Math.clamp(val || 120, 20, 240)
+		let bpm = Math.clamp(val, 20, 240)
 		this.#mem.master.set([bpm], Master.bpm)
 		this.announce("master", Master.bpm, source)
 	}

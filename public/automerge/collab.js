@@ -206,6 +206,15 @@ export async function start(url, memtree) {
 		)
 		firstLoadComplete = true
 	})
+	handle.broadcast("hello")
+	/**
+	 *
+	 * @param {AutomergeRepo.DocHandleEphemeralMessagePayload<CollaborativePattern>} payload
+	 */
+	function onephemera(payload) {
+		console.info(payload.message, payload)
+	}
+	handle.addListener("ephemeral-message", onephemera)
 	alreadyFancy = true
 	let preventPatchApplications = false
 	let dispose = memtree.listen((kind, index, source) => {
@@ -413,6 +422,7 @@ export async function start(url, memtree) {
 	unlisten = () => {
 		dispose()
 		handle.off("change", onchange)
+		handle.off("ephemeral-message", onephemera)
 		offsoundchanges.forEach(o => o())
 	}
 }

@@ -60,31 +60,31 @@ async function getFancy() {
 	try {
 		if (!db.fancy() && !isAutomerge) {
 			await db.load()
-
 			if (sounds.empty()) {
 				await sounds.loadDefaultKit()
 			}
+			party.setAttribute("db", "fancy")
 		}
 		if (isAutomerge && !collab.fancy()) {
-			await collab.init(sharedarraybuffer)
 			await collab.start(
 				/** @type {import("@automerge/automerge-repo").AutomergeUrl}*/ (slug),
 				memtree
 			)
+			party.setAttribute("collab", "fancy")
+			return
 		}
+
 		if (!sounds.fancy()) {
 			await sounds.start()
+			party.setAttribute("sfx", "fancy")
 		}
 
 		if (sounds.fancy() && !graphics.fancy()) {
 			graphics.start(sharedarraybuffer)
+			party.setAttribute("gfx", "fancy")
 		}
 
-		if (
-			sounds.fancy() &&
-			graphics.fancy() &&
-			(db.fancy() || (isAutomerge && collab.fancy()))
-		) {
+		if (sounds.fancy() && graphics.fancy() && (db.fancy() || collab.fancy())) {
 			party.fancy = true
 		}
 	} catch {}
@@ -185,11 +185,15 @@ async function loadFromFile(file) {
 async function init() {
 	if (isValidAutomergeUrl(db.getSlugFromLocation())) {
 		await collab.init(sharedarraybuffer)
+		party.setAttribute("collab", "init")
 	} else {
 		await db.init(sharedarraybuffer)
+		party.setAttribute("db", "init")
 	}
 	await graphics.init()
+	party.setAttribute("gfx", "init")
 	await sounds.init(sharedarraybuffer, memtree)
+	party.setAttribute("sfx", "init")
 }
 
 await init()
@@ -646,7 +650,6 @@ party.settings.when("load", async () => {
 })
 
 party.settings.when("jam", async () => {
-	await collab.init()
 	pushSlug(collab.create(memtree))
 	let {slug} = history.state
 	collab.stop()
@@ -659,7 +662,6 @@ addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	collab.stop()
 	if (isValidAutomergeUrl(slug)) {
-		await collab.init()
 		await collab.start(slug, memtree)
 	} else {
 		await db.load(slug)

@@ -66,8 +66,10 @@ async function withAutomergeRepo(fn) {
 	}
 }
 
+let alreadyFancy = false
+
 export function fancy() {
-	return Boolean(repo?.networkSubsystem.isReady())
+	return alreadyFancy
 }
 
 /**
@@ -92,9 +94,6 @@ export async function init(sab) {
 		}
 	})
 	window.repo = repo
-	if (!repo.networkSubsystem.isReady()) {
-		await repo.networkSubsystem.whenReady()
-	}
 	document.dispatchEvent(new CustomEvent("repo"))
 }
 
@@ -129,6 +128,7 @@ let currentId
  */
 export async function start(url, memtree) {
 	if (url == currentId) return
+	alreadyFancy = false
 	currentId = url
 	/**
 	 * @type {import("@automerge/automerge-repo").DocHandle<CollaborativePattern>}
@@ -206,6 +206,7 @@ export async function start(url, memtree) {
 		)
 		firstLoadComplete = true
 	})
+	alreadyFancy = true
 	let preventPatchApplications = false
 	let dispose = memtree.listen((kind, index, source) => {
 		if (source == "automerge") return

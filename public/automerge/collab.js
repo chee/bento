@@ -216,6 +216,9 @@ export async function start(url, memtree) {
 							console.error("yup")
 						}
 						for (let key in patternItem) {
+							if (key == "selectedGrid") {
+								continue
+							}
 							key = /** @type {keyof typeof memtreeItem} */ (key)
 							if (patternItem[key] != memtreeItem[key]) {
 								patternItem[key] = memtreeItem[key] ?? null
@@ -311,6 +314,9 @@ export async function start(url, memtree) {
 								} else {
 									if (patchKey == null) {
 										for (let key in /** @type {any[]} */ (value)) {
+											if (key == "selectedGrid") {
+												continue
+											}
 											item[key] = value[key]
 										}
 									} else {

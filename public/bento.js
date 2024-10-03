@@ -212,7 +212,7 @@ party.when("stop", () => {
 })
 
 party.when("set-bpm", bpm => {
-	memtree.bpm = bpm
+	bpm && (memtree.bpm = bpm)
 	db.save()
 })
 

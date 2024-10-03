@@ -1,6 +1,6 @@
 /// <reference types="@secret-types/serviceworker" />
 // update this when changing the service worker
-const SERVICE_WORKER_VERSION = "v18"
+const SERVICE_WORKER_VERSION = "v19"
 
 const addResourcesToCache = async resources => {
 	const cache = await caches.open(SERVICE_WORKER_VERSION)

@@ -71,7 +71,6 @@ async function getFancy() {
 				memtree
 			)
 			party.setAttribute("collab", "fancy")
-			return
 		}
 
 		if (!sounds.fancy()) {

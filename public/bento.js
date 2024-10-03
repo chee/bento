@@ -656,6 +656,7 @@ party.settings.when("load", async () => {
 })
 
 party.settings.when("jam", async () => {
+	await collab.init(sharedarraybuffer)
 	pushSlug(collab.create(memtree))
 	let {slug} = history.state
 	collab.stop()
@@ -665,6 +666,7 @@ party.settings.when("jam", async () => {
 })
 
 addEventListener("popstate", async () => {
+	await collab.init(sharedarraybuffer)
 	let slug = history.state?.slug || "bento"
 	collab.stop()
 	if (isValidDocumentId(slug)) {

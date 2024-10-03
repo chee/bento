@@ -8,19 +8,25 @@
 	"background_color": "#ffe9ed",
 	"icons": [
 		{
-			"src": "icons/maskable_icon.png",
+			"src": "/aux/icons/maskable_icon.png",
 			"sizes": "any",
 			"type": "image/png",
 			"purpose": "maskable"
 		},
 		{
-			"src": "icons/bento.svg",
+			"src": "aux/icons/bento.svg",
 			"type": "image/svg",
 			"purpose": "any",
 			"sizes": "any"
 		},
 		{
-			"src": "icons/bento-monochrome.png",
+			"src": "/aux/icons/bento-512.png",
+			"type": "image/png",
+			"purpose": "any",
+			"sizes": "512x512"
+		},
+		{
+			"src": "/aux/icons/bento-monochrome.png",
 			"type": "image/png",
 			"purpose": "monochrome",
 			"sizes": "any"

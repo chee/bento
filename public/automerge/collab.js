@@ -92,7 +92,9 @@ export async function init(sab) {
 		}
 	})
 	window.repo = repo
-	await repo.networkSubsystem.whenReady()
+	if (!repo.networkSubsystem.isReady()) {
+		await repo.networkSubsystem.whenReady()
+	}
 	document.dispatchEvent(new CustomEvent("repo"))
 }
 

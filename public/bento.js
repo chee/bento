@@ -18,6 +18,12 @@ async function registerServiceWorker() {
 		} catch (error) {
 			console.error(`Registration failed with ${error}`)
 		}
+		let ref = false
+		navigator.serviceWorker.addEventListener("controllerchange", function () {
+			if (ref) return
+			ref = true
+			window.location.reload()
+		})
 	}
 }
 

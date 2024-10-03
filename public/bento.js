@@ -44,7 +44,7 @@ import {
 import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
-import {isValidAutomergeUrl} from "./automerge/automerge-repo-slim.js"
+import {isValidDocumentId} from "./automerge/automerge-repo-slim.js"
 import * as collab from "./automerge/collab.js"
 let sharedarraybuffer = new SharedArrayBuffer(MEMORY_SIZE)
 
@@ -60,7 +60,7 @@ if (history.scrollRestoration) {
 
 async function getFancy() {
 	let slug = db.getSlugFromLocation()
-	let isAutomerge = isValidAutomergeUrl(slug)
+	let isAutomerge = isValidDocumentId(slug)
 	if (party.fancy) {
 		return
 	}
@@ -189,7 +189,7 @@ async function loadFromFile(file) {
 }
 
 async function init() {
-	if (isValidAutomergeUrl(db.getSlugFromLocation())) {
+	if (isValidDocumentId(db.getSlugFromLocation())) {
 		await collab.init(sharedarraybuffer)
 		party.setAttribute("collab", "init")
 	} else {
@@ -667,7 +667,7 @@ party.settings.when("jam", async () => {
 addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
 	collab.stop()
-	if (isValidAutomergeUrl(slug)) {
+	if (isValidDocumentId(slug)) {
 		await collab.start(slug, memtree)
 	} else {
 		await db.load(slug)

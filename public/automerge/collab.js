@@ -480,5 +480,5 @@ export function create(memtree) {
 	handle.change(doc => {
 		doc.master = {bpm: memtree.bpm}
 	})
-	return handle.url
+	return handle.documentId
 }

@@ -1,6 +1,6 @@
 import * as share from "./share.js"
 import * as Memory from "../memory/memory.js"
-import {isValidAutomergeUrl} from "../automerge/automerge-repo-slim.js"
+import {isValidDocumentId} from "../automerge/automerge-repo-slim.js"
 
 /** @type {IDBDatabase} */
 let db
@@ -89,7 +89,7 @@ export async function exists(id = getSlugFromLocation()) {
 }
 
 export function save(id = getSlugFromLocation()) {
-	if (isValidAutomergeUrl(id)) {
+	if (isValidDocumentId(id)) {
 		return
 	}
 	worker.postMessage({

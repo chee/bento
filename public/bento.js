@@ -65,7 +65,7 @@ async function getFancy() {
 				await sounds.loadDefaultKit()
 			}
 		}
-		if (isAutomerge) {
+		if (isAutomerge && !collab.fancy()) {
 			await collab.init(sharedarraybuffer)
 			await collab.start(
 				/** @type {import("@automerge/automerge-repo").AutomergeUrl}*/ (slug),
@@ -652,7 +652,7 @@ party.settings.when("jam", async () => {
 	collab.stop()
 	party.slug = slug
 	party.tree = memtree
-	collab.start(slug, memtree)
+	await collab.start(slug, memtree)
 })
 
 addEventListener("popstate", async () => {
@@ -660,7 +660,7 @@ addEventListener("popstate", async () => {
 	collab.stop()
 	if (isValidAutomergeUrl(slug)) {
 		await collab.init()
-		collab.start(slug, memtree)
+		await collab.start(slug, memtree)
 	} else {
 		await db.load(slug)
 	}

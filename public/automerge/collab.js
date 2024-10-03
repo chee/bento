@@ -67,9 +67,14 @@ async function withAutomergeRepo(fn) {
 }
 
 export function fancy() {
-	return !!repo
+	return Boolean(repo?.networkSubsystem.isReady())
 }
 
+/**
+ *
+ * @param {SharedArrayBuffer} sab
+ * @returns
+ */
 export async function init(sab) {
 	if (repo) return
 	sharedarraybuffer = sab

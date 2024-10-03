@@ -367,10 +367,9 @@ export async function start(url, memtree) {
 							index,
 							sound => {
 								if (key == "bytes") {
-									sound.audio = u82f(value).subarray(
-										index,
-										change.patchInfo.after.length
-									)
+									sound.audio = u82f(
+										/** @type {Uint8Array} */ (value)
+									).subarray(index, change.patchInfo.after.length)
 								} else if (key == "version") {
 								} else {
 									sound[key] = value

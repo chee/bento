@@ -431,7 +431,7 @@ function update(frame = 0, force = false) {
 	}
 
 	// Send the current line to the window so it can be used as the step button's
-	// background colour. Don't update while the region is being drawn, that's
+	// background. Don't update while the region is being drawn, that's
 	// silly and would be v slow
 	// This'll clear the current canvas, so needs to be done before anything else
 	// that means it has be be done synchronously too

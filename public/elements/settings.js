@@ -41,11 +41,6 @@ export default class BentoSettings extends BentoElement {
 		this.shadow.innerHTML = `<div></div>`
 		this.attachStylesheet("settings")
 		this.createButton({
-			name: "jam",
-			type: "button",
-			label: "jam"
-		})
-		this.createButton({
 			name: "save-as",
 			type: "button",
 			label: "duplicate pattern"
@@ -94,6 +89,11 @@ export default class BentoSettings extends BentoElement {
 			},
 			this.shadow.firstElementChild
 		)
+		this.createButton({
+			name: "jam",
+			type: "button",
+			label: "jam"
+		})
 	}
 
 	get open() {

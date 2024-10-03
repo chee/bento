@@ -104,7 +104,7 @@ export default class BentoGrid extends BentoElement {
 	set selectedStepIndex(val) {
 		this.set("selectedStepIndex", val, () => {
 			for (let box of this.boxes) {
-				let selected = val == box.step.indexInGrid
+				let selected = val == box.step?.indexInGrid
 				box.selected = selected
 				box.autofocus = selected
 				selected && box.focus()
@@ -120,7 +120,7 @@ export default class BentoGrid extends BentoElement {
 	set currentStepIndex(val) {
 		this.set("currentStepIndex", val, () => {
 			for (let box of this.boxes) {
-				box.playing = box.step.indexInGrid == val
+				box.playing = box.step?.indexInGrid == val
 			}
 		})
 	}

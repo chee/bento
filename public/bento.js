@@ -11,6 +11,7 @@ async function registerServiceWorker() {
 				console.info("Service worker installing")
 			} else if (registration.waiting) {
 				console.info("Service worker installed")
+				location.reload()
 			} else if (registration.active) {
 				console.info("Service worker active")
 			}

@@ -2,7 +2,9 @@ import {
 	LAYERS_PER_MACHINE,
 	GRIDS_PER_LAYER,
 	STEPS_PER_GRID,
-	STEPS_PER_LAYER
+	STEPS_PER_LAYER,
+	STEPS_PER_MACHINE,
+	GRIDS_PER_MACHINE
 } from "./memory/constants.js"
 
 /**
@@ -61,4 +63,24 @@ export function grids(fn) {
  */
 export function gridSteps(fn) {
 	return range(STEPS_PER_GRID).map(index => fn(index))
+}
+
+/**
+ * loop over the number of steps per machine
+ * @template {any} T
+ * @param {(stepIdx: number) => T} fn
+ * @returns {T[]}
+ */
+export function machineSteps(fn) {
+	return range(STEPS_PER_MACHINE).map(index => fn(index))
+}
+
+/**
+ * loop over the number of grids per machine
+ * @template {any} T
+ * @param {(gridIdx: number) => T} fn
+ * @returns {T[]}
+ */
+export function machineGrids(fn) {
+	return range(GRIDS_PER_MACHINE).map(index => fn(index))
 }

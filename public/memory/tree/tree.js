@@ -31,6 +31,10 @@ import {map, unmap} from "../memory.js"
  * @prop {Grid} grid
  */
 
+/**
+ * @typedef {(kind: "layers"|"grids"|"steps"|"sounds"|"master"|"", index: number, source: string) => void} MemoryListener
+ */
+
 export default class MemoryTree {
 	/** @type {import("../memory").MemoryMap} */
 	#mem
@@ -50,6 +54,22 @@ export default class MemoryTree {
 	/** @type {Step[]} */
 	#steps
 
+	get layers() {
+		return this.#layers
+	}
+
+	get sounds() {
+		return this.#sounds
+	}
+
+	get grids() {
+		return this.#grids
+	}
+
+	get steps() {
+		return this.#steps
+	}
+
 	/** @param {import("../memory").MemoryMap} mem */
 	constructor(mem) {
 		this.#mem = mem
@@ -65,16 +85,16 @@ export default class MemoryTree {
 		return new MemoryTree(map(buffer))
 	}
 
-	/** @type {Set<() => void>} */
+	/** @type {Set<MemoryListener>} */
 	#listeners = new Set()
 
 	/**
-	 * @param {"layers"|"grids"|"steps"|"sounds"|"master"} item
+	 * @param {"layers"|"grids"|"steps"|"sounds"|"master"|""} item
 	 * @param {number} index
 	 */
-	announce(item, index) {
+	announce(item, index, source = "unknown") {
 		for (let listener of this.#listeners) {
-			listener()
+			listener(item, index, source)
 		}
 		if (item && index != null) {
 			// something in here for the workers
@@ -83,7 +103,7 @@ export default class MemoryTree {
 		}
 	}
 
-	/** @param {() => void} fn */
+	/** @param {MemoryListener} fn */
 	listen(fn) {
 		this.#listeners.add(fn)
 		return () => this.#listeners.delete(fn)
@@ -150,6 +170,16 @@ export default class MemoryTree {
 	}
 
 	/**
+	 * @param {number} index
+	 */
+	getStepJSON(index) {
+		if (!this.#steps[index]) {
+			this.#steps[index] = new Step(this.#mem, index)
+		}
+		return this.#steps[index].toJSON()
+	}
+
+	/**
 	 * @param {number} layer
 	 * @param {number} step
 	 * @return {Step["view"]}
@@ -172,38 +202,38 @@ export default class MemoryTree {
 	 * @param {number} layer
 	 * @param {(layer: Layer) => void} fn
 	 */
-	alterLayer(layer, fn) {
+	alterLayer(layer, fn, source = "unknown") {
 		fn(this.#layers[layer])
-		this.announce("layers", layer)
+		this.announce("layers", layer, source)
 	}
 
 	/**
 	 * @param {number} sound
 	 * @param {(step: Sound) => void} fn
 	 */
-	alterSound(sound, fn) {
+	alterSound(sound, fn, source = "unknown") {
 		fn(this.#sounds[sound])
-		this.announce("sounds", sound)
+		this.announce("sounds", sound, source)
 	}
 
 	/**
 	 * @param {number} step
 	 * @param {(step: Step) => void} fn
 	 */
-	alterStep(step, fn) {
+	alterStep(step, fn, source = "unknown") {
 		fn(this.#steps[step])
 		// todo i don't need to do this if i delete the `view' in step instead
 
-		this.announce("steps", step)
+		this.announce("steps", step, source)
 	}
 
 	/**
 	 * @param {number} grid
 	 * @param {(step: Grid) => void} fn
 	 */
-	alterGrid(grid, fn) {
+	alterGrid(grid, fn, source = "unknown") {
 		fn(this.#grids[grid])
-		this.announce("grids", grid)
+		this.announce("grids", grid, source)
 	}
 
 	/**
@@ -224,7 +254,7 @@ export default class MemoryTree {
 			fromStepStart + STEPS_PER_GRID
 		)
 		toGrid.paste(fromGrid)
-		this.announce("grids", to)
+		this.announce("grids", to, "ui")
 	}
 
 	/**
@@ -232,8 +262,8 @@ export default class MemoryTree {
 	 * @param {number} grid
 	 * @param {(step: Grid) => void} fn
 	 */
-	alterLayerGrid(grid, fn) {
-		this.alterGrid(grid2layerGrid(grid), fn)
+	alterLayerGrid(grid, fn, source = "unknown") {
+		this.alterGrid(grid2layerGrid(grid), fn, source)
 	}
 
 	/**
@@ -241,14 +271,14 @@ export default class MemoryTree {
 	 * @param {Key} type
 	 * @param {(item: AlterSelectedMap[Key]) => void} fn
 	 */
-	alterSelected(type, fn) {
+	alterSelected(type, fn, source = "unknown") {
 		switch (type) {
 			case "layer":
-				return this.alterLayer(this.selectedLayer, fn)
+				return this.alterLayer(this.selectedLayer, fn, source)
 			case "grid":
-				return this.alterGrid(this.getSelectedLayer().selectedGrid, fn)
+				return this.alterGrid(this.getSelectedLayer().selectedGrid, fn, source)
 			case "step":
-				return this.alterStep(this.selectedStep, fn)
+				return this.alterStep(this.selectedStep, fn, source)
 		}
 	}
 
@@ -265,16 +295,32 @@ export default class MemoryTree {
 	}
 
 	/**
+	 * @param {number} val
+	 */
+	setSelectedLayer(val, source = "unknown") {
+		this.#mem.master.set([val], Master.selectedLayer, source)
+	}
+
+	/**
 	 * @type number
 	 */
 	get bpm() {
-		return this.#mem.master.at(Master.bpm) || 120
+		return this.#mem.master.at(Master.bpm)
 	}
 
 	set bpm(val) {
-		let bpm = Math.clamp(val || 120, 20, 240)
+		let bpm = Math.clamp(val, 20, 240)
 		this.#mem.master.set([bpm], Master.bpm)
 		this.announce("master", Master.bpm)
+	}
+
+	/**
+	 * @param {number} val
+	 */
+	setBPM(val, source = "unknown") {
+		let bpm = Math.clamp(val, 20, 240)
+		this.#mem.master.set([bpm], Master.bpm)
+		this.announce("master", Master.bpm, source)
 	}
 
 	/**
@@ -486,10 +532,14 @@ export default class MemoryTree {
 		if ((start | 0) == (end | 0)) {
 			;[start, end] = [0, 0]
 		}
-		this.alterSelected("step", step => {
-			step.start = start
-			step.end = end
-		})
+		this.alterSelected(
+			"step",
+			step => {
+				step.start = start
+				step.end = end
+			},
+			"ui"
+		)
 		this.drawingRegionStart = 0
 		this.drawingRegionEnd = 0
 		this.drawingRegionX = 0

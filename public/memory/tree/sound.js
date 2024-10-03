@@ -1,5 +1,8 @@
 import {SOUND_SIZE} from "../constants.js"
 
+/**
+ * @typedef {ReturnType<Sound['toJSON']>} SoundJSON
+ */
 export default class Sound {
 	/** @type {import("../memory").MemoryMap} */
 	#mem

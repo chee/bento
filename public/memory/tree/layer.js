@@ -1,4 +1,8 @@
 import {LayerType} from "../constants.js"
+
+/**
+ * @typedef {ReturnType<Layer['toJSON']>} LayerJSON
+ */
 export default class Layer {
 	/** @type {import("../memory").MemoryMap} */
 	#mem

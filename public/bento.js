@@ -20,7 +20,7 @@ async function registerServiceWorker() {
 	}
 }
 
-registerServiceWorker()
+location.hostname === "localhost" || registerServiceWorker()
 
 import * as sounds from "./sounds/sounds.js"
 import * as graphics from "./graphics/graphics.js"
@@ -32,14 +32,13 @@ import {
 	map,
 	save,
 	size,
-	step2gridStep,
-	unmap
+	step2gridStep
 } from "./memory/memory.js"
 import MemoryTree from "./memory/tree/tree.js"
 import * as db from "./db/db.js"
 import Ask from "./io/ask.js"
-import Modmask from "./io/modmask.js"
-
+import {isValidAutomergeUrl} from "./automerge/automerge-repo-slim.js"
+import * as collab from "./automerge/collab.js"
 let sharedarraybuffer = new SharedArrayBuffer(MEMORY_SIZE)
 
 let memtree = MemoryTree.from(sharedarraybuffer)
@@ -53,16 +52,25 @@ if (history.scrollRestoration) {
 }
 
 async function getFancy() {
+	let slug = db.getSlugFromLocation()
+	let isAutomerge = isValidAutomergeUrl(slug)
 	if (party.fancy) {
 		return
 	}
 	try {
-		if (!db.fancy()) {
+		if (!db.fancy() && !isAutomerge) {
 			await db.load()
 
 			if (sounds.empty()) {
 				await sounds.loadDefaultKit()
 			}
+		}
+		if (isAutomerge) {
+			await collab.init(sharedarraybuffer)
+			await collab.start(
+				/** @type {import("@automerge/automerge-repo").AutomergeUrl}*/ (slug),
+				memtree
+			)
 		}
 		if (!sounds.fancy()) {
 			await sounds.start()
@@ -72,7 +80,11 @@ async function getFancy() {
 			graphics.start(sharedarraybuffer)
 		}
 
-		if (sounds.fancy() && graphics.fancy() && db.fancy()) {
+		if (
+			sounds.fancy() &&
+			graphics.fancy() &&
+			(db.fancy() || (isAutomerge && collab.fancy()))
+		) {
 			party.fancy = true
 		}
 	} catch {}
@@ -83,7 +95,7 @@ async function getFancy() {
 			openScreen()
 		}, 200)
 		// }
-		let slug = db.slugify(db.getSlugFromLocation())
+		let slug = db.getSlugFromLocation()
 		history.replaceState(
 			{slug},
 			"",
@@ -93,7 +105,8 @@ async function getFancy() {
 		)
 		party.slug = slug
 		party.tree = memtree
-		memtree.listen(() => {
+		memtree.listen((kind, index, source) => {
+			console.info("affecting ui", source)
 			party.tree = memtree
 		})
 		// this is currently taken care of in sound.js
@@ -170,9 +183,13 @@ async function loadFromFile(file) {
 }
 
 async function init() {
-	await db.init(sharedarraybuffer)
+	if (isValidAutomergeUrl(db.getSlugFromLocation())) {
+		await collab.init(sharedarraybuffer)
+	} else {
+		await db.init(sharedarraybuffer)
+	}
 	await graphics.init()
-	await sounds.init(sharedarraybuffer)
+	await sounds.init(sharedarraybuffer, memtree)
 }
 
 await init()
@@ -195,7 +212,7 @@ party.when("stop", () => {
 })
 
 party.when("set-bpm", bpm => {
-	memtree.bpm = bpm
+	bpm && (memtree.bpm = bpm)
 	db.save()
 })
 
@@ -219,35 +236,51 @@ party.when("select-layer", index => {
 })
 
 party.when("update-grid", message => {
-	memtree.alterGrid(message.grid.index, grid => {
-		grid[message.property] = message.value
-	})
+	memtree.alterGrid(
+		message.grid.index,
+		grid => {
+			grid[message.property] = message.value
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("select-grid", index => {
-	memtree.alterSelected("layer", layer => {
-		layer.selectedGrid = grid2layerGrid(index)
-	})
+	memtree.alterSelected(
+		"layer",
+		layer => {
+			layer.selectedGrid = grid2layerGrid(index)
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("copy-grid", message => {
-	memtree.alterGrid(message.to, grid => {
-		grid.paste(memtree.getGrid(message.from))
-	})
+	memtree.alterGrid(
+		message.to,
+		grid => {
+			grid.paste(memtree.getGrid(message.from))
+		},
+		"ui"
+	)
 
 	db.save()
 })
 
 party.when("toggle-grid", index => {
-	memtree.alterGrid(index, grid => {
-		let activeGrids = memtree.getActiveGridIndices(grid.layerIndex)
-		if (activeGrids.length <= 1 && grid.on) {
-			return
-		}
-		grid.toggle()
-	})
+	memtree.alterGrid(
+		index,
+		grid => {
+			let activeGrids = memtree.getActiveGridIndices(grid.layerIndex)
+			if (activeGrids.length <= 1 && grid.on) {
+				return
+			}
+			grid.toggle()
+		},
+		"ui"
+	)
 	db.save()
 })
 
@@ -260,67 +293,99 @@ customElements.whenDefined("bento-screen-controls").then(() => {
 		let info = await sounds.recordSound()
 		party.startRecording(info)
 		let audio = await info.audio
-		memtree.alterSound(memtree.selectedLayer, sound => {
-			sound.audio = audio
-		})
+		memtree.alterSound(
+			memtree.selectedLayer,
+			sound => {
+				sound.audio = audio
+			},
+			"ui"
+		)
 		party.recording = false
 		db.save()
 	})
 
 	party.screen.when("set-sound", async message => {
 		let audio = await sounds.decode(message.audio)
-		memtree.alterSound(memtree.selectedLayer, sound => {
-			sound.audio = audio
-		})
+		memtree.alterSound(
+			memtree.selectedLayer,
+			sound => {
+				sound.audio = audio
+			},
+			"ui"
+		)
 		db.save()
 	})
 
 	party.screen.when("flip-sound", async index => {
-		memtree.alterSound(memtree.selectedLayer, sound => {
-			sound.flip()
-		})
+		memtree.alterSound(
+			memtree.selectedLayer,
+			sound => {
+				sound.flip()
+			},
+			"ui"
+		)
 		db.save()
 	})
 
 	party.screen.when("clip-sound", message => {
 		let from = memtree.getStep(message.from)
-		memtree.alterSound(memtree.selectedLayer, sound => {
-			sound.clip(from.start, from.end)
-		})
+		memtree.alterSound(
+			memtree.selectedLayer,
+			sound => {
+				sound.clip(from.start, from.end)
+			},
+			"ui"
+		)
 		memtree.clearRegions(memtree.selectedLayer)
 		db.save()
 	})
 
 	party.screen.controls.when("flip", message => {
-		memtree.alterStep(memtree.selectedStep, step => {
-			step.flip()
-		})
+		memtree.alterStep(
+			memtree.selectedStep,
+			step => {
+				step.flip()
+			},
+			"ui"
+		)
 		db.save()
 	})
 
 	party.screen.controls.when("loop", message => {
-		memtree.alterStep(memtree.selectedStep, step => {
-			step.loop = message
-		})
+		memtree.alterStep(
+			memtree.selectedStep,
+			step => {
+				step.loop = message
+			},
+			"ui"
+		)
 		db.save()
 	})
 
 	party.screen.controls.when("ctrl", message => {
-		memtree.alterStep(memtree.selectedStep, step => {
-			if (step.state == "off" || step.state == "on") {
-				step.state = "ctrl"
-			} else {
-				step.state = "off"
-			}
-		})
+		memtree.alterStep(
+			memtree.selectedStep,
+			step => {
+				if (step.state == "off" || step.state == "on") {
+					step.state = "ctrl"
+				} else {
+					step.state = "off"
+				}
+			},
+			"ui"
+		)
 		db.save()
 	})
 })
 
 party.when("select-layer-type", message => {
-	memtree.alterLayer(message.layer, layer => {
-		layer.type = message.type
-	})
+	memtree.alterLayer(
+		message.layer,
+		layer => {
+			layer.type = message.type
+		},
+		"ui"
+	)
 	db.save()
 })
 
@@ -340,23 +405,35 @@ party.screen.when("drawing-region-end", x => {
 })
 
 party.screen.when("set-pan", pan => {
-	memtree.alterStep(memtree.selectedStep, step => {
-		step.pan = pan
-	})
+	memtree.alterStep(
+		memtree.selectedStep,
+		step => {
+			step.pan = pan
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.screen.when("set-quiet", quiet => {
-	memtree.alterSelected("step", step => {
-		step.quiet = quiet
-	})
+	memtree.alterSelected(
+		"step",
+		step => {
+			step.quiet = quiet
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.screen.when("set-pitch", pitch => {
-	memtree.alterSelected("step", step => {
-		step.pitch = pitch
-	})
+	memtree.alterSelected(
+		"step",
+		step => {
+			step.pitch = pitch
+		},
+		"ui"
+	)
 	db.save()
 })
 
@@ -366,74 +443,114 @@ party.when("select-step", index => {
 })
 
 party.when("update-step", message => {
-	memtree.alterStep(message.index, step => {
-		step[message.property] = message.value
-	})
+	memtree.alterStep(
+		message.index,
+		step => {
+			step[message.property] = message.value
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("toggle-step", index => {
-	memtree.alterStep(index, step => {
-		step.toggle()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.toggle()
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("turn-step-on", index => {
-	memtree.alterStep(index, step => {
-		step.toggle(true)
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.toggle(true)
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("turn-step-off", index => {
-	memtree.alterStep(index, step => {
-		step.toggle(false)
-		db.save()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.toggle(false)
+			db.save()
+		},
+		"ui"
+	)
 })
 
 party.when("flip-step", index => {
-	memtree.alterStep(index, step => {
-		step.flip()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.flip()
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.grid.when("copy-step", message => {
-	memtree.alterStep(message.to, step => {
-		step.paste(memtree.getStep(message.from))
-	})
+	memtree.alterStep(
+		message.to,
+		step => {
+			step.paste(memtree.getStep(message.from))
+		},
+		"ui"
+	)
 	memtree.selectedUiStep = step2gridStep(message.to)
 	party.grid.boxes[memtree.selectedUiStep].focus()
 	db.save()
 })
 
 party.when("step-softly", index => {
-	memtree.alterStep(index, step => {
-		step.quieter()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.quieter()
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("step-loudly", index => {
-	memtree.alterStep(index, step => {
-		step.louder()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.louder()
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("pan-step-left", index => {
-	memtree.alterStep(index, step => {
-		step.lefter()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.lefter()
+		},
+		"ui"
+	)
 	db.save()
 })
 
 party.when("pan-step-right", index => {
-	memtree.alterStep(index, step => {
-		step.righter()
-	})
+	memtree.alterStep(
+		index,
+		step => {
+			step.righter()
+		},
+		"ui"
+	)
 	db.save()
 })
 
@@ -528,9 +645,25 @@ party.settings.when("load", async () => {
 	openAndLoadFile()
 })
 
+party.settings.when("jam", async () => {
+	await collab.init()
+	pushSlug(collab.create(memtree))
+	let {slug} = history.state
+	collab.stop()
+	party.slug = slug
+	party.tree = memtree
+	collab.start(slug, memtree)
+})
+
 addEventListener("popstate", async () => {
 	let slug = history.state?.slug || "bento"
-	await db.load(slug)
+	collab.stop()
+	if (isValidAutomergeUrl(slug)) {
+		await collab.init()
+		collab.start(slug, memtree)
+	} else {
+		await db.load(slug)
+	}
 	party.slug = slug
 	party.tree = memtree
 })
@@ -586,11 +719,7 @@ async function loadPattern() {
 	)
 	if (slug) {
 		await db.load(slug)
-		history.pushState(
-			{slug},
-			"",
-			slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
-		)
+		pushSlug(slug)
 		party.slug = slug
 		party.tree = memtree
 		openScreen()
@@ -605,11 +734,7 @@ async function renamePattern() {
 
 async function newPattern() {
 	let slug = db.generateRandomSlug()
-	history.pushState(
-		{slug},
-		"",
-		slug == "bento" ? "/" : `/#patterns/${slug}/` + location.search
-	)
+	pushSlug(slug)
 	await db.load(slug)
 	await sounds.loadDefaultKit()
 	party.slug = slug

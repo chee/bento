@@ -2,8 +2,10 @@ export const SOUND_SIZE = 2 ** 16 * 4
 
 export const LAYERS_PER_MACHINE = 4
 export const GRIDS_PER_LAYER = 8
+export const GRIDS_PER_MACHINE = GRIDS_PER_LAYER * LAYERS_PER_MACHINE
 export const STEPS_PER_GRID = 16
 export const STEPS_PER_LAYER = GRIDS_PER_LAYER * STEPS_PER_GRID
+export const STEPS_PER_MACHINE = STEPS_PER_LAYER * LAYERS_PER_MACHINE
 export const QUANTUM = 128
 export const DYNAMIC_RANGE = 12
 export const NUMBER_OF_KEYS = 16

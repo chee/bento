@@ -2,15 +2,18 @@
 	"name": "bento",
 	"type": "module",
 	"devDependencies": {
-		"prettier": "^3.0.3"
+		"prettier": "^3.0.3",
+		"serve": "^14.2.3"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0"
 	},
 	"scripts": {
-		"start": "npx serve public"
+		"start": "PORT=${PORT:-1111} serve public",
+		"dev": "pnpm start"
 	},
 	"dependencies": {
+		"@automerge/automerge-repo": "^1.2.1",
 		"@secret-types/serviceworker": "npm:@types/serviceworker@^0.0.96",
 		"@types/audioworklet": "^0.0.50"
 	},

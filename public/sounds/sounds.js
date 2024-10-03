@@ -3,7 +3,6 @@ import * as loop from "../convenience/loop.js"
 import MemoryTree from "../memory/tree/tree.js"
 import Passthru from "./sources/passthru.js"
 import BentoSoundSource from "./sources/source.js"
-import Synth from "./sources/synth.js"
 let party = document.querySelector("bento-party")
 
 let context = new AudioContext()
@@ -37,7 +36,7 @@ function normalize(sound) {
  * trim zeros from the beginning of audio
  * @param {Float32Array} sound
  */
-function trim(sound) {
+export function trim(sound) {
 	// i have NO IDEA what i'm doing.  what is -144dB in 32-bit float???????????
 	let noisefloor = 1e-33
 
@@ -256,7 +255,6 @@ export async function start() {
 	analyzer.fftSize = 2048
 	// todo write analysis to memory periodically
 	// let analysis = new Float32Array(analyzer.fftSize)
-
 	loop.layers(idx =>
 		(safari18 ? safari18wire : wire)(idx, memtree.getLayer(idx).type)
 	)
@@ -272,10 +270,14 @@ export async function start() {
 export async function loadKit(...urls) {
 	for (let [index, url] of Object.entries(urls)) {
 		let audio = await fetchSound(url)
-		memtree.alterSound(+index, sound => {
-			sound.audio = audio
-			// sound.sampleRate = context.sampleRate
-		})
+		memtree.alterSound(
+			+index,
+			sound => {
+				sound.audio = audio
+				// sound.sampleRate = context.sampleRate
+			},
+			"load-kit"
+		)
 	}
 }
 
@@ -300,8 +302,8 @@ export function empty() {
  * @param {SharedArrayBuffer} buffer
  * @return {Promise}
  */
-export async function init(buffer) {
+export async function init(buffer, mainmemtree) {
 	sharedarraybuffer = buffer
-	memtree = MemoryTree.from(buffer)
+	memtree = mainmemtree
 	memtree.sampleRate = context.sampleRate
 }

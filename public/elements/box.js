@@ -176,6 +176,9 @@ export default class BentoBox extends BentoElement {
 		return this.get("pan")
 	}
 
+	get wav() {
+		return this.get("wav")
+	}
 	/**
 	 * @param {string?} [val]
 	 */
@@ -184,10 +187,6 @@ export default class BentoBox extends BentoElement {
 			this.toggleAttribute("with-wav", val != null)
 			this.#wavimg.src = val
 		})
-	}
-
-	get wav() {
-		return this.get("wav")
 	}
 
 	/** @type {keyof typeof LayerType} */

@@ -80,7 +80,7 @@ async function getFancy() {
 			party.setAttribute("collab", "fancy")
 		}
 
-		if (!sounds.fancy()) {
+		if (!sounds.fancy() && (!isAutomerge || collab.fancy())) {
 			await sounds.start()
 			party.setAttribute("sfx", "fancy")
 		}
@@ -112,7 +112,7 @@ async function getFancy() {
 		party.slug = slug
 		party.tree = memtree
 		memtree.listen((kind, index, source) => {
-			console.info("affecting ui", source)
+			// console.debug("affecting ui", source)
 			party.tree = memtree
 		})
 		// this is currently taken care of in sound.js

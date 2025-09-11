@@ -55,7 +55,7 @@ canvas {
 		color-mix(in srgb, var(--pan-left-mix), var(--pan-right-mix) 92%) 0 92%,
 		color-mix(in srgb, var(--pan-left-mix), var(--pan-right-mix) 100%) 0 100%
 	);
-	background-size: 100% 4em;
+	background-size: 100%;
 	background-repeat: no-repeat;
 }
 
